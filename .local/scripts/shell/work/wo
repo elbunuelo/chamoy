@@ -1,0 +1,51 @@
+#! /bin/zsh
+
+play-file () {
+  if [[ $1 == "" ]] then
+    return
+  fi
+  [ -f $1 ] && /Applications/VLC.app/Contents/MacOS/VLC --play-and-exit --intf dummy $1 > /dev/null 2>&1
+}
+
+get-play-file () {
+  DIRECTORY="$HOME/scripts/shell/work/$1"
+  PLAY_FILE=$(ls "$DIRECTORY" /dev/null | sort -R | tail -n 1)
+  if [[ $? == 0 ]] then
+    return
+  fi
+
+  echo "$DIRECTORY/$PLAY_FILE"
+}
+
+work-start () {
+  PLAY_FILE=$(get-play-file "start")
+  play-file $PLAY_FILE
+}
+
+work-complete () {
+  PLAY_FILE=$(get-play-file "done")
+  play-file $PLAY_FILE
+}
+
+work-error () {
+  PLAY_FILE=$(get-play-file "error")
+  play-file $PLAY_FILE
+}
+
+# Run a command and play "Work complete" afterwards
+wo () {
+  work-start
+  COMMAND="$@"
+  if [[ $COMMAND == "" ]] then
+    fc -ILe- 2> /dev/null
+  else
+    $@
+  fi
+
+  if [[ $? == 0 ]] then
+    work-complete
+  else
+    work-error
+  fi
+}
+

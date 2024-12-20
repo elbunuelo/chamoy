@@ -1,0 +1,5 @@
+#! /usr/bin/env bash
+
+$HOMEBREW_PREFIX/bin/brew install chezmoi
+$HOMEBREW_PREFIX/bin/chezmoi init --apply elbunuelo
+

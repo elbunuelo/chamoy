@@ -1,0 +1,4 @@
+addToPath() {
+ export PATH=$PATH:$1
+}
+addToPath $HOME/.local/scripts
