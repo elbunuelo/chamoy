@@ -42,9 +42,6 @@ local live_multigrep = function(opts)
         end
       end
 
-
-
-
       return vim.tbl_flatten {
         args,
         { "--color=never", "--no-heading", "--with-filename", "--line-number", "--column", "--smart-case" }
