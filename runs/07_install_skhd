@@ -1,4 +1,5 @@
 #! /usr/bin/env bash
 
 $HOMEBREW_PREFIX/bin/brew install koekeishiya/formulae/skhd
+$HOMEBREW_PREFIX/bin/skhd --install-service
 $HOMEBREW_PREFIX/bin/skhd --start-service
