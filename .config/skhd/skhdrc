@@ -108,9 +108,9 @@
 # open terminal, blazingly fast compared to iTerm/Hyper
 #cmd - return : /Applications/kitty.app/Contents/MacOS/kitty --single-instance -d ~
 cmd + shift - a: open -a "Kitty"
-cmd + shift - s: open -a "Google Chrome"
-cmd + shift - d: open -a "Firefox"
-cmd + shift - f: open -a "Slack"
+cmd + shift - s: open -a "Firefox"
+cmd + shift - q: open -a "Google Chrome"
+cmd + shift - w: open -a "Slack"
 
 
 # open qutebrowser
