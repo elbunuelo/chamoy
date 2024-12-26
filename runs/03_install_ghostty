@@ -1,0 +1,3 @@
+#! /usr/bin/env bash
+
+$HOMEBREW_PREFIX/bin/brew install --cask ghostty
