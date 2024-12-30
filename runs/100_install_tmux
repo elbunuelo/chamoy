@@ -1,0 +1,8 @@
+#! /usr/bin/env bash
+
+
+if [[ $(uname) == "Darwin" ]] then
+  $HOMEBREW_PREFIX/bin/brew install tmux
+else
+  sudo dnf install -y tmux
+fi

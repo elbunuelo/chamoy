@@ -1,6 +1,0 @@
-#! /usr/bin/env bash
-
-$HOMEBREW_PREFIX/bin/brew install asdf awscli cmake diff-so-fancy direnv gh gnupg icu4c imagemagick krb5 llvm libomp memcached mkcert ngrok ninja openssl@1.1 openssl@3 overmind python python-setuptools redis ripgrep pkg-config openblas cairo pango libpng jpeg giflib librsvg pixman nss make
-brew services start memcached
-brew services start redis
-

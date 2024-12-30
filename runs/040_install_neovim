@@ -1,0 +1,7 @@
+#! /usr/bin/env bash
+
+if [[ $(uname) == "Darwin" ]] then
+  $HOMEBREW_PREFIX/bin/brew install neovim
+else
+  sudo dnf install -y neovim
+fi
