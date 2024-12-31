@@ -34,11 +34,12 @@ log "$script_dir -- $filter"
 
 cd $script_dir
 
+executable="-executable"
 if [[ $(uname) == "Darwin" ]] then
-  scripts=$(find ./runs -maxdepth 1 -mindepth 1 -perm +0111 -type f | sort)
-else
-  scripts=$(find ./runs -maxdepth 1 -mindepth 1 -executable -type f | sort)
+  executable="-perm +0111"
 fi
+
+scripts=$(find ./runs -maxdepth 1 -mindepth 1 $executable -type f | sort)
 
 for script in $scripts; do
   if echo "$script"  | grep -qv "$filter";then
