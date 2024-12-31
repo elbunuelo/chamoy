@@ -1,0 +1,10 @@
+#! /usr/bin/env bash
+
+git clone https://github.com/asdf-vm/asdf.git ~/.asdf
+
+if [[ $(uname) == "Darwin" ]] then
+  $HOMEBREW_PREFIX/bin/brew install asdf
+else
+  sudo dnf install -y asdf
+endif
+
