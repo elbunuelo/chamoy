@@ -56,9 +56,14 @@ copy_file() {
 
 copy_dir .config $XDG_CONFIG_HOME
 skhd --restart-service
+launchctl kickstart -k gui/$(id -u)/org.pqrs.service.agent.karabiner_console_user_server
+
 copy_dir .local $HOME/.local
 
 copy_file dotfiles/.tmux.conf $HOME
 copy_file dotfiles/.tmuxlinerc $HOME
 
 copy_file dotfiles/.zshrc $HOME
+
+mkdir -p $HOME/Library/KeyBindings
+copy_file Library/KeyBindings/DefaultKeyBinding.dict $HOME/Library/KeyBindings

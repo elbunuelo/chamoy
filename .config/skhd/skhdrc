@@ -112,7 +112,6 @@ cmd + shift - s: open -a "Firefox"
 cmd + shift - q: open -a "Google Chrome"
 cmd + shift - w: open -a "Slack"
 
-
 # open qutebrowser
 # cmd + shift - return : ~/Scripts/qtb.sh
 
