@@ -6,5 +6,4 @@ if [[ $(uname) == "Darwin" ]] then
   $HOMEBREW_PREFIX/bin/brew install asdf
 else
   sudo dnf install -y asdf
-endif
-
+fi
