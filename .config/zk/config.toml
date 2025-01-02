@@ -1,6 +1,3 @@
-[notebook]
-dir = "$HOME/notes"
-
 [note]
 template = "default.md"
 filename = "{{slug title}}-{{format-date now}}"
