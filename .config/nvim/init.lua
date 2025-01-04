@@ -449,7 +449,7 @@ local servers = {
       }
     }
   },
-  solargraph = {},
+  ruby_lsp = {},
   lua_ls = {
     settings = {
       Lua = {
