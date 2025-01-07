@@ -29,7 +29,7 @@ execute() {
   "$@"
 }
 
-log "-------------------- dev-env --------------------"
+log "-------------------- CHAMOY --------------------"
 
 copy_dir() {
   from=$1
@@ -60,6 +60,7 @@ copy_dir .local $HOME/.local
 
 copy_file dotfiles/.tmux.conf $HOME
 copy_file dotfiles/.tmuxlinerc $HOME
+tmux source-file $HOME/.tmux.conf
 
 copy_file dotfiles/.zshrc $HOME
 
@@ -86,5 +87,3 @@ elif [[ "$action" == 'run' ]]; then
   run
 fi
 
-exit 1
-run
