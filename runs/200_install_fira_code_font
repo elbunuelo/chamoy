@@ -1,0 +1,16 @@
+#! /usr/bin/env bash
+
+mkdir /tmp/firacode
+pushd /tmp/firacode
+wget https://github.com/ryanoasis/nerd-fonts/releases/download/v3.3.0/FiraCode.zip
+unzip FiraCode
+if [[ $(uname) == "Darwin" ]] then
+  mkdir -p $HOME/Library/Fonts/
+  mv *.ttf $HOME/Library/Fonts/
+else
+  mkdir -p $HOME/.fonts/
+  mv *.ttf $HOME/.fonts
+fi
+
+rm -rf /tmp/firacode
+popd
