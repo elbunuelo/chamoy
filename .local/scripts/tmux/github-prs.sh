@@ -5,7 +5,6 @@ TEAM_NAME="knowledge-team"
 MILLIS_SINCE_UPDATE=99999
 OUTPUT_FILE="prs-output"
 
-
 cd "$(dirname "$0")"
 if [[ -f "$OUTPUT_FILE" ]]
 then

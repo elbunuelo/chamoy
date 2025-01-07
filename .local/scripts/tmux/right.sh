@@ -1,9 +1,8 @@
 #! /usr/bin/env bash
 
-SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)
+cd "$(dirname "$0")"
 HOSTNAME_SCRIPT="$(hostname).sh"
 
-if [ -f "$SCRIPT_DIR/$HOSTNAME_SCRIPT" ]; then
-  echo "Running $HOSTNAME_SCRIPT"
-  /bin/bash "$SCRIPT_DIR/$HOSTNAME_SCRIPT"
+if [ -f "./$HOSTNAME_SCRIPT" ]; then
+ . "./$HOSTNAME_SCRIPT"
 fi
