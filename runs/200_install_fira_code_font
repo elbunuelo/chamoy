@@ -2,7 +2,7 @@
 
 mkdir /tmp/firacode
 pushd /tmp/firacode
-wget https://github.com/ryanoasis/nerd-fonts/releases/download/v3.3.0/FiraCode.zip
+wget https://github.com/ryanoasis/nerd-fonts/releases/latest/download/FiraCode.zip
 unzip FiraCode
 if [[ $(uname) == "Darwin" ]] then
   mkdir -p $HOME/Library/Fonts/
