@@ -1,6 +1,13 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
-selected=$(find -L ~/Projects -mindepth 1 -maxdepth 1 -type d | fzf)
+results=$(find -L ~/Projects -mindepth 1 -maxdepth 1 -type d -name "$1*")
+
+if [[ "$(echo $results | wc -l | xargs)" == "1" ]]; then
+  selected=$results
+else
+  selected=$(echo $results | fzf)
+fi
+
 if [[ -z "$selected" ]]; then
     exit 0
 fi
@@ -22,4 +29,4 @@ fi
 
 tmux new-session -ds $selected_name -c $selected
 switch_to
-tmux send-keys -t $selected_name "ready-tmux" Enter
+tmux send-keys -c $selected_name "chela" Enter

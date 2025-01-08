@@ -1,0 +1,8 @@
+#! /usr/bin/env bash
+
+if [[ -x "./.chela" ]]; then
+  ./.chela
+elif [[ -x "$HOME/.chela" ]]; then
+  "$HOME/.chela"
+fi
+clear

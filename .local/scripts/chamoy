@@ -1,14 +1,16 @@
 #! /usr/bin/env bash
 
-script_dir=$(cd $(dirname "$0") && pwd)
+CHAMOY_DIR="$HOME/Projects/chamoy"
+
 dry="0"
 action="run"
-
 while [[ $# > 0 ]]; do
   if [[ $1 == '--dry' ]]; then
     dry="1"
   elif [[ $1 == 'edit' ]]; then
     action="edit"
+  elif [[ $1 == 'cd' ]]; then
+    action='cd'
   fi
   shift
 done
@@ -53,33 +55,35 @@ copy_file() {
   execute cp $from $to/$name
 }
 
+
 run() {
-copy_dir .config $XDG_CONFIG_HOME
+  pushd $CHAMOY_DIR
+  copy_dir .config $XDG_CONFIG_HOME
 
-copy_dir .local $HOME/.local
+  copy_dir .local $HOME/.local
 
-copy_file dotfiles/.tmux.conf $HOME
-copy_file dotfiles/.tmuxlinerc $HOME
-tmux source-file $HOME/.tmux.conf
+  copy_file dotfiles/.tmux.conf $HOME
+  copy_file dotfiles/.tmuxlinerc $HOME
+  tmux source-file $HOME/.tmux.conf
 
-copy_file dotfiles/.zshrc $HOME
+  copy_file dotfiles/.zshrc $HOME
 
-if [[ $(uname) == "Darwin" ]] then
-  skhd --restart-service
-  launchctl kickstart -k gui/$(id -u)/org.pqrs.service.agent.karabiner_console_user_server
+  if [[ $(uname) == "Darwin" ]] then
+    skhd --restart-service
+    launchctl kickstart -k gui/$(id -u)/org.pqrs.service.agent.karabiner_console_user_server
 
-  mkdir -p $HOME/Library/KeyBindings
-  copy_file Library/KeyBindings/DefaultKeyBinding.dict $HOME/Library/KeyBindings
-fi
+    mkdir -p $HOME/Library/KeyBindings
+    copy_file Library/KeyBindings/DefaultKeyBinding.dict $HOME/Library/KeyBindings
+  fi
+  popd
 }
 
 edit() {
-  pushd "$HOME/Projects/chamoy"
+  pushd $CHAMOY_DIR
   nvim .
   popd
   exit 0
 }
-
 
 if [[ "$action" == 'edit' ]]; then
   edit
