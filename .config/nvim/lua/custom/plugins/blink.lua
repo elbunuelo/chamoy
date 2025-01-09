@@ -55,8 +55,9 @@ return {
         TypeParameter = '󰬛',
       },
     },
+    snippets = { preset = 'luasnip' },
     sources = {
-      default = { 'lsp', 'path', 'luasnip', 'buffer', 'copilot' },
+      default = { 'lsp', 'path', 'buffer', 'copilot' },
       providers = {
         copilot = {
           name = "copilot",
