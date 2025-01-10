@@ -1,4 +1,4 @@
-local PLUGIN_DIR = '~/Projects/aha/aha.nvim'
+local PLUGIN_DIR = '~/Projects/aha.nvim'
 
 if (vim.uv or vim.lop).fs_stat(PLUGIN_DIR) then
   return {
