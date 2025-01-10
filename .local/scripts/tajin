@@ -1,6 +1,7 @@
 #!/usr/bin/env zsh
 
-results=$(find -L ~/Projects -mindepth 1 -maxdepth 1 -type d -name "$1*")
+PROJECTS_DIR="$HOME/Projects"
+results=$(find -L "$PROJECTS_DIR" -mindepth 1 -maxdepth 1 -type d -name "$1*")
 
 if [[ "$(echo $results | wc -l | xargs)" == "1" ]]; then
   selected=$results
@@ -8,8 +9,11 @@ else
   selected=$(echo $results | fzf)
 fi
 
-if [[ -z "$selected" ]]; then
+if [[ -z "$selected" && "$1" == "" ]]; then
     exit 0
+elif [[ -z "$selected" ]]; then
+  mkdir "$PROJECTS_DIR/$1"
+  selected="$1"
 fi
 
 selected_name=$(basename "$selected" | tr ":,. " "____")
