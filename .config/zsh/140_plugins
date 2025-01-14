@@ -1,1 +1,2 @@
-plugins=(git asdf direnv)
+plugins=(git asdf)
+eval "$(direnv hook zsh)"
