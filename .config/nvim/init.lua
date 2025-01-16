@@ -273,6 +273,8 @@ require('lazy').setup({
           },
         },
         vtsls = {},
+        cssls = {},
+        html = {},
       }
 
       local ensure_installed = vim.tbl_keys(servers or {})

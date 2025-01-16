@@ -1,0 +1,8 @@
+#! /usr/bin/env bash
+
+# Required for html language server linting
+npm i -g vscode-langservers-extracted
+
+# Live server for auto reloading while developing
+# static sites
+npm i -g live-server
