@@ -14,6 +14,7 @@ return {
   opts = {
     keymap = {
       preset = 'default',
+      ['<C-n>'] = { 'show', 'show_documentation', 'hide_documentation' },
       ['<C-k>'] = { 'select_prev', 'fallback' },
       ['<C-j>'] = { 'select_next', 'fallback' },
       ['<Tab>'] = { 'select_and_accept', 'fallback' },
