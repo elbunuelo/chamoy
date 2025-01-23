@@ -2,6 +2,8 @@
 --
 -- Use your language server to automatically format your code on save.
 -- Adds additional commands as well to manage the behavior
+--
+local prettier_config = { 'prettierd', 'prettier', stop_after_first = true }
 
 return { -- Autoformat
   'stevearc/conform.nvim',
@@ -41,9 +43,14 @@ return { -- Autoformat
       -- python = { "isort", "black" },
       --
       -- You can use 'stop_after_first' to run the first available formatter from the list
-      javascript = { 'prettierd', 'prettier', stop_after_first = true },
-      html = { 'prettierd', 'prettier', stop_after_first = true },
-      css = { 'prettierd', 'prettier', stop_after_first = true },
+      typescriptreact = prettier_config,
+      javascriptreact = prettier_config,
+      typescript = prettier_config,
+      javascript = prettier_config,
+      html = prettier_config,
+      css = prettier_config,
+      less = prettier_config,
+      scss = prettier_config,
       ruby = { 'rubocop' },
     },
   },
