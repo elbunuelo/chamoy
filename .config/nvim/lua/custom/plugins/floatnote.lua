@@ -1,8 +1,8 @@
-local PLUGIN_DIR = '~/Projects/floatnote.nvim/'
+local PLUGIN_DIR = os.getenv 'HOME' .. '/Projects/floatnote.nvim'
 
 if (vim.uv or vim.lop).fs_stat(PLUGIN_DIR) then
   return {
-    { dir = PLGUIN_DIR },
+    { dir = PLUGIN_DIR },
   }
 end
 
