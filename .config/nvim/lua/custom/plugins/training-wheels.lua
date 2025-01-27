@@ -12,4 +12,6 @@ if (vim.uv or vim.lop).fs_stat(PLUGIN_DIR) then
   }
 end
 
-return {}
+return {
+  'elbunuelo/training-wheels',
+}
