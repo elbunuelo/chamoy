@@ -5,7 +5,7 @@ if (vim.uv or vim.lop).fs_stat(PLUGIN_DIR) then
     {
       dir = PLUGIN_DIR,
       opts = {
-        wheels_path = os.getenv 'HOME' .. 'Projects/wheels',
+        wheels_path = os.getenv 'HOME' .. '/Projects/wheels',
         default_wheel = '01',
       },
     },
