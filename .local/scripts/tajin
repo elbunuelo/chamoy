@@ -12,8 +12,10 @@ fi
 if [[ -z "$selected" && "$1" == "" ]]; then
     exit 0
 elif [[ -z "$selected" ]]; then
-  mkdir "$PROJECTS_DIR/$1"
-  selected="$1"
+  input_name=$(echo "$1" | tr "/:,. " "_____")
+  full_path="$PROJECTS_DIR/$input_name"
+  mkdir -p $full_path
+  selected="$full_path"
 fi
 
 selected_name=$(basename "$selected" | tr ":,. " "____")
