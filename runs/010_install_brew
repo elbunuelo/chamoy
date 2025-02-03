@@ -1,6 +1,6 @@
-#! /usr/bin/env bash
+#! /usr/bin/env zsh
 
 if [[ $(uname) == "Darwin" ]] then
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  /bin/zsh -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
 

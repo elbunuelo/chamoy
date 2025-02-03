@@ -1,4 +1,4 @@
-#! /usr/bin/env bash
+#! /usr/bin/env zsh
 
 if [[ $(uname) == "Darwin" ]] then
   $HOMEBREW_PREFIX/bin/brew install pandoc

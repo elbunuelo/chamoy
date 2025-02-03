@@ -1,6 +1,5 @@
 #! /usr/bin/env zsh
 
 if [[ $(uname) == "Darwin" ]] then
-  $HOMEBREW_PREFIX/bin/brew install awscli
+  $HOMEBREW_PREFIX/bin/brew install prettier stylelint
 fi
-

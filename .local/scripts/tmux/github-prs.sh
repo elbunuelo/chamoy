@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /bin/zsh
 
 USER_NAME="elbunuelo"
 TEAM_NAME="knowledge-team"

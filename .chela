@@ -1,3 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
-tmux new-window -n "ready-tmux"
+tmux rename-window "Editor"
+tmux send-keys "nvim ." Enter

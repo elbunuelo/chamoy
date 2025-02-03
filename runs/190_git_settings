@@ -1,4 +1,4 @@
-#! /usr/bin/env bash
+#! /usr/bin/env zsh
 
 git config --global pull.rebase true
 git config --global alias.branchdiff '!f(){ git diff --merge-base "${1:-master}"; };f'

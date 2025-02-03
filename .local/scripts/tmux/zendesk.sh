@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /bin/zsh
 # Queries the Aha graphQL API to extract the number of tickets
 # assigned to engineering and to the person identified by the $NAME
 # variable.
