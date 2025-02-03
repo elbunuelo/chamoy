@@ -9,10 +9,7 @@ play-file () {
 
 get-play-file () {
   DIRECTORY="$HOME/.local/scripts/shell/work/$1"
-  PLAY_FILE=$(ls "$DIRECTORY" /dev/null | sort -R | tail -n 1)
-  if [[ $? == 0 ]] then
-    return
-  fi
+  PLAY_FILE=$(ls "$DIRECTORY" | sort -R | tail -n 1)
 
   echo "$DIRECTORY/$PLAY_FILE"
 }
