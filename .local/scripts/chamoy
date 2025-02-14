@@ -39,7 +39,7 @@ copy_dir() {
 
   pushd "$from" > /dev/null
   dirs=$(find . -mindepth 1 -maxdepth 1 -type d)
-  for dir in $dirs; do
+  for dir in ${(f)dirs}; do
     execute rm -rf $to/$dir
     execute cp -r $dir $to/$dir
   done

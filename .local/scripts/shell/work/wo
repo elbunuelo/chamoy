@@ -4,7 +4,7 @@ play-file () {
   if [[ $1 == "" ]] then
     return
   fi
-  [ -f $1 ] && /Applications/VLC.app/Contents/MacOS/VLC --play-and-exit --intf dummy $1 > /dev/null 2>&1
+  [ -f $1 ] && /Applications/VLC.app/Contents/MacOS/VLC --auhal-volume=150 --play-and-exit --intf dummy $1 > /dev/null 2>&1
 }
 
 get-play-file () {
