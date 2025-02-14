@@ -66,6 +66,7 @@ run() {
   copy_file dotfiles/.tmuxlinerc $HOME
   tmux source-file $HOME/.tmux.conf
 
+  copy_file dotfiles/.zprofile $HOME
   copy_file dotfiles/.zshrc $HOME
 
   if [[ $(uname) == "Darwin" ]] then
