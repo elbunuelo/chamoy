@@ -49,7 +49,7 @@ copy_dir() {
 copy_file() {
   from=$1
   to=$2
-  name=$(basename $from)
+  name=$(basename $from | sed -e 's/dot_/./')
 
   execute rm $to/$name
   execute cp $from $to/$name
@@ -58,16 +58,18 @@ copy_file() {
 
 run() {
   pushd $CHAMOY_DIR
-  copy_dir .config $XDG_CONFIG_HOME
+  copy_dir dot_config $XDG_CONFIG_HOME
 
-  copy_dir .local $HOME/.local
+  copy_dir dot_local $HOME/.local
 
-  copy_file dotfiles/.tmux.conf $HOME
-  copy_file dotfiles/.tmuxlinerc $HOME
-  tmux source-file $HOME/.tmux.conf
+  copy_file dotfiles/dot_tmux.conf $HOME
+  copy_file dotfiles/dot_tmuxlinerc $HOME
+  tmux source-file $HOME
 
-  copy_file dotfiles/.zprofile $HOME
-  copy_file dotfiles/.zshrc $HOME
+  copy_file dotfiles/dot_zprofile $HOME
+  copy_file dotfiles/dot_zshrc $HOME
+
+  copy_file dotfiles/dot_chela $HOME
 
   if [[ $(uname) == "Darwin" ]] then
     skhd --restart-service
