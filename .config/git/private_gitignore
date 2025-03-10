@@ -1,0 +1,4 @@
+__private/
+
+Procfile.nico
+aha-app/packages/aha-editor-v2/script/coverage_match

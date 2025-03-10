@@ -4,7 +4,7 @@ addToPath() {
 
 alias pnpm="wo pnpm"
 alias nuke="wo rm -rf node_modules packages/*/node_modules .turbo-cache"
-alias aha-start-server="overmind s --any-can-die -f Procfile.mono"
+alias aha-start-server="overmind s --any-can-die"
 
 which aha > /dev/null 2>&1 && alias aha-cli=$(which aha)
 [ -f "$HOME/Projects/aha-dev-cli/aha" ] && alias aha=~/Projects/aha-dev-cli/aha
