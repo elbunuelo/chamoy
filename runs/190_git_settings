@@ -37,11 +37,5 @@ git config --global push.followTags true
 # Autocorrect my fat fingers
 git config --global help.autocorrect prompt
 
-# Provide an additional, globa, gitignore
+# Provide an additional, global, gitignore
 git config --global core.excludesfile ~/.config/git/private_gitignore
-
-# Might want to remove this, but adds a section ||| to merge
-# conflicts showing what the block looked like before either
-# change was made.
-git config --global merge.conflictstyle zdiff3
-
