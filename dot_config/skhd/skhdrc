@@ -1,5 +1,9 @@
 cmd + shift - a: open -a "Ghostty"
 cmd + shift - s: open -a "Zen Browser"
-cmd + shift - q: open -a "Google Chrome"
-cmd + shift - w: open -a "Slack"
+
+cmd + shift - w: open -a "Google Chrome"
+cmd + shift - q: open -a "Slack"
+cmd + shift - e: open -a "zoom.us"
+
 cmd + shift - z: open -a "Telegram"
+cmd + shift - x: open -a "Spotify"
