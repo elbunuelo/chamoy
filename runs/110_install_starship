@@ -1,0 +1,7 @@
+#! /usr/bin/env bash
+
+pushd /tmp
+curl https://starship.rs/install.sh -o starship_install.sh
+chmod +x starship_install.sh
+sudo ./starship_install.sh --yes
+popd
