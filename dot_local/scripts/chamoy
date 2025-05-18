@@ -59,6 +59,7 @@ copy_file() {
 run() {
   pushd $CHAMOY_DIR
   copy_dir dot_config $XDG_CONFIG_HOME
+  copy_file dot_config/starship.toml $XDG_CONFIG_HOME
 
   copy_dir dot_local $HOME/.local
 
