@@ -1,0 +1,192 @@
+#! /usr/bin/env ruby
+
+require 'date'
+require 'fileutils'
+require 'optparse'
+require 'time'
+
+EDITOR = (ENV['EDITOR'] || 'vi').freeze
+NOTES_DIRECTORY = (ENV['NOTES_DIR'] || "#{ENV['HOME']}/notes").freeze
+TEMPLATES_DIRECTORY = "#{__dir__}/../note_templates".freeze
+MOUSTACHE_REGEX = /{{\s*(?<moustache>.*)\s*}}/
+
+$config = {
+  debug: false,
+  action: '',
+  date: Date.today,
+  time: Time.now
+}
+
+def log(text, level = 'DEBUG')
+  return unless $config[:debug]
+
+  puts "[#{level}][#{Time.now}] #{text}"
+end
+
+def open_note
+  note_name = $config[:name]
+  if note_name.empty?
+    puts 'Please provide a note name.'
+    exit 1
+  end
+
+  file_path = "#{NOTES_DIRECTORY}/#{note_name}.md"
+  File.new(file_path, 'w+') unless File.exist? file_path
+  system("#{EDITOR} '#{file_path}'")
+end
+
+def replace_moustache(moustache)
+  operation, *args = moustache.split ' '
+  return moustache unless operation == 'format-date'
+
+  args = args.join ' '
+  date_regex = /\s*(now|\(\s*date "(?<relative_date>.*)"\s*\))\s*/
+  return moustache unless date_match = args.match(date_regex)
+
+  date_function = date_match[0].strip
+  date_format = args[date_function.length...].gsub('\'', '').strip
+
+  relative_date = date_match[:relative_date]
+  date = Date.today
+  if date_function != 'now' && relative_date != 'today'
+    relative_date = date_match[:relative_date]
+    relative_part, relative_day = relative_date.split ' '
+
+    target_day = Date.parse(relative_day).wday
+    days_until = (target_day - date.wday) % 7
+    days_until = 7 if days_until == 0
+    days_until *= -1 if relative_part == 'last'
+
+    date += days_until
+  end
+
+  date.strftime(date_format)
+end
+
+def weekly_file_path
+  note_name = Time.now.strftime '%Y - Week %W'
+  "#{NOTES_DIRECTORY}/#{note_name}.md"
+end
+
+def open_weekly_note
+  template_path = "#{TEMPLATES_DIRECTORY}/weekly.md"
+  file_path = weekly_file_path
+
+  unless File.exist? file_path
+    File.open(file_path, 'w+') do |file|
+      File.foreach(template_path) do |template_line|
+        if matches = template_line.match(MOUSTACHE_REGEX)
+          log template_line.gsub(MOUSTACHE_REGEX, replace_moustache(matches[:moustache]))
+          log replace_moustache(matches[:moustache])
+          file.write(template_line.gsub(MOUSTACHE_REGEX, replace_moustache(matches[:moustache])))
+        else
+          file.write(template_line)
+        end
+      end
+    end
+  end
+
+  system("#{EDITOR} '#{file_path}'")
+end
+
+TIME_BLOCK_REGEX = /^###\s+(?<start_time>\d{1,2}:\d{2})\s+-\s+(?<end_time>\d{1,2}:\d{2})/
+DAY_HEADER_REGEX = /^##\s+(?<day>Mon|Tue|Wed|Thu|Fri)/
+THREE_P_HEADER_REGEX = /^##\s+3Ps/
+TIME_BLOCK_HEADER_REGEX = /^###\s+(?<start_time>\d{1,2}:\d{2})\s+-\s+(?<end_time>\d{1,2}:\d{2})/
+
+def tasks(date, time)
+  days_locations = []
+  File.open(weekly_file_path) do |file|
+    lines = file.readlines
+    lines.each_with_index do |line, i|
+      if match = line.match(DAY_HEADER_REGEX)
+        day = Date.parse(match[:day]).wday
+        days_locations[day] = i
+      end
+
+      if match = line.match(THREE_P_HEADER_REGEX)
+        days_locations[6] = i
+      end
+    end
+
+    date_day = date.wday
+    start_line = days_locations[date_day] + 1
+    end_line = days_locations[date_day + 1]
+
+    reading_tasks = false
+    tasks = []
+    lines[start_line...end_line].select do |line|
+      line.chomp != ''
+    end.map do |line|
+      line.chomp
+    end.each do |line|
+      if match = line.match(TIME_BLOCK_HEADER_REGEX)
+        start_time = Time.parse(match[:start_time])
+        end_time = Time.parse(match[:end_time])
+
+        reading_tasks = time >= start_time && time < end_time
+      elsif reading_tasks
+        tasks << line
+      end
+    end
+
+    puts tasks.join("\n")
+  end
+end
+
+OptionParser.new do |opts|
+  opts.on('-o', '--open NOTE_NAME', 'Open or create note NOTE_NAME in your default editor.') do |name|
+    $config[:action] = 'open'
+    $config[:name] = name
+  end
+
+  opts.on('-w', '--weekly', 'Open the weekly notes in your default editor.') do
+    $config[:action] = 'weekly'
+  end
+
+  opts.on(
+    '-T',
+    '--tasks',
+    'List the tasks for the specified DATE and TIME. Uses current date and time if not provided') do
+      $config[:action] = 'tasks'
+  end
+
+  opts.on('-D', '--debug') do
+    $config[:debug] = true
+  end
+
+  opts.on('-d', '--date DATE') do |date|
+    $config[:date] = Date.parse date
+  end
+
+  opts.on('-t', '--time TIME') do |time|
+    $config[:time] = Time.parse time
+  end
+
+  opts.on('-s', '--start-time TIME') do |time|
+    $config[:start_time] = Time.parse time
+  end
+
+  opts.on('-e', '--end-time TIME') do |time|
+    $config[:end_time] = Time.parse time
+  end
+
+  opts.on(
+    '-a',
+    '--add-task TASK',
+    'Add a new task for the specified DATE and TIME. Uses current date and time if nor provided') do |task|
+      $config[:action] = 'add_task'
+      $config[:task] = task
+    end
+end.parse!
+
+case $config[:action]
+when 'open'
+  open_note
+when 'weekly'
+  open_weekly_note
+when 'tasks'
+  tasks($config[:date], $config[:time])
+when'add_task'
+  tasks($config[:task], $config[:date], $config[:start_time], $config[:end_time])
+end
