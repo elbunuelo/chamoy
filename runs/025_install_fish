@@ -12,3 +12,4 @@ if [[ $? != 0 ]] then
 fi
 
 chsh -s $(which fish)
+sudo zsh -c "ln -s \"$(which fish)\" /usr/local/bin/fish"
