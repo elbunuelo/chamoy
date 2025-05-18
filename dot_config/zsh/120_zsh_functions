@@ -1,2 +1,0 @@
-fpath=($(find "$HOME/.local/scripts/shell" -maxdepth 1 -mindepth 1 -type d) "${fpath[@]}" )
-autoload -Uk wo
