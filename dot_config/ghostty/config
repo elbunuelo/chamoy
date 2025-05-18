@@ -1,4 +1,4 @@
-theme = molokai
+theme = CutiePro
 font-family = "FiraCode Nerd Font Mono"
 window-decoration = false
 macos-titlebar-style = hidden
