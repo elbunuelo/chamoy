@@ -1,0 +1,4 @@
+#! /usr/bin/env fish
+
+fzf --fish | source
+set -gx FZF_DEFAULT_COMMAND 'rg --files --follow --no-ignore-vcs --hidden -g "!{node_modules/*,.git/*}"'

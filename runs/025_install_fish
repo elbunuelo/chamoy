@@ -1,0 +1,7 @@
+#! /usr/bin/env zsh
+
+if [[ $(uname) == "Darwin" ]] then
+  $HOMEBREW_PREFIX/bin/brew install fish
+else
+  sudo dnf install -y fish
+fi

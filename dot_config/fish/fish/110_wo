@@ -1,0 +1,55 @@
+#! /usr/bin/env fish
+
+function play-file
+  if test $argv[1] = ""
+    return
+  end
+
+  if test -f "$argv[1]"
+     /Applications/VLC.app/Contents/MacOS/VLC --auhal-volume=150 --play-and-exit --intf dummy $argv[1] > /dev/null 2>&1
+   end
+end
+
+function get-play-file
+  set DIRECTORY "$HOME/.local/scripts/shell/work/$argv[1]"
+  set PLAY_FILE $(ls "$DIRECTORY" | sort -R | tail -n 1)
+
+  if test "$WO_QUIET" = ""
+    echo "$DIRECTORY/$PLAY_FILE"
+  end
+end
+
+function work-start
+  set PLAY_FILE $(get-play-file "start")
+  play-file $PLAY_FILE
+end
+
+
+function work-complete
+  set PLAY_FILE $(get-play-file "done")
+  play-file $PLAY_FILE
+end
+
+function work-error
+  set PLAY_FILE $(get-play-file "error")
+  play-file $PLAY_FILE
+end
+
+
+# Run a command and play "Work complete" afterwards
+function wo
+  work-start
+  set COMMAND $argv
+  if test "$COMMAND" = ""
+    fc -ILe- 2> /dev/null
+  else
+    $argv
+  end
+
+  if test "$status" = "0"
+    work-complete
+  else
+    work-error
+  end
+end
+

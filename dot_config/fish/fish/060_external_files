@@ -1,0 +1,10 @@
+#! /usr/bin/env fish
+
+set EXTERNAL_FILES .npm_token .zendesk_indicator .sentry .llm-sidekick .aha.nvim
+
+for FILE in $EXTERNAL_FILES
+  set FILE_PATH "$HOME/$FILE"
+  if test -f "$FILE_PATH"
+    source "$FILE_PATH"
+  end
+end

@@ -1,0 +1,18 @@
+#! /usr/bin/env fish
+
+function vlc
+  /Applications/VLC.app/Contents/MacOS/VLC $argv
+end
+
+function ls
+  if which eza > /dev/null 2>&1
+    eza $argv
+  else
+    ls $argv
+  end
+end
+
+function v2g
+  ffmpeg -i $argv[1] $argv[2].gif && gifsicle -O3 $argv[2].gif -o $argv[2].gif
+  osascript -e "display notification \"$argv[2].gif successfully converted and saved\" with title \"MOV2GIF SUCCESS!\""
+end
