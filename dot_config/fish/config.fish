@@ -2,6 +2,6 @@
 
 set SCRIPT_DIR (dirname (status --current-filename))
 
-for file in $SCRIPT_DIR/fish/*
+for file in $SCRIPT_DIR/scripts/*
   source $file
 end

@@ -1,9 +1,5 @@
 #! /usr/bin/env fish
 
-function addToPath
- set -gx PATH "$PATH:$argv[1]"
-end
-
 addToPath $HOME/.local/scripts
 
 if test "$(uname)" = "Darwin"
