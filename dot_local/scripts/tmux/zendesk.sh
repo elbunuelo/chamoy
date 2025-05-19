@@ -43,6 +43,6 @@ fi
 
 # Reverse the order so that the assigned tickets go first and then
 # concatenate the two lines.
-RESULT=$(echo "$RESULT"| tac | paste -d "" - -)
+RESULT=$(echo "$RESULT"| tail -r | paste -d "" - -)
 
 echo " $RESULT"
