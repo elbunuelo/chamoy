@@ -334,15 +334,10 @@ require('lazy').setup({
   },
 
   {
-    -- Theme inspired by Atom
-    'navarasu/onedark.nvim',
+    'rebelot/kanagawa.nvim',
     priority = 1000,
     config = function()
-      require('onedark').setup {
-        style = 'warmer',
-      }
-      -- Enable theme
-      require('onedark').load()
+      vim.cmd 'colorscheme kanagawa'
     end,
   },
 

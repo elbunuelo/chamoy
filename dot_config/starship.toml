@@ -1,25 +1,25 @@
 format="$hostname$directory$git_commit$git_branch$git_status$git_state[](fg:prev_bg) "
 
 [hostname]
-format="[](fg:#26547C)[$hostname](bg:prev_fg)"
+format="[](fg:#7e9cd8)[$hostname](bg:prev_fg fg:black)"
 ssh_only=false
 aliases={ "Vulture" = "󰰪 ", "Taskmaster" = " ", "Tinkerer" = "󰯫 " }
 
 [directory]
-format="[](fg:prev_bg bg:#EF476F)[ $path ](fg:black bg:prev_bg)"
+format="[](fg:prev_bg bg:#c34043)[ $path ](fg:black bg:prev_bg)"
 
 [git_branch]
-format="([](fg:prev_bg bg:#FFD166)[ $symbol$branch ](fg:black bg:prev_bg))"
+format="([](fg:prev_bg bg:#dca561)[ $symbol$branch ](fg:black bg:prev_bg))"
 only_attached=true
 
 [git_commit]
-format="([](fg:prev_bg bg:#FFD166)[ $hash ](fg:black bg:prev_bg))"
+format="([](fg:prev_bg bg:#dca561)[ $hash ](fg:black bg:prev_bg))"
 
 [git_state]
-format="([](fg:prev_bg bg:#06D6A0)[$state( $progress_current/$progress_total)](bg:prev_bg fg:black)) "
+format="([](fg:prev_bg bg:#76946a)[$state( $progress_current/$progress_total)](bg:prev_bg fg:black)) "
 
 [git_status]
-format="([](fg:prev_bg bg:#FFD8AD)[$modified$deleted$staged$untracked$ahead_behind](fg:black bg:prev_bg))"
+format="([](fg:prev_bg bg:#dcd7ba)[$modified$deleted$staged$untracked$ahead_behind](fg:black bg:prev_bg))"
 modified="$count"
 deleted="✘$count"
 staged="$count"
