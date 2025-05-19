@@ -1,0 +1,5 @@
+#! /usr/bin/env fish
+
+set -gx EDITOR nvim
+set -gx NODE_OPTIONS "--max-old-space-size=8196"
+set -gx ZK_NOTEBOOK_DIR "$HOME/notes"

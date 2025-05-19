@@ -1,4 +1,4 @@
-theme = molokai
+theme = kanagawabones
 font-family = "FiraCode Nerd Font Mono"
 window-decoration = false
 macos-titlebar-style = hidden
@@ -8,3 +8,5 @@ window-padding-y = 2,0
 keybind = alt+left=unbind
 keybind = alt+right=unbind
 keybind = cmd+shift+d=unbind
+
+command = /opt/homebrew/bin/fish --login --interactive

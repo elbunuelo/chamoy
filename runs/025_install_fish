@@ -1,0 +1,15 @@
+#! /usr/bin/env zsh
+
+if [[ $(uname) == "Darwin" ]] then
+  $HOMEBREW_PREFIX/bin/brew install fish
+else
+  sudo dnf install -y fish
+fi
+
+grep fish /etc/shells > /dev/null 2>&1
+if [[ $? != 0 ]] then
+  sudo zsh -c "echo \"$(which fish)\" >> /etc/shells"
+fi
+
+chsh -s $(which fish)
+sudo zsh -c "ln -s \"$(which fish)\" /usr/local/bin/fish"

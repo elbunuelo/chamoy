@@ -1,6 +1,0 @@
-alias vlc='/Applications/VLC.app/Contents/MacOS/VLC'
-alias vim=nvim
-which eza > /dev/null 2>&1 && alias ls=eza
-
-alias v2g='function rename_video_to_gif(){ ffmpeg -i $1 $2.gif && gifsicle -O3 $2.gif -o $2.gif && osascript -e "display notification \"$2.gif successfully converted and saved\" with title \"MOV2GIF SUCCESS!\""};rename_video_to_gif'
-

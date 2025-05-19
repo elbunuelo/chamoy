@@ -1,0 +1,36 @@
+#! /usr/bin/env fish
+
+function addToPath
+ set -xg PATH "$PATH:$argv[1]"
+end
+
+function pnpm
+  wo pnpm
+end
+
+function nuke
+  cd "$HOME/projects/aha-app"
+  wo rm -rf node_modules packages/*/node_modules .turbo-cache
+end
+
+function aha-start-server
+  cd "$HOME/projects/aha-app"
+  overmind s --any-can-die
+end
+
+if which aha > /dev/null 2>&1
+  function aha-cli
+    set AHA_LOCATION "$(which aha)"
+    $AHA_LOCATION
+  end
+end
+
+if test -f "$HOME/Projects/aha-dev-cli/aha"
+  function aha
+    $HOME/Projects/aha-dev-cli/aha
+  end
+
+end
+
+addToPath "$HOME/Projects/ops/bin"
+
