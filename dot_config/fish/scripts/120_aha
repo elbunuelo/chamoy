@@ -3,13 +3,13 @@
 if which aha > /dev/null 2>&1
   function aha-cli
     set AHA_LOCATION "$(which aha)"
-    $AHA_LOCATION
+    $AHA_LOCATION $argv
   end
 end
 
 if test -f "$HOME/Projects/aha-dev-cli/aha"
   function aha
-    $HOME/Projects/aha-dev-cli/aha
+    $HOME/Projects/aha-dev-cli/aha $argv
   end
 
 end
