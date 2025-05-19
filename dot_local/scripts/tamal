@@ -90,48 +90,155 @@ def open_weekly_note
 end
 
 TIME_BLOCK_REGEX = /^###\s+(?<start_time>\d{1,2}:\d{2})\s+-\s+(?<end_time>\d{1,2}:\d{2})/
-DAY_HEADER_REGEX = /^##\s+(?<day>Mon|Tue|Wed|Thu|Fri)/
+DAY_HEADER_REGEX = /^##\s+(?<day>Mon|Tue|Wed|Thu|Fri)\s+(?<date>\d{2}\/\d{2})/
 THREE_P_HEADER_REGEX = /^##\s+3Ps/
+THREE_P_PROGRESS_REGEX = /^###\s+Progress/
+THREE_P_PLANNED_REGEX = /^###\s+Planned/
+THREE_P_PROBLEMS_REGEX = /^###\s+Problems/
 TIME_BLOCK_HEADER_REGEX = /^###\s+(?<start_time>\d{1,2}:\d{2})\s+-\s+(?<end_time>\d{1,2}:\d{2})/
+TASK_REGEX = /^\s*-\s+\[(?<status>[ x~])\](?<task>.*)/
 
-def tasks(date, time)
-  days_locations = []
+def parse_weekly_note
+  week = {
+    extra: [],
+    days:{
+    },
+    three_p: {
+      progress: [],
+      planned: [],
+      problems: []
+    }
+  }
+
   File.open(weekly_file_path) do |file|
     lines = file.readlines
+    current_date = nil
+    current_time_block = nil
+    content_started = false
+    three_p_started = false
+    current_three_p = nil
+
     lines.each_with_index do |line, i|
       if match = line.match(DAY_HEADER_REGEX)
-        day = Date.parse(match[:day]).wday
-        days_locations[day] = i
+        content_started = true
+        date = Date.parse("#{match[:date]}/#{Date.today.year}")
+
+        current_date = {
+          blocks: [],
+          notes: []
+        }
+
+        current_time_block = nil
+        week[:days][date] = current_date
+        next
       end
 
-      if match = line.match(THREE_P_HEADER_REGEX)
-        days_locations[6] = i
+      if line.match(THREE_P_HEADER_REGEX)
+        current_date = nil
+        current_time_block = nil
+        three_p_started = true
+        next
       end
+
+      if three_p_started && line.match(THREE_P_PROGRESS_REGEX)
+        current_three_p = :progress
+        next
+      end
+
+      if three_p_started && line.match(THREE_P_PLANNED_REGEX)
+        current_three_p = :planned
+        next
+      end
+
+      if three_p_started && line.match(THREE_P_PROBLEMS_REGEX)
+        current_three_p = :problems
+        next
+      end
+
+      if current_date && time_block_match = line.match(TIME_BLOCK_REGEX)
+        current_time_block = {
+          start_time: Time.parse(time_block_match[:start_time]),
+          end_time: Time.parse(time_block_match[:end_time]),
+          tasks: [],
+          notes: []
+        }
+
+        current_date[:blocks] << current_time_block
+        next
+      end
+
+      if current_time_block
+        if task_match = line.match(TASK_REGEX)
+          status = case task_match[:status]
+                   when ' '
+                     'pending'
+                   when 'x'
+                     'done'
+                   when '~'
+                     'canceled'
+                   end
+
+          current_time_block[:tasks] << {
+            task: task_match[:task].strip,
+            status:
+          }
+          next
+        elsif !line.strip.empty?
+          current_time_block[:notes] << line.chomp
+          next
+        end
+      end
+
+      if current_three_p
+        week[:three_p][current_three_p] << line.chomp
+        next
+      end
+
+      week[:extra] << line.chomp unless content_started
     end
-
-    date_day = date.wday
-    start_line = days_locations[date_day] + 1
-    end_line = days_locations[date_day + 1]
-
-    reading_tasks = false
-    tasks = []
-    lines[start_line...end_line].select do |line|
-      line.chomp != ''
-    end.map do |line|
-      line.chomp
-    end.each do |line|
-      if match = line.match(TIME_BLOCK_HEADER_REGEX)
-        start_time = Time.parse(match[:start_time])
-        end_time = Time.parse(match[:end_time])
-
-        reading_tasks = time >= start_time && time < end_time
-      elsif reading_tasks
-        tasks << line
-      end
-    end
-
-    puts tasks.join("\n")
   end
+  week
+end
+
+def output_weekly_note(week)
+  week[:extra].each do |extra|
+    puts extra
+  end
+
+  week[:days].each do |date, day|
+    puts "## #{date.strftime('%a %d/%m')}\n\n"
+
+    day[:blocks].each do |block|
+      puts "### #{block[:start_time].strftime('%H:%M')} - #{block[:end_time].strftime('%H:%M')}\n\n"
+
+      block[:tasks].each do |task|
+        puts "- [ ] #{task[:task]}\n\n"
+      end
+
+      block[:notes].each { |line| puts "#{line}\n\n" }
+    end
+  end
+
+  puts "## 3Ps\n\n"
+  puts "### Progress\n"
+  week[:three_p][:progress].each { |line| puts "#{line}\n" }
+
+  puts "### Planned\n"
+  week[:three_p][:planned].each { |line| puts "#{line}\n" }
+
+  puts "### Problems\n"
+  week[:three_p][:problems].each { |line| puts "#{line}\n" }
+end
+
+def tasks(date, time)
+  week = parse_weekly_note
+
+  blocks = week[:days][date][:blocks]
+  block = blocks.detect { |b| time >= b[:start_time] && time <= b[:end_time] }
+
+  return unless block
+
+  puts block[:tasks].map { |t| t[:task] }
 end
 
 OptionParser.new do |opts|
