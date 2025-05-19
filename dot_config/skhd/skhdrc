@@ -6,4 +6,4 @@ cmd + shift - q: open -a "Slack"
 cmd + shift - e: open -a "zoom.us"
 
 cmd + shift - z: open -a "Telegram"
-cmd + shift - x: open -a "Spotify"
+cmd + shift - x: open -a "Supersonic"
