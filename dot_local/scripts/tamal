@@ -14,7 +14,9 @@ $config = {
   debug: false,
   action: '',
   date: Date.today,
-  time: Time.now
+  time: Time.now,
+  task: '',
+  note: ''
 }
 
 def log(text, level = 'DEBUG')
@@ -90,7 +92,7 @@ def open_weekly_note
 end
 
 TIME_BLOCK_REGEX = /^###\s+(?<start_time>\d{1,2}:\d{2})\s+-\s+(?<end_time>\d{1,2}:\d{2})/
-DAY_HEADER_REGEX = /^##\s+(?<day>Mon|Tue|Wed|Thu|Fri)\s+(?<date>\d{2}\/\d{2})/
+DAY_HEADER_REGEX = %r{^##\s+(?<day>Mon|Tue|Wed|Thu|Fri)\s+(?<date>\d{2}/\d{2})}
 THREE_P_HEADER_REGEX = /^##\s+3Ps/
 THREE_P_PROGRESS_REGEX = /^###\s+Progress/
 THREE_P_PLANNED_REGEX = /^###\s+Planned/
@@ -101,8 +103,7 @@ TASK_REGEX = /^\s*-\s+\[(?<status>[ x~])\](?<task>.*)/
 def parse_weekly_note
   week = {
     extra: [],
-    days:{
-    },
+    days: {},
     three_p: {
       progress: [],
       planned: [],
@@ -118,7 +119,7 @@ def parse_weekly_note
     three_p_started = false
     current_three_p = nil
 
-    lines.each_with_index do |line, i|
+    lines.each_with_index do |line, _i|
       if match = line.match(DAY_HEADER_REGEX)
         content_started = true
         date = Date.parse("#{match[:date]}/#{Date.today.year}")
@@ -179,7 +180,7 @@ def parse_weekly_note
                    end
 
           current_time_block[:tasks] << {
-            task: task_match[:task].strip,
+            task: task_match[:task].chomp.strip,
             status:
           }
           next
@@ -190,7 +191,7 @@ def parse_weekly_note
       end
 
       if current_three_p
-        week[:three_p][current_three_p] << line.chomp
+        week[:three_p][current_three_p] << line.chomp unless line.chomp.empty?
         next
       end
 
@@ -201,33 +202,56 @@ def parse_weekly_note
 end
 
 def output_weekly_note(week)
+  output = []
   week[:extra].each do |extra|
-    puts extra
+    output << "#{extra}\n"
   end
 
   week[:days].each do |date, day|
-    puts "## #{date.strftime('%a %d/%m')}\n\n"
+    output << "## #{date.strftime('%a %d/%m')}\n\n"
 
     day[:blocks].each do |block|
-      puts "### #{block[:start_time].strftime('%H:%M')} - #{block[:end_time].strftime('%H:%M')}\n\n"
+      output << "### #{block[:start_time].strftime('%H:%M')} - #{block[:end_time].strftime('%H:%M')}\n"
 
       block[:tasks].each do |task|
-        puts "- [ ] #{task[:task]}\n\n"
+        output << "\n"
+        status = case task[:status]
+                 when 'pending'
+                   ' '
+                 when 'done'
+                   'x'
+                 when 'canceled'
+                   '~'
+                 end
+        output << "- [#{status}] #{task[:task]}\n"
       end
+      output << "\n" unless block[:notes].empty?
 
-      block[:notes].each { |line| puts "#{line}\n\n" }
+      block[:notes].each { |line| output << "#{line}\n" }
+      output << "\n"
     end
   end
 
-  puts "## 3Ps\n\n"
-  puts "### Progress\n"
-  week[:three_p][:progress].each { |line| puts "#{line}\n" }
+  output << "## 3Ps\n\n"
+  output << "### Progress\n\n"
+  week[:three_p][:progress].each { |line| output << "#{line}\n" }
+  output << "\n"
 
-  puts "### Planned\n"
-  week[:three_p][:planned].each { |line| puts "#{line}\n" }
+  output << "### Planned\n\n"
+  week[:three_p][:planned].each { |line| output << "#{line}\n" }
+  output << "\n"
 
-  puts "### Problems\n"
-  week[:three_p][:problems].each { |line| puts "#{line}\n" }
+  output << "### Problems\n\n"
+  week[:three_p][:problems].each { |line| output << "#{line}\n" }
+  output << "\n"
+
+  if $config[:debug]
+    puts output.join ''
+  else
+    File.open(weekly_file_path, 'w') do |f|
+      f.write output.join ''
+    end
+  end
 end
 
 def tasks(date, time)
@@ -238,16 +262,14 @@ def tasks(date, time)
 
   return unless block
 
-  puts block[:tasks].map { |t| t[:task] }
+  puts(block[:tasks].map { |t| t[:task] })
 end
 
 def add_task(task, date, start_time, end_time)
   week = parse_weekly_note
-
-  pp "Adding task #{task} to #{date} from #{start_time} to #{end_time}"
   blocks = week[:days][date][:blocks]
 
-  block_index = 0;
+  block_index = 0
   blocks.each_with_index do |block, i|
     next if block[:start_time] < start_time
 
@@ -256,16 +278,67 @@ def add_task(task, date, start_time, end_time)
       block[:end_time] = [block[:end_time], end_time].max
     else
       blocks.insert(block_index, {
-        start_time: start_time,
-        end_time: end_time,
-        tasks: [],
-        notes: []
-      } )
+                      start_time:,
+                      end_time:,
+                      tasks: [],
+                      notes: []
+                    })
     end
     break
   end
 
   blocks[block_index][:tasks] << { task:, status: 'pending' }
+
+  output_weekly_note week
+end
+
+def add_note(note, date, start_time, end_time)
+  week = parse_weekly_note
+  blocks = week[:days][date][:blocks]
+
+  block_index = 0
+  blocks.each_with_index do |block, i|
+    next if block[:start_time] < start_time
+
+    block_index = i
+    if block[:start_time] == start_time
+      block[:end_time] = [block[:end_time], end_time].max
+    else
+      blocks.insert(block_index, {
+                      start_time:,
+                      end_time:,
+                      tasks: [],
+                      notes: []
+                    })
+    end
+    break
+  end
+
+  blocks[block_index][:notes] << "- #{note}"
+
+  output_weekly_note week
+end
+
+def add_three_p(note, section)
+  week = parse_weekly_note
+  week[:three_p][section.to_sym] << "- #{note}"
+
+  output_weekly_note week
+end
+
+def update_task(task_index, status, date, start_time)
+  week = parse_weekly_note
+  blocks = week[:days][date][:blocks]
+
+  block_index = 0
+  blocks.each_with_index do |block, i|
+    next if block[:start_time] < start_time
+
+    block_index = i
+    break
+  end
+
+  blocks[block_index][:tasks][task_index][:status] = status
 
   output_weekly_note week
 end
@@ -283,8 +356,9 @@ OptionParser.new do |opts|
   opts.on(
     '-T',
     '--tasks',
-    'List the tasks for the specified DATE and TIME. Uses current date and time if not provided') do
-      $config[:action] = 'tasks'
+    'List the tasks for the specified DATE and TIME. Uses current date and time if not provided'
+  ) do
+    $config[:action] = 'tasks'
   end
 
   opts.on('-D', '--debug') do
@@ -307,13 +381,30 @@ OptionParser.new do |opts|
     $config[:end_time] = Time.parse time
   end
 
-  opts.on(
-    '-a',
-    '--add-task TASK',
-    'Add a new task for the specified DATE and TIME. Uses current date and time if nor provided') do |task|
-      $config[:action] = 'add_task'
-      $config[:task] = task
-    end
+  opts.on('-a', '--add-task TASK',
+          'Add a new task for the specified DATE and TIME. Uses current date and time if nor provided') do |task|
+    $config[:action] = 'add_task'
+    $config[:task] = task
+  end
+
+  opts.on('-n', '--note NOTE') do |note|
+    $config[:action] = 'add_note'
+    $config[:note] = note
+  end
+
+  opts.on('-3', '--three-p SECTION', 'Add the note to the specified 3P section') do |section|
+    $config[:action] = 'three_p'
+    $config[:section] = section.downcase
+  end
+
+  opts.on('-u', '--update-task INDEX') do |index|
+    $config[:action] = 'update_task'
+    $config[:index] = index.to_i
+  end
+
+  opts.on('-S', '--status STATUS') do |status|
+    $config[:status] = status
+  end
 end.parse!
 
 case $config[:action]
@@ -323,6 +414,12 @@ when 'weekly'
   open_weekly_note
 when 'tasks'
   tasks($config[:date], $config[:time])
-when'add_task'
+when 'add_task'
   add_task($config[:task], $config[:date], $config[:start_time], $config[:end_time])
+when 'add_note'
+  add_note($config[:note], $config[:date], $config[:start_time], $config[:end_time])
+when 'three_p'
+  add_three_p($config[:note], $config[:section])
+when 'update_task'
+  update_task($config[:index], $config[:status], $config[:date], $config[:start_time])
 end
