@@ -241,6 +241,35 @@ def tasks(date, time)
   puts block[:tasks].map { |t| t[:task] }
 end
 
+def add_task(task, date, start_time, end_time)
+  week = parse_weekly_note
+
+  pp "Adding task #{task} to #{date} from #{start_time} to #{end_time}"
+  blocks = week[:days][date][:blocks]
+
+  block_index = 0;
+  blocks.each_with_index do |block, i|
+    next if block[:start_time] < start_time
+
+    block_index = i
+    if block[:start_time] == start_time
+      block[:end_time] = [block[:end_time], end_time].max
+    else
+      blocks.insert(block_index, {
+        start_time: start_time,
+        end_time: end_time,
+        tasks: [],
+        notes: []
+      } )
+    end
+    break
+  end
+
+  blocks[block_index][:tasks] << { task:, status: 'pending' }
+
+  output_weekly_note week
+end
+
 OptionParser.new do |opts|
   opts.on('-o', '--open NOTE_NAME', 'Open or create note NOTE_NAME in your default editor.') do |name|
     $config[:action] = 'open'
@@ -295,5 +324,5 @@ when 'weekly'
 when 'tasks'
   tasks($config[:date], $config[:time])
 when'add_task'
-  tasks($config[:task], $config[:date], $config[:start_time], $config[:end_time])
+  add_task($config[:task], $config[:date], $config[:start_time], $config[:end_time])
 end
