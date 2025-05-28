@@ -14,4 +14,8 @@ if test "$(uname)" = "Darwin"
   /opt/homebrew/bin/brew shellenv | source
 end
 
+if test "$(uname)" = "Linux"
+  set -gx TERM xterm-256color
+end
+
 set -gx --prepend PATH "$HOME/.asdf/shims"
