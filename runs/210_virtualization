@@ -1,0 +1,8 @@
+#! /usr/bin/env bash
+
+if [[ $(uname) == "Linux" ]] then
+  sudo dnf group install -y --with-optional virtualization
+  sudo systemctl start libvirtd
+  sudo systemctl enable libvirtd
+  lsmod | grep kvm
+fi
