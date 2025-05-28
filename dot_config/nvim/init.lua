@@ -265,13 +265,6 @@ require('lazy').setup({
             },
           },
         },
-        volar = {
-          init_options = {
-            vue = {
-              hybridMode = true,
-            },
-          },
-        },
         vtsls = {},
         cssls = {},
         html = {},

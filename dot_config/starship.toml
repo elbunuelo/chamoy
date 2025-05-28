@@ -11,6 +11,7 @@ format="[](fg:prev_bg bg:#c34043)[ $path ](fg:black bg:prev_bg)"
 [git_branch]
 format="([](fg:prev_bg bg:#dca561)[ $symbol$branch ](fg:black bg:prev_bg))"
 only_attached=true
+truncation_length=20
 
 [git_commit]
 format="([](fg:prev_bg bg:#dca561)[ $hash ](fg:black bg:prev_bg))"
