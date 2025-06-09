@@ -14,5 +14,5 @@ if test -f "$HOME/Projects/aha-dev-cli/aha"
 
 end
 
-addToPath "$HOME/Projects/ops/bin"
+fish_add_path "$HOME/Projects/ops/bin"
 
