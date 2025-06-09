@@ -14,5 +14,10 @@ if test -f "$HOME/Projects/aha-dev-cli/aha"
 
 end
 
+# Required for asdf install of postgres 17 pkgconfig
+export PKG_CONFIG_PATH="/opt/homebrew/bin/pkg-config:$(brew --prefix icu4c)/lib/pkgconfig:$(brew --prefix curl)/lib/pkgconfig:$(brew --prefix zlib)/lib/pkgconfig"
+export MACOSX_DEPLOYMENT_TARGET="$(sw_vers -productVersion)"
+
+
 addToPath "$HOME/Projects/ops/bin"
 
