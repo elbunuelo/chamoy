@@ -1,0 +1,37 @@
+#! /usr/bin/env ruby
+
+require 'date'
+require 'fileutils'
+require 'optparse'
+require 'time'
+
+require_relative 'config'
+require_relative 'constants'
+require_relative 'note'
+require_relative 'weekly_note'
+require_relative 'utils'
+
+def run(config)
+  log("Attempting to run #{config.action}", 'DEBUG', config)
+  case config.action
+  when 'open'
+    open_note(config)
+  when 'weekly'
+    open_weekly_note(config)
+  when 'weekly-note-path'
+    print_weekly_file_path(config)
+  when 'tasks'
+    tasks(config)
+  when 'add_task'
+    add_task(config)
+  when 'add_note'
+    add_note(config)
+  when 'three_p'
+    add_three_p(config)
+  when 'update_task'
+    update_task(config)
+  end
+end
+
+config = TamalConfig.new
+run(config)

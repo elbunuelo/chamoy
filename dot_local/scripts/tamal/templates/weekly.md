@@ -19,7 +19,7 @@
 
 ## Unscheduled
 
-## Mon {{ format-date (date "today") '%d/%m' }}
+## Mon {{ format-date (date "next monday") '%d/%m' }}
 
 ### 9:00 - 9:15
 
