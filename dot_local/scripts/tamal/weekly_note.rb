@@ -215,7 +215,7 @@ def add_task(config)
 
   blocks[block_index][:tasks] << { task: config.task, status: 'pending' }
 
-  output_weekly_note week
+  output_weekly_note(week, config)
 end
 
 def add_note(config)
@@ -252,19 +252,19 @@ def add_three_p(config)
   output_weekly_note(week, config)
 end
 
-def update_task(task_index, status, date, start_time)
+def update_task(config)
   week = parse_weekly_note
-  blocks = week[:days][date][:blocks]
+  blocks = week[:days][config.date][:blocks]
 
   block_index = 0
   blocks.each_with_index do |block, i|
-    next if block[:start_time] < start_time
+    next if block[:start_time] < config.start_time
 
     block_index = i
     break
   end
 
-  blocks[block_index][:tasks][task_index][:status] = status
+  blocks[block_index][:tasks][config.task_index][:status] = config.status
 
   output_weekly_note(week, config)
 end

@@ -1,5 +1,5 @@
 class TamalConfig
-  attr_accessor :debug, :action, :date, :time, :task, :note, :name, :template
+  attr_accessor :debug, :action, :date, :time, :task, :note, :name, :template, :start_time, :end_time, :task_index, :status
 
   def initialize
     @debug = false
@@ -14,6 +14,7 @@ class TamalConfig
     @parser = nil
     @name = ''
     @template = ''
+    @task_index = nil
 
     parse_options
   end
@@ -80,7 +81,7 @@ class TamalConfig
 
       opts.on('-u', '--update-task INDEX') do |index|
         @action = 'update_task'
-        @index = index.to_i
+        @task_index = index.to_i
       end
 
       opts.on('-S', '--status STATUS') do |status|

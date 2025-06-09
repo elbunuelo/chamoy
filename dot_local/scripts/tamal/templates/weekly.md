@@ -23,7 +23,7 @@
 
 ### 9:00 - 9:15
 
-- [] Day Planning
+- [ ] Day Planning
 
 ### 12:00 - 13:00
 
@@ -41,7 +41,7 @@
 
 ### 9:00 - 9:15
 
-- [] Day Planning
+- [ ] Day Planning
 
 ### 12:00 - 13:00
 
@@ -55,7 +55,7 @@
 
 ### 9:00 - 9:15
 
-- [] Day Planning
+- [ ] Day Planning
 
 ### 10:30 - 10:45
 
@@ -77,7 +77,7 @@
 
 ### 9:00 - 9:15
 
-- [] Day Planning
+- [ ] Day Planning
 
 ### 12:00 - 13:00
 
@@ -99,7 +99,7 @@
 
 ### 9:00 - 9:15
 
-- [] Day Planning
+- [ ] Day Planning
 
 ### 12:00 - 13:00
 
