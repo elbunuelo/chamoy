@@ -5,11 +5,54 @@
 local tamal_commands = {
   { cmd = 'add-task', desc = 'Add a new task', height = 1, key = 'a' },
   { cmd = 'tasks', desc = 'View tasks', height = 15, key = 't' },
-  { cmd = 'weekly', desc = 'Open weekly note', height = 0, key = 'w' },
-  { cmd = 'open', desc = 'Open a note', height = 1, param_name = 'NOTE_NAME', key = 'o' },
+  { cmd = 'weekly', desc = 'Open weekly note', height = 0, key = 'w', use_terminal = true },
+  { cmd = 'open', desc = 'Open a note', height = 1, param_name = 'NOTE_NAME', key = 'o', use_terminal = true },
   { cmd = 'add-note', desc = 'Add a note', height = 3, key = 'n' },
   { cmd = 'three-p', desc = 'Add a 3P note', height = 3, param_name = 'SECTION', key = 'p' },
 }
+
+-- Function to open a floating terminal and run a command
+local function open_floating_terminal(cmd)
+  -- Create a new buffer for the terminal
+  local buf = vim.api.nvim_create_buf(false, true)
+
+  -- Set up dimensions and position for the floating window
+  local width = math.floor(vim.o.columns * 0.8)
+  local height = math.floor(vim.o.lines * 0.8)
+  local col = math.floor((vim.o.columns - width) / 2)
+  local row = math.floor((vim.o.lines - height) / 2)
+
+  -- Window options
+  local opts = {
+    relative = 'editor',
+    width = width,
+    height = height,
+    col = col,
+    row = row,
+    style = 'minimal',
+    border = 'rounded',
+  }
+
+  -- Open the floating window
+  local win = vim.api.nvim_open_win(buf, true, opts)
+
+  -- Open terminal in the buffer and run the command
+  vim.fn.termopen(cmd, {
+    on_exit = function()
+      -- Close the window when terminal command exits
+      if vim.api.nvim_win_is_valid(win) then
+        vim.api.nvim_win_close(win, true)
+      end
+      -- Reload the current buffer
+      vim.cmd 'e!'
+    end,
+  })
+
+  -- Enter terminal mode automatically
+  vim.cmd 'startinsert'
+
+  return { buf = buf, win = win }
+end
 
 -- Function to create and display the popup window
 local function open_tamal_popup(command_info)
@@ -19,10 +62,15 @@ local function open_tamal_popup(command_info)
 
   -- Some commands don't need a popup
   if height == 0 then
-    -- Execute command directly
-    vim.fn.system('tamal --' .. command_info.cmd)
-    -- Reload the current buffer
-    vim.cmd 'e!'
+    -- If this command should use a terminal
+    if command_info.use_terminal then
+      open_floating_terminal('tamal --' .. command_info.cmd)
+    else
+      -- Execute command directly
+      vim.fn.system('tamal --' .. command_info.cmd)
+      -- Reload the current buffer
+      vim.cmd 'e!'
+    end
     return
   end
 
@@ -83,7 +131,7 @@ local function open_tamal_popup(command_info)
     local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
     local content = table.concat(lines, '\n')
 
-    -- Construct and execute the command
+    -- Construct the command
     local cmd = 'tamal --' .. command_info.cmd
 
     -- Add parameter name if specified
@@ -93,14 +141,18 @@ local function open_tamal_popup(command_info)
       cmd = cmd .. ' ' .. vim.fn.shellescape(content)
     end
 
-    -- Execute the command
-    local output = vim.fn.system(cmd)
-
-    -- Close the window
+    -- Close the input window
     vim.api.nvim_win_close(win, true)
 
-    -- Show notification with result
-    vim.notify('Tamal: ' .. (output:gsub('^%s*(.-)%s*$', '%1') or 'Command executed'), vim.log.levels.INFO)
+    -- If this command should use a terminal
+    if command_info.use_terminal then
+      open_floating_terminal(cmd)
+    else
+      -- Execute the command
+      local output = vim.fn.system(cmd)
+      -- Reload the current buffer
+      vim.cmd 'e!'
+    end
   end, keymap_opts)
 
   -- Start in insert mode for commands that need input
