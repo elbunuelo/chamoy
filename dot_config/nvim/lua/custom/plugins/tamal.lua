@@ -20,6 +20,7 @@ local function open_tamal_popup()
     row = row,
     style = 'minimal',
     border = 'rounded',
+    title = 'Tamal',
   }
 
   -- Create buffer for the popup
@@ -34,15 +35,6 @@ local function open_tamal_popup()
   -- Set window options
   vim.api.nvim_win_set_option(win, 'winblend', 10)
   vim.api.nvim_win_set_option(win, 'cursorline', true)
-
-  -- Add a title to the popup
-  local title = 'Tamal'
-  vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
-    title,
-    string.rep('-', #title),
-    '',
-    'Press <Esc> to close this window',
-  })
 
   -- Set keybindings for the popup
   local keymap_opts = { noremap = true, silent = true, buffer = buf }
