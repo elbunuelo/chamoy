@@ -3,9 +3,9 @@
 
 -- Function to create and display the popup window
 local function open_tamal_popup()
-  -- Calculate window size (based on percentage of editor size)
-  local width = math.floor(vim.o.columns * 0.8)
-  local height = math.floor(vim.o.lines * 0.7)
+  -- Fixed width and small height
+  local width = 160
+  local height = 1
 
   -- Calculate starting position to center the window
   local col = math.floor((vim.o.columns - width) / 2)
