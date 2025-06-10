@@ -1,14 +1,14 @@
 -- Plugin: tamal.lua
--- Description: Interface for the tamal task management system
+-- Description: Interface for the tamal task management system with mnemonic keybindings
 
 -- Tamal commands and their descriptions
 local tamal_commands = {
-  { cmd = 'add-task', desc = 'Add a new task', height = 1 },
-  { cmd = 'tasks', desc = 'View tasks', height = 15 },
-  { cmd = 'weekly', desc = 'Open weekly note', height = 0 },
-  { cmd = 'open', desc = 'Open a note', height = 1, param_name = 'NOTE_NAME' },
-  { cmd = 'add-note', desc = 'Add a note', height = 3 },
-  { cmd = 'three-p', desc = 'Add a 3P note', height = 3, param_name = 'SECTION' },
+  { cmd = 'add-task', desc = 'Add a new task', height = 1, key = 'a' },
+  { cmd = 'tasks', desc = 'View tasks', height = 15, key = 't' },
+  { cmd = 'weekly', desc = 'Open weekly note', height = 0, key = 'w' },
+  { cmd = 'open', desc = 'Open a note', height = 1, param_name = 'NOTE_NAME', key = 'o' },
+  { cmd = 'add-note', desc = 'Add a note', height = 3, key = 'n' },
+  { cmd = 'three-p', desc = 'Add a 3P note', height = 3, param_name = 'SECTION', key = 'p' },
 }
 
 -- Function to create and display the popup window
@@ -109,82 +109,22 @@ local function open_tamal_popup(command_info)
   return { buf = buf, win = win }
 end
 
--- Create a Tamal command menu
-local function open_tamal_menu()
-  -- Create a simple popup menu with command options
-  local menu_items = {}
-  for i, cmd_info in ipairs(tamal_commands) do
-    table.insert(menu_items, i .. '. ' .. cmd_info.desc)
-  end
-
-  local width = 40
-  local height = #menu_items
-
-  -- Calculate position
-  local col = math.floor((vim.o.columns - width) / 2)
-  local row = math.floor((vim.o.lines - height) / 2)
-
-  -- Window options
-  local opts = {
-    relative = 'editor',
-    width = width,
-    height = height,
-    col = col,
-    row = row,
-    style = 'minimal',
-    border = 'rounded',
-    title = 'Tamal Menu',
-  }
-
-  -- Create buffer and window
-  local buf = vim.api.nvim_create_buf(false, true)
-  vim.api.nvim_buf_set_lines(buf, 0, -1, false, menu_items)
-  vim.api.nvim_buf_set_option(buf, 'modifiable', false) -- Make read-only
-
-  local win = vim.api.nvim_open_win(buf, true, opts)
-
-  -- Set window options
-  vim.api.nvim_win_set_option(win, 'winblend', 10)
-  vim.api.nvim_win_set_option(win, 'cursorline', true)
-
-  -- Set keybindings
-  local keymap_opts = { noremap = true, silent = true, buffer = buf }
-  vim.keymap.set('n', 'q', ':q<CR>', keymap_opts)
-
-  -- Handle number selections
-  for i = 1, #tamal_commands do
-    vim.keymap.set('n', tostring(i), function()
-      vim.api.nvim_win_close(win, true)
-      open_tamal_popup(tamal_commands[i])
-    end, keymap_opts)
-  end
-
-  -- Handle Enter key to select current item
-  vim.keymap.set('n', '<CR>', function()
-    local current_line = vim.api.nvim_win_get_cursor(win)[1]
-    vim.api.nvim_win_close(win, true)
-    open_tamal_popup(tamal_commands[current_line])
-  end, keymap_opts)
-
-  return { buf = buf, win = win }
-end
-
--- Create a Neovim command to open the Tamal menu
-vim.api.nvim_create_user_command('Tamal', function()
-  open_tamal_menu()
-end, { desc = 'Open Tamal Menu' })
-
--- Add normal mode keybinding using <leader>T
-vim.keymap.set('n', '<leader>T', ':Tamal<CR>', { desc = 'Open Tamal Menu', silent = true })
-
--- Direct commands for quick access
-for i, cmd_info in ipairs(tamal_commands) do
+-- Create Vim commands for each Tamal function
+for _, cmd_info in ipairs(tamal_commands) do
+  -- Create command name from the cmd field (e.g., 'add-task' -> 'TamalAddTask')
   local command_name = 'Tamal' .. cmd_info.cmd:gsub('^%l', string.upper):gsub('%-(%l)', function(c)
     return c:upper()
   end)
+
+  -- Register the command
   vim.api.nvim_create_user_command(command_name, function()
     open_tamal_popup(cmd_info)
   end, { desc = 'Tamal: ' .. cmd_info.desc })
+
+  -- Create mnemonic keybinding with <leader>T prefix
+  vim.keymap.set('n', '<leader>T' .. cmd_info.key, function()
+    open_tamal_popup(cmd_info)
+  end, { desc = 'Tamal: ' .. cmd_info.desc, silent = true })
 end
 
 return {}
