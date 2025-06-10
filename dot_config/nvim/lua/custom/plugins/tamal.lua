@@ -21,7 +21,8 @@ local function open_tamal_popup(command_info)
   if height == 0 then
     -- Execute command directly
     vim.fn.system('tamal --' .. command_info.cmd)
-    vim.notify('Executed: tamal --' .. command_info.cmd, vim.log.levels.INFO)
+    -- Reload the current buffer
+    vim.cmd 'e!'
     return
   end
 
