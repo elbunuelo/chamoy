@@ -40,6 +40,15 @@ local function open_tamal_popup()
   local keymap_opts = { noremap = true, silent = true, buffer = buf }
   vim.keymap.set('n', 'q', ':q<CR>', keymap_opts)
 
+  -- Add Enter key binding to execute '! echo' with buffer content
+  vim.keymap.set('n', '<CR>', function()
+    -- Get the content of the buffer (first line since it's a 1-row window)
+    local content = vim.api.nvim_buf_get_lines(buf, 0, 1, false)[1] or ''
+    -- Construct and execute the command
+    local cmd = '! echo ' .. vim.fn.shellescape(content)
+    vim.cmd(cmd)
+  end, keymap_opts)
+
   -- Return the buffer and window IDs for future reference
   return { buf = buf, win = win }
 end
