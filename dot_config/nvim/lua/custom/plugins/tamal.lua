@@ -44,8 +44,9 @@ local function open_tamal_popup()
   vim.keymap.set('n', '<CR>', function()
     -- Get the content of the buffer (first line since it's a 1-row window)
     local content = vim.api.nvim_buf_get_lines(buf, 0, 1, false)[1] or ''
+
     -- Construct and execute the command
-    local cmd = '! echo ' .. vim.fn.shellescape(content)
+    local cmd = '! tamal --add-task ' .. vim.fn.shellescape(content)
     vim.cmd(cmd)
   end, keymap_opts)
 
