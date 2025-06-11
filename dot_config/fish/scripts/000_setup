@@ -18,3 +18,4 @@ end
 
 
 fish_add_path --prepend PATH "$HOME/.asdf/shims"
+fish_add_path "$HOME/.local/bin"
