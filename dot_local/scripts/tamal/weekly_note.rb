@@ -195,25 +195,84 @@ def add_task(config)
   week = parse_weekly_note
   blocks = week[:days][config.date][:blocks]
 
-  block_index = 0
-  blocks.each_with_index do |block, i|
-    next if block[:start_time] < config.start_time
+  # First, check if the current time falls within any existing block
+  existing_block_index = blocks.find_index { |block| config.time >= block[:start_time] && config.time <= block[:end_time] }
 
-    block_index = i
-    if block[:start_time] == config.start_time
-      block[:end_time] = [block[:end_time], config.end_time].max
+  # If we found an existing block that contains the current time, use it
+  if existing_block_index
+    blocks[existing_block_index][:tasks] << { task: config.task, status: 'pending' }
+  else
+    # Otherwise, find the right position to insert a new block
+    block_index = 0
+    inserted = false
+
+    # If there are no blocks yet, create the first one starting at current time
+    if blocks.empty?
+      new_start_time = config.time
+      new_end_time = new_start_time + (30 * 60) # 30 minutes later
+
+      blocks << {
+        start_time: new_start_time,
+        end_time: new_end_time,
+        tasks: [],
+        notes: []
+      }
+      block_index = 0
+      inserted = true
     else
-      blocks.insert(block_index, {
-                      start_time: config.start_time,
-                      end_time: config.end_time,
-                      tasks: [],
-                      notes: []
-                    })
-    end
-    break
-  end
+      # Try to find where to insert the new block
+      blocks.each_with_index do |block, i|
+        next if block[:start_time] < config.time
 
-  blocks[block_index][:tasks] << { task: config.task, status: 'pending' }
+        # If we're here, we found a block that starts after the current time
+        block_index = i
+
+        # If there's a previous block, start from its end time
+        if i > 0
+          new_start_time = blocks[i-1][:end_time]
+          new_end_time = new_start_time + (30 * 60) # 30 minutes later
+
+          # If this would overlap with the next block, adjust end time
+          if new_end_time > block[:start_time]
+            new_end_time = block[:start_time]
+          end
+        else
+          # No previous block, start from current time
+          new_start_time = config.time
+          new_end_time = [new_start_time + (30 * 60), block[:start_time]].min
+        end
+
+        blocks.insert(block_index, {
+          start_time: new_start_time,
+          end_time: new_end_time,
+          tasks: [],
+          notes: []
+        })
+
+        inserted = true
+        break
+      end
+
+      # If we didn't insert a block (meaning this goes at the end), add it now
+      unless inserted
+        # Start from the end time of the last block
+        new_start_time = blocks.last[:end_time]
+        new_end_time = new_start_time + (30 * 60) # 30 minutes later
+
+        blocks << {
+          start_time: new_start_time,
+          end_time: new_end_time,
+          tasks: [],
+          notes: []
+        }
+        block_index = blocks.length - 1
+        inserted = true
+      end
+    end
+
+    # Add the task to the new block
+    blocks[block_index][:tasks] << { task: config.task, status: 'pending' }
+  end
 
   output_weekly_note(week, config)
 end
@@ -247,7 +306,7 @@ end
 
 def add_three_p(config)
   week = parse_weekly_note
-  week[:three_p][section.to_sym] << "- #{note}"
+  week[:three_p][config.section.to_sym] << "- #{config.note}"
 
   output_weekly_note(week, config)
 end

@@ -43,8 +43,6 @@ local function open_floating_terminal(cmd)
       if vim.api.nvim_win_is_valid(win) then
         vim.api.nvim_win_close(win, true)
       end
-      -- Reload the current buffer
-      vim.cmd 'e!'
     end,
   })
 

@@ -1,5 +1,5 @@
 class TamalConfig
-  attr_accessor :debug, :action, :date, :time, :task, :note, :name, :template, :start_time, :end_time, :task_index, :status
+  attr_accessor :debug, :action, :date, :time, :task, :note, :name, :template, :start_time, :end_time, :task_index, :status, :section
 
   def initialize
     @debug = false
@@ -15,6 +15,7 @@ class TamalConfig
     @name = ''
     @template = ''
     @task_index = nil
+    @section = ''
 
     parse_options
   end
@@ -70,7 +71,7 @@ class TamalConfig
       end
 
       opts.on('-n', '--note NOTE') do |note|
-        @action = 'add_note'
+        @action = 'add_note' unless @action
         @note = note
       end
 
