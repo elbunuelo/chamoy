@@ -1,5 +1,6 @@
 class TamalConfig
-  attr_accessor :debug, :action, :date, :time, :task, :note, :name, :template, :start_time, :end_time, :task_index, :status, :section
+  attr_accessor :debug, :action, :date, :time, :task, :note, :name, :template, :start_time, :end_time, :task_index,
+                :status, :section
 
   def initialize
     @debug = false
@@ -25,6 +26,12 @@ class TamalConfig
       @parser = opts
       opts.on('-o', '--open NOTE_NAME', 'Open or create note NOTE_NAME in your default editor.') do |name|
         @action = 'open'
+        @name = name
+      end
+
+      opts.on('-p', '--note-path NOTE_NAME',
+              'Create note NOTE_NAME if it doesn\'t exist and output its path.') do |name|
+        @action = 'note-path'
         @name = name
       end
 
@@ -71,7 +78,7 @@ class TamalConfig
       end
 
       opts.on('-n', '--note NOTE') do |note|
-        @action = 'add_note' unless @action
+        @action ||= 'add_note'
         @note = note
       end
 
