@@ -192,7 +192,7 @@ local function create_section_selector(note_win, note_buf)
   }
 
   -- Create the window with the buffer
-  local selector_win = vim.api.nvim_open_win(selector_buf, false, opts)
+  local selector_win = vim.api.nvim_open_win(selector_buf, false, opts) -- Don't focus initially
 
   -- Set window options
   vim.api.nvim_win_set_option(selector_win, 'winblend', 10)
@@ -209,13 +209,32 @@ local function create_section_selector(note_win, note_buf)
     end)
   end
 
-  -- Set Tab key binding to cycle through sections
-  local keymap_opts = { noremap = true, silent = true, buffer = note_buf }
-  vim.keymap.set({ 'n', 'i' }, '<Tab>', function()
+  -- Define navigation between windows
+  -- CTRL+K: Move to section selector
+  vim.keymap.set({ 'n', 'i' }, '<C-k>', function()
+    if vim.api.nvim_win_is_valid(selector_win) then
+      -- If in insert mode, switch to normal mode first
+      if vim.fn.mode() == 'i' then
+        vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Esc>', true, false, true), 'n', true)
+      end
+      vim.api.nvim_set_current_win(selector_win)
+    end
+  end, { noremap = true, silent = true, buffer = note_buf })
+
+  -- CTRL+J: Move to note window
+  vim.keymap.set('n', '<C-j>', function()
+    if vim.api.nvim_win_is_valid(note_win) then
+      vim.api.nvim_set_current_win(note_win)
+      -- Return to insert mode in the note window
+      vim.cmd 'startinsert'
+    end
+  end, { noremap = true, silent = true, buffer = selector_buf })
+
+  -- Tab in section selector: Cycle through sections
+  vim.keymap.set('n', '<Tab>', function()
     current_section_idx = (current_section_idx % #sections) + 1
     update_section_display()
-    return '<Tab>'
-  end, { noremap = true, silent = true, buffer = note_buf, expr = true })
+  end, { noremap = true, silent = true, buffer = selector_buf })
 
   -- Make the section display read-only after initial setup
   vim.api.nvim_buf_set_option(selector_buf, 'modifiable', false)
