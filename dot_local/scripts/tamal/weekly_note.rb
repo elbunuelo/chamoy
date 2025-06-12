@@ -191,6 +191,21 @@ def tasks(config)
   puts(block[:tasks].map { |t| t[:task] })
 end
 
+def time_blocks(config)
+  week = parse_weekly_note
+  today = Date.today
+
+  # Check if today exists in the weekly note
+  if week[:days][today]
+    blocks = week[:days][today][:blocks]
+
+    # Output each time block in the requested format
+    blocks.each do |block|
+      puts "#{block[:start_time].strftime('%H:%M')}-#{block[:end_time].strftime('%H:%M')}"
+    end
+  end
+end
+
 def add_task(config)
   week = parse_weekly_note
   blocks = week[:days][config.date][:blocks]
