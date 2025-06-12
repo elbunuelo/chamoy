@@ -201,7 +201,7 @@ def time_blocks(config)
 
     # Output each time block in the requested format
     blocks.each do |block|
-      puts "#{block[:start_time].strftime('%H:%M')}-#{block[:end_time].strftime('%H:%M')}"
+      puts "#{block[:start_time].strftime('%H:%M')} - #{block[:end_time].strftime('%H:%M')}"
     end
   end
 end
