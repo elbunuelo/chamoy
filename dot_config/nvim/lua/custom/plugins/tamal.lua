@@ -40,20 +40,16 @@ local function open_file_in_floating_window(file_path)
     title = ' ' .. vim.fn.fnamemodify(file_path, ':t') .. ' ',
   }
 
-  -- Open the floating window
-  local win = vim.api.nvim_open_win(buf, true, opts)
-
-  -- Set buffer name to the file path
-  vim.api.nvim_buf_set_name(buf, file_path)
-
-  -- Load the file content into the buffer
-  vim.cmd('buffer ' .. buf)
-  vim.cmd('silent! edit ' .. file_path)
-
-  -- Set buffer options
+  -- Set buffer options first
   vim.api.nvim_buf_set_option(buf, 'buftype', '') -- Regular file buffer
   vim.api.nvim_buf_set_option(buf, 'modifiable', true)
   vim.api.nvim_buf_set_option(buf, 'filetype', 'markdown') -- Assuming notes are markdown
+
+  -- Open the floating window
+  local win = vim.api.nvim_open_win(buf, true, opts)
+
+  -- Load the file content into the buffer - more reliable method
+  vim.cmd('edit ' .. vim.fn.fnameescape(file_path))
 
   -- Set window options
   vim.api.nvim_win_set_option(win, 'winblend', 10)
