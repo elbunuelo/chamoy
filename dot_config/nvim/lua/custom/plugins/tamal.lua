@@ -36,7 +36,7 @@ local tamal_commands = {
   { cmd = 'tasks', desc = 'View tasks', height = 15, key = 't' },
   { cmd = 'weekly', desc = 'Open weekly note', height = 0, key = 'w', use_note_path = true, path_cmd = 'weekly-note-path' },
   { cmd = 'open', desc = 'Open a note', height = 0, key = 'o', use_telescope = true },
-  { cmd = 'add-note', desc = 'Add a note', height = 3, key = 'n' },
+  { cmd = 'add-note', desc = 'Add a note', height = 3, key = 'n', needs_time_block = true },
   { cmd = 'three-p', desc = 'Add a 3P note', height = 3, key = 'p' },
 }
 
@@ -845,9 +845,9 @@ local function open_tamal_popup(command_info)
     section_selector = create_section_selector(win, buf)
   end
 
-  -- Create time block selector for add-task command
+  -- Create time block selector for commands that need time blocks
   local time_block_selector = nil
-  if command_info.cmd == 'add-task' then
+  if command_info.cmd == 'add-task' or command_info.needs_time_block then
     time_block_selector = create_time_block_selector(win, buf)
   end
 
@@ -863,19 +863,26 @@ local function open_tamal_popup(command_info)
     local content = table.concat(lines, '\n')
 
     -- Construct the command
-    local cmd = 'tamal --' .. command_info.cmd
+    local cmd = 'tamal'
 
     -- For three-p command, get the selected section and add it as --section argument
     if command_info.cmd == 'three-p' and section_selector then
       local selected_section = section_selector.get_current_value()
-      cmd = cmd .. ' --section ' .. selected_section:lower() .. ' ' .. vim.fn.shellescape(content)
+      cmd = cmd .. ' --three-p ' .. selected_section:lower() .. ' --note ' .. vim.fn.shellescape(content)
 
       -- Use our centralized function to close both windows
       close_window_pair(window_id)
     -- For add-task command, get the selected time block and add start/end time arguments
     elseif command_info.cmd == 'add-task' and time_block_selector then
       local start_time, end_time = time_block_selector.parse_value()
-      cmd = cmd .. ' ' .. vim.fn.shellescape(content) .. ' --start-time "' .. start_time .. '" --end-time "' .. end_time .. '"'
+      cmd = cmd .. ' --add-task ' .. vim.fn.shellescape(content) .. ' --start-time "' .. start_time .. '" --end-time "' .. end_time .. '"'
+
+      -- Use our centralized function to close all windows
+      close_window_pair(window_id)
+    -- For add-note command, we need the time block too
+    elseif command_info.cmd == 'add-note' and time_block_selector then
+      local start_time, end_time = time_block_selector.parse_value()
+      cmd = cmd .. ' --note ' .. vim.fn.shellescape(content) .. ' --start-time "' .. start_time .. '" --end-time "' .. end_time .. '"'
 
       -- Use our centralized function to close all windows
       close_window_pair(window_id)
@@ -884,7 +891,7 @@ local function open_tamal_popup(command_info)
       if command_info.param_name then
         cmd = cmd .. ' ' .. content
       else
-        cmd = cmd .. ' ' .. vim.fn.shellescape(content)
+        cmd = cmd .. ' --' .. command_info.cmd .. ' ' .. vim.fn.shellescape(content)
       end
 
       -- Close the input window
@@ -901,8 +908,19 @@ local function open_tamal_popup(command_info)
     else
       -- Execute the command
       local output = vim.fn.system(cmd)
+
       -- Show a notification of success
-      vim.notify('Task added successfully', vim.log.levels.INFO)
+      local success_message = ''
+      if command_info.cmd == 'add-task' then
+        success_message = 'Task added successfully'
+      elseif command_info.cmd == 'add-note' then
+        success_message = 'Note added successfully'
+      elseif command_info.cmd == 'three-p' then
+        success_message = '3P note added successfully'
+      else
+        success_message = 'Command executed successfully'
+      end
+      vim.notify(success_message, vim.log.levels.INFO)
 
       -- Reload the current buffer only if it's a real file
       local current_buf = vim.api.nvim_get_current_buf()
