@@ -447,68 +447,167 @@ local function open_floating_terminal(cmd)
   return { buf = buf, win = win }
 end
 
+-- Helper function to round time to nearest 15 minutes
+local function round_time_to_15min(hours, minutes, round_up)
+  local total_minutes = hours * 60 + minutes
+  local remainder = total_minutes % 15
+
+  if remainder == 0 then
+    return hours, minutes
+  end
+
+  if round_up then
+    total_minutes = total_minutes + (15 - remainder)
+  else
+    total_minutes = total_minutes - remainder
+  end
+
+  local new_hours = math.floor(total_minutes / 60)
+  local new_minutes = total_minutes % 60
+
+  return new_hours, new_minutes
+end
+
+-- Helper function to format time as HH:MM
+local function format_time(hours, minutes)
+  return string.format('%02d:%02d', hours, minutes)
+end
+
+-- Helper function to parse time string into minutes
+local function parse_time_to_minutes(time_str)
+  local hours, minutes = time_str:match '(%d+):(%d+)'
+  if hours and minutes then
+    return tonumber(hours) * 60 + tonumber(minutes)
+  end
+  return nil
+end
+
 -- Function to create a time block selector for add-task command
 local function create_time_block_selector(note_win, note_buf)
   -- Get available time blocks from tamal
   local time_blocks_output = vim.fn.systemlist 'tamal --time-blocks'
 
-  -- If no time blocks available, return nil
+  -- If no time blocks available, create a default block around current time
   if #time_blocks_output == 0 then
-    vim.notify('No time blocks available', vim.log.levels.WARN)
-    return nil
+    -- Get current time
+    local current_time = os.date '%H:%M'
+    local current_hours, current_minutes = current_time:match '(%d+):(%d+)'
+    current_hours = tonumber(current_hours)
+    current_minutes = tonumber(current_minutes)
+
+    -- Round down to nearest 15 min for start time
+    local start_hours, start_minutes = round_time_to_15min(current_hours, current_minutes, false)
+    -- Round up to nearest 15 min for end time (at least 15 min after start)
+    local end_hours, end_minutes = round_time_to_15min(current_hours, current_minutes + 15, true)
+
+    -- Create a time block
+    local time_block = format_time(start_hours, start_minutes) .. ' - ' .. format_time(end_hours, end_minutes)
+    time_blocks_output = { time_block }
+
+    -- Create selector with the single time block
+    return create_selector_window(note_win, note_buf, {
+      values = time_blocks_output,
+      prefix = 'Time: ',
+      type = 'time_block',
+      parse_value = function(time_block)
+        local start_time, end_time = time_block:match '(%d%d:%d%d)%s*-%s*(%d%d:%d%d)'
+        return start_time, end_time
+      end,
+    }, 'Time Block', true, 1) -- Position above note window, with index 1
   end
 
-  -- Find the time block containing current time or the closest one
-  local function find_best_time_block()
+  -- Find the time block containing current time or create a gap filler
+  local function find_or_create_time_block()
     -- Get current time
     local current_time = os.date '%H:%M'
     local current_hours, current_minutes = current_time:match '(%d+):(%d+)'
     local current_minutes_total = tonumber(current_hours) * 60 + tonumber(current_minutes)
 
-    -- First try to find a time block that contains the current time
+    -- Parse all time blocks and their start/end times
+    local blocks = {}
     for i, block in ipairs(time_blocks_output) do
       local start_time, end_time = block:match '(%d+:%d+)%s*-%s*(%d+:%d+)'
       if start_time and end_time then
-        local start_hours, start_minutes = start_time:match '(%d+):(%d+)'
-        local end_hours, end_minutes = end_time:match '(%d+):(%d+)'
+        local start_minutes = parse_time_to_minutes(start_time)
+        local end_minutes = parse_time_to_minutes(end_time)
 
-        if start_hours and start_minutes and end_hours and end_minutes then
-          local start_minutes_total = tonumber(start_hours) * 60 + tonumber(start_minutes)
-          local end_minutes_total = tonumber(end_hours) * 60 + tonumber(end_minutes)
-
-          -- Check if current time is within this block
-          if current_minutes_total >= start_minutes_total and current_minutes_total <= end_minutes_total then
-            return i -- Return the index of the containing block
-          end
+        if start_minutes and end_minutes then
+          table.insert(blocks, {
+            index = i,
+            start_time = start_time,
+            end_time = end_time,
+            start_minutes = start_minutes,
+            end_minutes = end_minutes,
+          })
         end
       end
     end
 
-    -- If no containing block found, find the closest one by start time
-    local closest_idx = 1
-    local min_diff = math.huge
+    -- Sort blocks by start time
+    table.sort(blocks, function(a, b)
+      return a.start_minutes < b.start_minutes
+    end)
 
-    for i, block in ipairs(time_blocks_output) do
-      local start_time = block:match '(%d+:%d+)%s*-'
-      if start_time then
-        local hours, minutes = start_time:match '(%d+):(%d+)'
-        if hours and minutes then
-          local minutes_total = tonumber(hours) * 60 + tonumber(minutes)
-          local diff = math.abs(minutes_total - current_minutes_total)
-
-          if diff < min_diff then
-            min_diff = diff
-            closest_idx = i
-          end
-        end
+    -- First try to find a time block that contains the current time
+    for _, block in ipairs(blocks) do
+      if current_minutes_total >= block.start_minutes and current_minutes_total <= block.end_minutes then
+        return block.index -- Return the index of the containing block
       end
     end
 
-    return closest_idx
+    -- If no containing block found, create a gap filler block
+    local prev_block = nil
+    local next_block = nil
+
+    -- Find previous and next blocks
+    for i, block in ipairs(blocks) do
+      if block.start_minutes > current_minutes_total then
+        next_block = block
+        if i > 1 then
+          prev_block = blocks[i - 1]
+        end
+        break
+      end
+      -- If we reach the end without finding a next block, this is the prev block
+      if i == #blocks then
+        prev_block = block
+      end
+    end
+
+    -- Create a new block based on the situation
+    local start_time, end_time
+
+    if prev_block and next_block then
+      -- Case 1: Between two blocks - use end of prev and start of next
+      start_time = prev_block.end_time
+      end_time = next_block.start_time
+    elseif prev_block then
+      -- Case 2: After all blocks - use end of last block and current time + 15min rounded
+      start_time = prev_block.end_time
+      local end_hours, end_minutes = round_time_to_15min(tonumber(current_hours), tonumber(current_minutes) + 15, true)
+      end_time = format_time(end_hours, end_minutes)
+    elseif next_block then
+      -- Case 3: Before all blocks - use current time rounded and start of first block
+      local start_hours, start_minutes = round_time_to_15min(tonumber(current_hours), tonumber(current_minutes), false)
+      start_time = format_time(start_hours, start_minutes)
+      end_time = next_block.start_time
+    else
+      -- Case 4: No blocks at all (shouldn't happen here but just in case)
+      local start_hours, start_minutes = round_time_to_15min(tonumber(current_hours), tonumber(current_minutes), false)
+      local end_hours, end_minutes = round_time_to_15min(tonumber(current_hours), tonumber(current_minutes) + 15, true)
+      start_time = format_time(start_hours, start_minutes)
+      end_time = format_time(end_hours, end_minutes)
+    end
+
+    -- Create the dynamic block and add it to the list
+    local dynamic_block = start_time .. ' - ' .. end_time
+    table.insert(time_blocks_output, dynamic_block)
+
+    return #time_blocks_output -- Return the index of the new block
   end
 
-  -- Get the best time block index
-  local current_block_idx = find_best_time_block()
+  -- Get the best time block index or create a dynamic one
+  local current_block_idx = find_or_create_time_block()
 
   -- Create selector with time blocks, passing the best time block index
   return create_selector_window(note_win, note_buf, {
