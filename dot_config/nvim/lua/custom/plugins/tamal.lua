@@ -806,13 +806,13 @@ local function open_tamal_popup(command_info)
         -- Map status to nerdfont icon
         local status_icon = ''
         if status == 'pending' then
-          status_icon = '  ' -- Circle icon for pending
+          status_icon = ' ' -- Circle icon for pending
         elseif status == 'done' then
-          status_icon = '  ' -- Check icon for done
+          status_icon = 'x' -- Check icon for done
         elseif status == 'canceled' then
-          status_icon = '  ' -- Cross icon for canceled
+          status_icon = '~' -- Cross icon for canceled
         else
-          status_icon = '  ' -- Question mark for unknown status
+          status_icon = '?' -- Question mark for unknown status
         end
 
         -- Create line with icon and task text
