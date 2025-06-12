@@ -26,6 +26,8 @@ def run(config)
     tasks(config)
   when 'time_blocks'
     time_blocks(config)
+  when 'day_line_numbers'
+    day_line_numbers(config)
   when 'add_task'
     add_task(config)
   when 'add_note'
