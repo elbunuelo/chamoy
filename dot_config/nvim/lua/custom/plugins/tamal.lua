@@ -58,11 +58,19 @@ local function open_file_in_floating_window(file_path)
   -- Set window options
   vim.api.nvim_win_set_option(win, 'winblend', 10)
   vim.api.nvim_win_set_option(win, 'cursorline', true)
+  vim.api.nvim_win_set_option(win, 'wrap', true) -- Enable line wrapping
+  vim.api.nvim_win_set_option(win, 'linebreak', true) -- Wrap at word boundaries
+  vim.api.nvim_win_set_option(win, 'number', false) -- Disable line numbers
+  vim.api.nvim_win_set_option(win, 'textwidth', 120) -- Wrap at 120 characters
+
+  -- Set buffer options for the window
+  vim.api.nvim_win_call(win, function()
+    vim.opt_local.laststatus = 0 -- Disable status line in this window
+  end)
 
   -- Set keybindings for the window
   local keymap_opts = { noremap = true, silent = true, buffer = buf }
   vim.keymap.set('n', 'q', ':q<CR>', keymap_opts)
-  vim.keymap.set('n', '<leader>w', ':w<CR>', keymap_opts)
 
   return { buf = buf, win = win }
 end
