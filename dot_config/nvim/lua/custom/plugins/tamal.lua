@@ -157,6 +157,33 @@ local function setup_window_autocmds(selector_buf, selector_win, note_win_id)
   })
 end
 
+-- Helper function to adjust time by 15 minutes (positive or negative)
+local function adjust_time_by_15min(time_str, increment)
+  local hours, minutes = time_str:match '(%d+):(%d+)'
+  if not hours or not minutes then
+    return time_str
+  end
+
+  hours, minutes = tonumber(hours), tonumber(minutes)
+
+  -- Convert to total minutes and adjust
+  local total_minutes = hours * 60 + minutes
+  total_minutes = total_minutes + (increment and 15 or -15)
+
+  -- Handle day wrapping
+  if total_minutes < 0 then
+    total_minutes = total_minutes + 24 * 60 -- Wrap to previous day
+  elseif total_minutes >= 24 * 60 then
+    total_minutes = total_minutes - 24 * 60 -- Wrap to next day
+  end
+
+  -- Convert back to hours and minutes
+  local new_hours = math.floor(total_minutes / 60)
+  local new_minutes = total_minutes % 60
+
+  return string.format('%02d:%02d', new_hours, new_minutes)
+end
+
 -- Helper function to create a selector window
 local function create_selector_window(note_win, note_buf, items, title, position_above, initial_idx)
   -- Use initial_idx if provided, otherwise default to 1
@@ -235,6 +262,95 @@ local function create_selector_window(note_win, note_buf, items, title, position
     current_idx = (current_idx % #items.values) + 1
     update_display()
   end, { noremap = true, silent = true, buffer = selector_buf })
+
+  -- Add time adjustment keybindings for time blocks
+  if items.type == 'time_block' then
+    -- Function to determine if cursor is on start time or end time
+    local function get_time_part_at_cursor()
+      -- Get cursor position
+      local cursor_pos = vim.api.nvim_win_get_cursor(selector_win)[2]
+      local line = vim.api.nvim_buf_get_lines(selector_buf, 0, 1, false)[1]
+
+      -- Calculate positions in the line, accounting for the prefix
+      local prefix_len = #items.prefix
+      local time_block = line:sub(prefix_len + 1)
+      local start_time, end_time = time_block:match '(%d%d:%d%d)%s*-%s*(%d%d:%d%d)'
+
+      if not start_time or not end_time then
+        return nil
+      end
+
+      -- Find positions of start and end times in the line
+      local start_pos = line:find(start_time, prefix_len, true)
+      local end_pos = line:find(end_time, prefix_len, true)
+
+      if not start_pos or not end_pos then
+        return nil
+      end
+
+      -- Determine if cursor is on start time or end time
+      if cursor_pos >= start_pos - 1 and cursor_pos < start_pos + #start_time - 1 then
+        return 'start', start_time
+      elseif cursor_pos >= end_pos - 1 and cursor_pos < end_pos + #end_time - 1 then
+        return 'end', end_time
+      end
+
+      return nil
+    end
+
+    -- Function to adjust time block based on cursor position
+    local function adjust_time_block(increment)
+      -- Get current time block
+      local time_block = items.values[current_idx]
+      local start_time, end_time = time_block:match '(%d%d:%d%d)%s*-%s*(%d%d:%d%d)'
+
+      if not start_time or not end_time then
+        return
+      end
+
+      -- Check cursor position and adjust appropriate time
+      local time_part, time_value = get_time_part_at_cursor()
+
+      if not time_part then
+        return
+      end
+
+      -- Adjust the time
+      local new_time = adjust_time_by_15min(time_value, increment)
+
+      -- Create new time block string
+      local new_time_block
+      if time_part == 'start' then
+        -- Ensure start time doesn't exceed end time
+        if parse_time_to_minutes(new_time) < parse_time_to_minutes(end_time) then
+          new_time_block = new_time .. ' - ' .. end_time
+        else
+          return -- Invalid adjustment
+        end
+      else -- end time
+        -- Ensure end time doesn't precede start time
+        if parse_time_to_minutes(new_time) > parse_time_to_minutes(start_time) then
+          new_time_block = start_time .. ' - ' .. new_time
+        else
+          return -- Invalid adjustment
+        end
+      end
+
+      -- Update the time block in the values array
+      items.values[current_idx] = new_time_block
+
+      -- Update display
+      update_display()
+    end
+
+    -- Add keybindings for + and -
+    vim.keymap.set('n', '+', function()
+      adjust_time_block(true)
+    end, { noremap = true, silent = true, buffer = selector_buf })
+    vim.keymap.set('n', '-', function()
+      adjust_time_block(false)
+    end, { noremap = true, silent = true, buffer = selector_buf })
+  end
 
   -- Make the selector display read-only after initial setup
   vim.api.nvim_buf_set_option(selector_buf, 'modifiable', false)
