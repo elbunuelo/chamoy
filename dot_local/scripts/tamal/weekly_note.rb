@@ -321,11 +321,11 @@ def add_note(config)
       block[:end_time] = [block[:end_time], config.end_time].max
     else
       blocks.insert(block_index, {
-                      start_time:,
-                      end_time:,
-                      tasks: [],
-                      notes: []
-                    })
+        start_time: config.start_time,
+        end_time: config.end_time,
+        tasks: [],
+        notes: []
+      })
     end
     break
   end

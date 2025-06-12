@@ -4,19 +4,19 @@ class TamalConfig
 
   def initialize
     @debug = false
-    @action = ''
+    @action = nil
     @date = Date.today
     @time = Time.now
     @start_time = Time.now
     @end_time = Time.now
-    @task = ''
-    @note = ''
-    @status = ''
+    @task = nil
+    @note = nil
+    @status = nil
     @parser = nil
-    @name = ''
-    @template = ''
+    @name = nil
+    @template = nil
     @task_index = nil
-    @section = ''
+    @section = nil
 
     parse_options
   end
@@ -94,6 +94,7 @@ class TamalConfig
 
       opts.on('-n', '--note NOTE') do |note|
         @action ||= 'add_note'
+        pp @action
         @note = note
       end
 
