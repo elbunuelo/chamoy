@@ -11,6 +11,62 @@ local tamal_commands = {
   { cmd = 'three-p', desc = 'Add a 3P note', height = 3, param_name = 'SECTION', key = 'p' },
 }
 
+-- Function to open a file in a floating window
+local function open_file_in_floating_window(file_path)
+  -- Check if file exists
+  if vim.fn.filereadable(file_path) == 0 then
+    vim.notify('File not found: ' .. file_path, vim.log.levels.ERROR)
+    return
+  end
+
+  -- Create a new buffer for the file content
+  local buf = vim.api.nvim_create_buf(false, true)
+
+  -- Set up dimensions and position for the floating window
+  local width = math.floor(vim.o.columns * 0.8)
+  local height = math.floor(vim.o.lines * 0.8)
+  local col = math.floor((vim.o.columns - width) / 2)
+  local row = math.floor((vim.o.lines - height) / 2)
+
+  -- Window options
+  local opts = {
+    relative = 'editor',
+    width = width,
+    height = height,
+    col = col,
+    row = row,
+    style = 'minimal',
+    border = 'rounded',
+    title = ' ' .. vim.fn.fnamemodify(file_path, ':t') .. ' ',
+  }
+
+  -- Open the floating window
+  local win = vim.api.nvim_open_win(buf, true, opts)
+
+  -- Set buffer name to the file path
+  vim.api.nvim_buf_set_name(buf, file_path)
+  
+  -- Load the file content into the buffer
+  vim.cmd('buffer ' .. buf)
+  vim.cmd('silent! edit ' .. file_path)
+  
+  -- Set buffer options
+  vim.api.nvim_buf_set_option(buf, 'buftype', '')  -- Regular file buffer
+  vim.api.nvim_buf_set_option(buf, 'modifiable', true)
+  vim.api.nvim_buf_set_option(buf, 'filetype', 'markdown')  -- Assuming notes are markdown
+
+  -- Set window options
+  vim.api.nvim_win_set_option(win, 'winblend', 10)
+  vim.api.nvim_win_set_option(win, 'cursorline', true)
+
+  -- Set keybindings for the window
+  local keymap_opts = { noremap = true, silent = true, buffer = buf }
+  vim.keymap.set('n', 'q', ':q<CR>', keymap_opts)
+  vim.keymap.set('n', '<leader>w', ':w<CR>', keymap_opts)
+
+  return { buf = buf, win = win }
+end
+
 -- Function to open a floating terminal and run a command
 local function open_floating_terminal(cmd)
   -- Create a new buffer for the terminal
