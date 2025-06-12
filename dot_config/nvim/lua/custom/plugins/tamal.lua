@@ -532,6 +532,21 @@ local function open_file_in_floating_window(file_path)
     close_window_pair(window_id)
   end, keymap_opts)
 
+  -- Reapply keybindings after saving the file
+  vim.api.nvim_create_autocmd('BufWritePost', {
+    buffer = buf,
+    callback = function()
+      vim.schedule(function()
+        if vim.api.nvim_buf_is_valid(buf) then
+          -- Reapply the 'q' keybinding after save
+          vim.keymap.set('n', 'q', function()
+            close_window_pair(window_id)
+          end, keymap_opts)
+        end
+      end)
+    end,
+  })
+
   return { buf = buf, win = win }
 end
 
