@@ -184,6 +184,41 @@ local function adjust_time_by_15min(time_str, increment)
   return string.format('%02d:%02d', new_hours, new_minutes)
 end
 
+-- Helper function to round time to nearest 15 minutes
+local function round_time_to_15min(hours, minutes, round_up)
+  local total_minutes = hours * 60 + minutes
+  local remainder = total_minutes % 15
+
+  if remainder == 0 then
+    return hours, minutes
+  end
+
+  if round_up then
+    total_minutes = total_minutes + (15 - remainder)
+  else
+    total_minutes = total_minutes - remainder
+  end
+
+  local new_hours = math.floor(total_minutes / 60)
+  local new_minutes = total_minutes % 60
+
+  return new_hours, new_minutes
+end
+
+-- Helper function to format time as HH:MM
+local function format_time(hours, minutes)
+  return string.format('%02d:%02d', hours, minutes)
+end
+
+-- Helper function to parse time string into minutes
+local function parse_time_to_minutes(time_str)
+  local hours, minutes = time_str:match '(%d+):(%d+)'
+  if hours and minutes then
+    return tonumber(hours) * 60 + tonumber(minutes)
+  end
+  return nil
+end
+
 -- Helper function to create a selector window
 local function create_selector_window(note_win, note_buf, items, title, position_above, initial_idx)
   -- Use initial_idx if provided, otherwise default to 1
@@ -561,41 +596,6 @@ local function open_floating_terminal(cmd)
   vim.cmd 'startinsert'
 
   return { buf = buf, win = win }
-end
-
--- Helper function to round time to nearest 15 minutes
-local function round_time_to_15min(hours, minutes, round_up)
-  local total_minutes = hours * 60 + minutes
-  local remainder = total_minutes % 15
-
-  if remainder == 0 then
-    return hours, minutes
-  end
-
-  if round_up then
-    total_minutes = total_minutes + (15 - remainder)
-  else
-    total_minutes = total_minutes - remainder
-  end
-
-  local new_hours = math.floor(total_minutes / 60)
-  local new_minutes = total_minutes % 60
-
-  return new_hours, new_minutes
-end
-
--- Helper function to format time as HH:MM
-local function format_time(hours, minutes)
-  return string.format('%02d:%02d', hours, minutes)
-end
-
--- Helper function to parse time string into minutes
-local function parse_time_to_minutes(time_str)
-  local hours, minutes = time_str:match '(%d+):(%d+)'
-  if hours and minutes then
-    return tonumber(hours) * 60 + tonumber(minutes)
-  end
-  return nil
 end
 
 -- Function to create a time block selector for add-task command
