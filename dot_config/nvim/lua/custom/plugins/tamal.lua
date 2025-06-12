@@ -294,6 +294,22 @@ local function create_section_selector(note_win, note_buf)
     end,
   })
 
+  -- Create autocommand to close the paired window when this window is closed
+  vim.api.nvim_create_autocmd('WinClosed', {
+    pattern = tostring(selector_win),
+    callback = function()
+      if note_win_id and tamal_window_pairs[note_win_id] then
+        local pair = tamal_window_pairs[note_win_id]
+        -- Close note window if valid and not already closing
+        if pair.note_win and vim.api.nvim_win_is_valid(pair.note_win) then
+          vim.api.nvim_win_close(pair.note_win, true)
+        end
+        -- Remove from tracking table
+        tamal_window_pairs[note_win_id] = nil
+      end
+    end,
+  })
+
   -- Function to update the section display
   local function update_section_display()
     vim.schedule(function()
