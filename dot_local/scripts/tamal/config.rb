@@ -59,6 +59,13 @@ class TamalConfig
         @action = 'time_blocks'
       end
 
+      opts.on(
+        '--day-line-numbers',
+        'List the line numbers and days of the week for each day header in the weekly note'
+      ) do
+        @action = 'day_line_numbers'
+      end
+
       opts.on('-D', '--debug') do
         @debug = true
       end
