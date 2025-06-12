@@ -200,9 +200,13 @@ local function create_section_selector(note_win, note_buf)
 
   -- Function to update the section display
   local function update_section_display()
-    vim.api.nvim_buf_set_option(selector_buf, 'modifiable', true)
-    vim.api.nvim_buf_set_lines(selector_buf, 0, -1, false, { 'Section: ' .. sections[current_section_idx] })
-    vim.api.nvim_buf_set_option(selector_buf, 'modifiable', false)
+    vim.schedule(function()
+      if vim.api.nvim_buf_is_valid(selector_buf) then
+        vim.api.nvim_buf_set_option(selector_buf, 'modifiable', true)
+        vim.api.nvim_buf_set_lines(selector_buf, 0, -1, false, { 'Section: ' .. sections[current_section_idx] })
+        vim.api.nvim_buf_set_option(selector_buf, 'modifiable', false)
+      end
+    end)
   end
 
   -- Set Tab key binding to cycle through sections
