@@ -796,36 +796,116 @@ local function open_tamal_popup(command_info)
     -- Get tasks and populate buffer
     local tasks_output = vim.fn.systemlist 'tamal --tasks'
 
-    -- Process tasks to add status icons
+    -- Store the original task data for later reference when updating status
+    local task_data = {}
+
+    -- Process tasks to add status indicators
     local processed_tasks = {}
-    for _, line in ipairs(tasks_output) do
+    for i, line in ipairs(tasks_output) do
       -- Parse the status and task text (format: "status,task text")
       local status, task_text = line:match '^([^,]+),(.*)$'
 
       if status then
-        -- Map status to nerdfont icon
-        local status_icon = ''
+        -- Map status to ASCII character
+        local status_char = ''
         if status == 'pending' then
-          status_icon = ' ' -- Circle icon for pending
+          status_char = ' ' -- Space for pending
         elseif status == 'done' then
-          status_icon = 'x' -- Check icon for done
+          status_char = 'x' -- x for done
         elseif status == 'canceled' then
-          status_icon = '~' -- Cross icon for canceled
+          status_char = '~' -- ~ for canceled
         else
-          status_icon = '?' -- Question mark for unknown status
+          status_char = '?' -- ? for unknown status
         end
 
-        -- Create line with icon and task text
-        local modified_line = status_icon .. ' ' .. task_text
+        -- Create line with status character and task text
+        local modified_line = '[' .. status_char .. '] ' .. task_text
         table.insert(processed_tasks, modified_line)
+
+        -- Store the original task data
+        task_data[#processed_tasks] = {
+          status = status,
+          text = task_text,
+          line_index = #processed_tasks,
+        }
       else
         -- Not a task line or couldn't parse, keep as is
         table.insert(processed_tasks, line)
+        task_data[#processed_tasks] = nil -- Mark as not a task line
       end
     end
 
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, processed_tasks)
-    vim.api.nvim_buf_set_option(buf, 'modifiable', false) -- Make read-only
+
+    -- Function to cycle task status
+    local function cycle_task_status()
+      -- Get the current line number (1-based index)
+      local cursor_pos = vim.api.nvim_win_get_cursor(win)
+      local line_num = cursor_pos[1]
+
+      -- Check if this line is a task
+      local task = task_data[line_num]
+      if not task then
+        vim.notify('Not a task line', vim.log.levels.WARN)
+        return
+      end
+
+      -- Determine the next status in the cycle
+      local next_status = 'pending' -- Default fallback
+      if task.status == 'pending' then
+        next_status = 'done'
+      elseif task.status == 'done' then
+        next_status = 'canceled'
+      elseif task.status == 'canceled' then
+        next_status = 'pending'
+      end
+
+      -- Update the task status in our data
+      task.status = next_status
+
+      -- Update the display with the new status character
+      local new_char = '?'
+      if next_status == 'pending' then
+        new_char = ' '
+      elseif next_status == 'done' then
+        new_char = 'x'
+      elseif next_status == 'canceled' then
+        new_char = '~'
+      end
+
+      -- Make the buffer modifiable temporarily
+      vim.api.nvim_buf_set_option(buf, 'modifiable', true)
+
+      -- Get the current line content
+      local line = vim.api.nvim_buf_get_lines(buf, line_num - 1, line_num, false)[1]
+
+      -- Replace the status character in the brackets
+      local new_line = '[' .. new_char .. ']' .. line:sub(4) -- Replace character in brackets
+      vim.api.nvim_buf_set_lines(buf, line_num - 1, line_num, false, { new_line })
+
+      -- Make the buffer read-only again
+      vim.api.nvim_buf_set_option(buf, 'modifiable', false)
+
+      -- Update the task status in tamal
+      local cmd = 'tamal --update-task-status "' .. task.text .. '" ' .. next_status
+      vim.fn.system(cmd)
+
+      -- Show notification
+      vim.notify('Task updated to: ' .. next_status, vim.log.levels.INFO)
+    end
+
+    -- Add Tab key mapping to cycle through task statuses
+    vim.keymap.set('n', '<Tab>', cycle_task_status, { noremap = true, silent = true, buffer = buf })
+
+    -- Add a helpful message at the top of the buffer
+    vim.api.nvim_echo({
+      { 'Press ', 'Normal' },
+      { 'Tab', 'Special' },
+      { ' to cycle task status (pending → done → canceled → pending)', 'Normal' },
+    }, false, {})
+
+    -- Make the buffer read-only
+    vim.api.nvim_buf_set_option(buf, 'modifiable', false)
   end
 
   -- Create the window with the buffer
