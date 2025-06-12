@@ -224,13 +224,33 @@ local function create_time_block_selector(note_win, note_buf)
     return nil
   end
 
-  -- Find the closest time block to current time
-  local function find_closest_time_block()
+  -- Find the time block containing current time or the closest one
+  local function find_best_time_block()
     -- Get current time
     local current_time = os.date '%H:%M'
     local current_hours, current_minutes = current_time:match '(%d+):(%d+)'
     local current_minutes_total = tonumber(current_hours) * 60 + tonumber(current_minutes)
 
+    -- First try to find a time block that contains the current time
+    for i, block in ipairs(time_blocks_output) do
+      local start_time, end_time = block:match '(%d+:%d+)%s*-%s*(%d+:%d+)'
+      if start_time and end_time then
+        local start_hours, start_minutes = start_time:match '(%d+):(%d+)'
+        local end_hours, end_minutes = end_time:match '(%d+):(%d+)'
+
+        if start_hours and start_minutes and end_hours and end_minutes then
+          local start_minutes_total = tonumber(start_hours) * 60 + tonumber(start_minutes)
+          local end_minutes_total = tonumber(end_hours) * 60 + tonumber(end_minutes)
+
+          -- Check if current time is within this block
+          if current_minutes_total >= start_minutes_total and current_minutes_total <= end_minutes_total then
+            return i -- Return the index of the containing block
+          end
+        end
+      end
+    end
+
+    -- If no containing block found, find the closest one by start time
     local closest_idx = 1
     local min_diff = math.huge
 
@@ -253,7 +273,7 @@ local function create_time_block_selector(note_win, note_buf)
     return closest_idx
   end
 
-  local current_block_idx = find_closest_time_block()
+  local current_block_idx = find_best_time_block()
 
   -- Create buffer for the time block selector
   local selector_buf = vim.api.nvim_create_buf(false, true)
