@@ -40,6 +40,216 @@ local tamal_commands = {
   { cmd = 'three-p', desc = 'Add a 3P note', height = 3, key = 'p' },
 }
 
+-- Helper function to calculate window dimensions and position
+local function calculate_window_dimensions(width_percent, height_percent)
+  local width = math.floor(vim.o.columns * width_percent)
+  local height = math.floor(vim.o.lines * height_percent)
+  local col = math.floor((vim.o.columns - width) / 2)
+  local row = math.floor((vim.o.lines - height) / 2)
+
+  return { width = width, height = height, col = col, row = row }
+end
+
+-- Helper function to get window position from config (handles different Neovim API versions)
+local function get_win_position(win_config)
+  local col, row, width
+  if type(win_config.col) == 'number' then
+    -- Newer Neovim versions
+    col = win_config.col
+    row = win_config.row
+    width = win_config.width
+  else
+    -- Older Neovim versions with indexable values
+    col = win_config.col[false]
+    row = win_config.row[false]
+    width = win_config.width
+  end
+  return { col = col, row = row, width = width }
+end
+
+-- Helper function to set common window options
+local function set_common_win_options(win)
+  vim.api.nvim_win_set_option(win, 'winblend', 10)
+  vim.api.nvim_win_set_option(win, 'cursorline', true)
+  vim.api.nvim_win_set_option(win, 'wrap', true) -- Enable line wrapping
+  vim.api.nvim_win_set_option(win, 'linebreak', true) -- Wrap at word boundaries
+  vim.api.nvim_win_set_option(win, 'number', false) -- Disable line numbers
+  vim.api.nvim_win_set_option(win, 'textwidth', 120) -- Wrap at 120 characters
+
+  vim.api.nvim_win_call(win, function()
+    vim.opt_local.laststatus = 0 -- Disable status line in this window
+  end)
+end
+
+-- Helper function to create navigation between windows
+local function setup_window_navigation(note_win, note_buf, selector_win, selector_buf)
+  -- CTRL+K: Move to selector
+  vim.keymap.set({ 'n', 'i' }, '<C-k>', function()
+    if vim.api.nvim_win_is_valid(selector_win) then
+      -- If in insert mode, switch to normal mode first
+      if vim.fn.mode() == 'i' then
+        vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Esc>', true, false, true), 'n', true)
+      end
+      vim.api.nvim_set_current_win(selector_win)
+    end
+  end, { noremap = true, silent = true, buffer = note_buf })
+
+  -- CTRL+J: Move to note window
+  vim.keymap.set('n', '<C-j>', function()
+    if vim.api.nvim_win_is_valid(note_win) then
+      vim.api.nvim_set_current_win(note_win)
+      -- Return to insert mode in the note window
+      vim.cmd 'startinsert'
+    end
+  end, { noremap = true, silent = true, buffer = selector_buf })
+
+  -- Set up 'q' key to close windows
+  local window_id = tostring(note_win)
+  vim.keymap.set('n', 'q', function()
+    close_window_pair(window_id)
+  end, { noremap = true, silent = true, buffer = selector_buf })
+  vim.keymap.set('n', 'q', function()
+    close_window_pair(window_id)
+  end, { noremap = true, silent = true, buffer = note_buf })
+
+  return window_id
+end
+
+-- Helper function to setup window autocmds for closing
+local function setup_window_autocmds(selector_buf, selector_win, note_win_id)
+  -- Create autocommand to close windows when leaving to a non-tamal window
+  vim.api.nvim_create_autocmd('WinLeave', {
+    buffer = selector_buf,
+    callback = function()
+      vim.schedule(function()
+        -- Get the current window after leaving
+        local current_win = vim.api.nvim_get_current_win()
+
+        -- Check if we moved to a window that is part of our pairs
+        local is_related_window = false
+        for id, pair in pairs(tamal_window_pairs) do
+          if
+            (pair.section_win and current_win == pair.section_win)
+            or (pair.note_win and current_win == pair.note_win)
+            or (pair.time_block_win and current_win == pair.time_block_win)
+          then
+            is_related_window = true
+            break
+          end
+        end
+
+        -- If we moved to an unrelated window, close all windows in the pair
+        if not is_related_window and note_win_id then
+          close_window_pair(note_win_id)
+        end
+      end)
+    end,
+  })
+
+  -- Create autocommand to close the paired windows when this window is closed
+  vim.api.nvim_create_autocmd('WinClosed', {
+    pattern = tostring(selector_win),
+    callback = function()
+      if note_win_id then
+        close_window_pair(note_win_id)
+      end
+    end,
+  })
+end
+
+-- Helper function to create a selector window
+local function create_selector_window(note_win, note_buf, items, title, position_above)
+  local current_idx = 1
+
+  -- Create buffer for the selector
+  local selector_buf = vim.api.nvim_create_buf(false, true)
+
+  -- Set buffer options
+  vim.api.nvim_buf_set_option(selector_buf, 'bufhidden', 'wipe')
+  vim.api.nvim_buf_set_option(selector_buf, 'modifiable', true)
+
+  -- Set initial content
+  vim.api.nvim_buf_set_lines(selector_buf, 0, -1, false, { items.prefix .. items.values[current_idx] })
+
+  -- Calculate position relative to note window
+  local note_win_config = vim.api.nvim_win_get_config(note_win)
+  local pos = get_win_position(note_win_config)
+  local height = 1
+  local width = pos.width
+  local row = position_above and (pos.row - 2) or (pos.row + note_win_config.height + 1)
+  local col = pos.col
+
+  -- Window options
+  local opts = {
+    relative = 'editor',
+    width = width,
+    height = height,
+    col = col,
+    row = row,
+    style = 'minimal',
+    border = 'rounded',
+    title = title,
+  }
+
+  -- Create the window with the buffer
+  local selector_win = vim.api.nvim_open_win(selector_buf, false, opts) -- Don't focus initially
+
+  -- Set window options
+  vim.api.nvim_win_set_option(selector_win, 'winblend', 10)
+  vim.api.nvim_win_set_option(selector_win, 'cursorline', true)
+
+  -- Find the associated note window and update the pair in the tracking table
+  local note_win_id = nil
+  for id, pair in pairs(tamal_window_pairs) do
+    if pair.note_win == note_win then
+      note_win_id = id
+      if items.type == 'section' then
+        pair.section_win = selector_win
+      elseif items.type == 'time_block' then
+        pair.time_block_win = selector_win
+      end
+      break
+    end
+  end
+
+  -- Setup navigation between windows
+  setup_window_navigation(note_win, note_buf, selector_win, selector_buf)
+
+  -- Setup autocmds for window closing
+  setup_window_autocmds(selector_buf, selector_win, note_win_id)
+
+  -- Function to update the selector display
+  local function update_display()
+    vim.schedule(function()
+      if vim.api.nvim_buf_is_valid(selector_buf) then
+        vim.api.nvim_buf_set_option(selector_buf, 'modifiable', true)
+        vim.api.nvim_buf_set_lines(selector_buf, 0, -1, false, { items.prefix .. items.values[current_idx] })
+        vim.api.nvim_buf_set_option(selector_buf, 'modifiable', false)
+      end
+    end)
+  end
+
+  -- Tab in selector: Cycle through values
+  vim.keymap.set('n', '<Tab>', function()
+    current_idx = (current_idx % #items.values) + 1
+    update_display()
+  end, { noremap = true, silent = true, buffer = selector_buf })
+
+  -- Make the selector display read-only after initial setup
+  vim.api.nvim_buf_set_option(selector_buf, 'modifiable', false)
+
+  return {
+    win = selector_win,
+    buf = selector_buf,
+    get_current_value = function()
+      return items.values[current_idx]
+    end,
+    parse_value = items.parse_value and function()
+      return items.parse_value(items.values[current_idx])
+    end or nil,
+  }
+end
+
 -- Function to open a file in a floating window
 local function open_file_in_floating_window(file_path)
   -- Check if file exists
@@ -51,19 +261,16 @@ local function open_file_in_floating_window(file_path)
   -- Create a new buffer for the file content
   local buf = vim.api.nvim_create_buf(false, true)
 
-  -- Set up dimensions and position for the floating window
-  local width = math.floor(vim.o.columns * 0.8)
-  local height = math.floor(vim.o.lines * 0.8)
-  local col = math.floor((vim.o.columns - width) / 2)
-  local row = math.floor((vim.o.lines - height) / 2)
+  -- Set up dimensions and position
+  local dimensions = calculate_window_dimensions(0.8, 0.8)
 
   -- Window options
   local opts = {
     relative = 'editor',
-    width = width,
-    height = height,
-    col = col,
-    row = row,
+    width = dimensions.width,
+    height = dimensions.height,
+    col = dimensions.col,
+    row = dimensions.row,
     style = 'minimal',
     border = 'rounded',
     title = ' ' .. vim.fn.fnamemodify(file_path, ':t') .. ' ',
@@ -80,13 +287,8 @@ local function open_file_in_floating_window(file_path)
   -- Load the file content into the buffer - more reliable method
   vim.cmd('edit ' .. vim.fn.fnameescape(file_path))
 
-  -- Set window options
-  vim.api.nvim_win_set_option(win, 'winblend', 10)
-  vim.api.nvim_win_set_option(win, 'cursorline', true)
-  vim.api.nvim_win_set_option(win, 'wrap', true) -- Enable line wrapping
-  vim.api.nvim_win_set_option(win, 'linebreak', true) -- Wrap at word boundaries
-  vim.api.nvim_win_set_option(win, 'number', false) -- Disable line numbers
-  vim.api.nvim_win_set_option(win, 'textwidth', 120) -- Wrap at 120 characters
+  -- Set common window options
+  set_common_win_options(win)
 
   -- Register this window in the global tracking table
   local window_id = tostring(win)
@@ -172,20 +374,11 @@ local function open_file_in_floating_window(file_path)
     end,
   })
 
-  -- Set buffer options for the window
-  vim.api.nvim_win_call(win, function()
-    vim.opt_local.laststatus = 0 -- Disable status line in this window
-  end)
-
   -- Set keybindings for the window
   local keymap_opts = { noremap = true, silent = true, buffer = buf }
   vim.keymap.set('n', 'q', function()
     close_window_pair(window_id)
   end, keymap_opts)
-
-  vim.api.nvim_win_call(win, function()
-    vim.opt_local.laststatus = 0 -- Disable status line in this window
-  end)
 
   return { buf = buf, win = win }
 end
@@ -220,19 +413,16 @@ local function open_floating_terminal(cmd)
   -- Create a new buffer for the terminal
   local buf = vim.api.nvim_create_buf(false, true)
 
-  -- Set up dimensions and position for the floating window
-  local width = math.floor(vim.o.columns * 0.8)
-  local height = math.floor(vim.o.lines * 0.8)
-  local col = math.floor((vim.o.columns - width) / 2)
-  local row = math.floor((vim.o.lines - height) / 2)
+  -- Set up dimensions and position
+  local dimensions = calculate_window_dimensions(0.8, 0.8)
 
   -- Window options
   local opts = {
     relative = 'editor',
-    width = width,
-    height = height,
-    col = col,
-    row = row,
+    width = dimensions.width,
+    height = dimensions.height,
+    col = dimensions.col,
+    row = dimensions.row,
     style = 'minimal',
     border = 'rounded',
   }
@@ -318,336 +508,28 @@ local function create_time_block_selector(note_win, note_buf)
 
   local current_block_idx = find_best_time_block()
 
-  -- Create buffer for the time block selector
-  local selector_buf = vim.api.nvim_create_buf(false, true)
-
-  -- Set buffer options
-  vim.api.nvim_buf_set_option(selector_buf, 'bufhidden', 'wipe')
-  vim.api.nvim_buf_set_option(selector_buf, 'modifiable', true)
-
-  -- Set initial content
-  vim.api.nvim_buf_set_lines(selector_buf, 0, -1, false, { 'Time: ' .. time_blocks_output[current_block_idx] })
-
-  -- Calculate position (above the note window)
-  local note_win_config = vim.api.nvim_win_get_config(note_win)
-  local height = 1
-
-  -- Get the window position and dimensions from the config
-  -- The API returns different formats depending on Neovim version
-  local note_col, note_row, note_width
-  if type(note_win_config.col) == 'number' then
-    -- Newer Neovim versions
-    note_col = note_win_config.col
-    note_row = note_win_config.row
-    note_width = note_win_config.width
-  else
-    -- Older Neovim versions with indexable values
-    note_col = note_win_config.col[false]
-    note_row = note_win_config.row[false]
-    note_width = note_win_config.width
-  end
-
-  -- Use the same width as the note window
-  local width = note_width
-
-  local col = note_col + math.floor((note_width - width) / 2)
-  local row = note_row - 2 -- Position above the note window
-
-  -- Window options
-  local opts = {
-    relative = 'editor',
-    width = width,
-    height = height,
-    col = col,
-    row = row,
-    style = 'minimal',
-    border = 'rounded',
-    title = 'Time Block',
-  }
-
-  -- Create the window with the buffer
-  local selector_win = vim.api.nvim_open_win(selector_buf, false, opts) -- Don't focus initially
-
-  -- Set window options
-  vim.api.nvim_win_set_option(selector_win, 'winblend', 10)
-  vim.api.nvim_win_set_option(selector_win, 'cursorline', true)
-
-  -- Find the associated note window and update the pair in the tracking table
-  local note_win_id = nil
-  for id, pair in pairs(tamal_window_pairs) do
-    if pair.note_win == note_win then
-      note_win_id = id
-      pair.time_block_win = selector_win
-      break
-    end
-  end
-
-  -- Create autocommand to close windows when leaving to a non-tamal window
-  vim.api.nvim_create_autocmd('WinLeave', {
-    buffer = selector_buf,
-    callback = function()
-      vim.schedule(function()
-        -- Get the current window after leaving
-        local current_win = vim.api.nvim_get_current_win()
-
-        -- Check if we moved to a window that is part of our pairs
-        local is_related_window = false
-        for id, pair in pairs(tamal_window_pairs) do
-          if
-            (pair.section_win and current_win == pair.section_win)
-            or (pair.note_win and current_win == pair.note_win)
-            or (pair.time_block_win and current_win == pair.time_block_win)
-          then
-            is_related_window = true
-            break
-          end
-        end
-
-        -- If we moved to an unrelated window, close all windows in the pair
-        if not is_related_window and note_win_id then
-          close_window_pair(note_win_id)
-        end
-      end)
-    end,
-  })
-
-  -- Create autocommand to close the paired windows when this window is closed
-  vim.api.nvim_create_autocmd('WinClosed', {
-    pattern = tostring(selector_win),
-    callback = function()
-      if note_win_id then
-        close_window_pair(note_win_id)
-      end
-    end,
-  })
-
-  -- Function to update the time block display
-  local function update_time_block_display()
-    vim.schedule(function()
-      if vim.api.nvim_buf_is_valid(selector_buf) then
-        vim.api.nvim_buf_set_option(selector_buf, 'modifiable', true)
-        vim.api.nvim_buf_set_lines(selector_buf, 0, -1, false, { 'Time: ' .. time_blocks_output[current_block_idx] })
-        vim.api.nvim_buf_set_option(selector_buf, 'modifiable', false)
-      end
-    end)
-  end
-
-  -- Define navigation between windows
-  -- CTRL+K: Move to time block selector
-  vim.keymap.set({ 'n', 'i' }, '<C-k>', function()
-    if vim.api.nvim_win_is_valid(selector_win) then
-      -- If in insert mode, switch to normal mode first
-      if vim.fn.mode() == 'i' then
-        vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Esc>', true, false, true), 'n', true)
-      end
-      vim.api.nvim_set_current_win(selector_win)
-    end
-  end, { noremap = true, silent = true, buffer = note_buf })
-
-  -- CTRL+J: Move to note window
-  vim.keymap.set('n', '<C-j>', function()
-    if vim.api.nvim_win_is_valid(note_win) then
-      vim.api.nvim_set_current_win(note_win)
-      -- Return to insert mode in the note window
-      vim.cmd 'startinsert'
-    end
-  end, { noremap = true, silent = true, buffer = selector_buf })
-
-  -- Tab in time block selector: Cycle through time blocks
-  vim.keymap.set('n', '<Tab>', function()
-    current_block_idx = (current_block_idx % #time_blocks_output) + 1
-    update_time_block_display()
-  end, { noremap = true, silent = true, buffer = selector_buf })
-
-  -- Set up 'q' key to close all windows
-  vim.keymap.set('n', 'q', function()
-    if note_win_id then
-      close_window_pair(note_win_id)
-    end
-  end, { noremap = true, silent = true, buffer = selector_buf })
-
-  -- Make the time block display read-only after initial setup
-  vim.api.nvim_buf_set_option(selector_buf, 'modifiable', false)
-
-  return {
-    win = selector_win,
-    buf = selector_buf,
-    get_current_time_block = function()
-      return time_blocks_output[current_block_idx]
-    end,
-    parse_time_block = function()
-      local time_block = time_blocks_output[current_block_idx]
+  -- Create selector with time blocks
+  return create_selector_window(note_win, note_buf, {
+    values = time_blocks_output,
+    prefix = 'Time: ',
+    type = 'time_block',
+    parse_value = function(time_block)
       local start_time, end_time = time_block:match '(%d%d:%d%d)%s*-%s*(%d%d:%d%d)'
       return start_time, end_time
     end,
-  }
+  }, 'Time Block', true) -- Position above note window
 end
 
 -- Function to create a section selector for three-p command
 local function create_section_selector(note_win, note_buf)
   local sections = { 'Progress', 'Planned', 'Problems' }
-  local current_section_idx = 1
 
-  -- Create buffer for the section selector
-  local selector_buf = vim.api.nvim_create_buf(false, true)
-
-  -- Set buffer options
-  vim.api.nvim_buf_set_option(selector_buf, 'bufhidden', 'wipe')
-  vim.api.nvim_buf_set_option(selector_buf, 'modifiable', true)
-
-  -- Set initial content
-  vim.api.nvim_buf_set_lines(selector_buf, 0, -1, false, { 'Section: ' .. sections[current_section_idx] })
-
-  -- Calculate position (above the note window)
-  local note_win_config = vim.api.nvim_win_get_config(note_win)
-  local height = 1
-
-  -- Use the same width as the note window for consistency
-
-  -- Get the window position and dimensions from the config
-  -- The API returns different formats depending on Neovim version
-  local note_col, note_row, note_width
-  if type(note_win_config.col) == 'number' then
-    -- Newer Neovim versions
-    note_col = note_win_config.col
-    note_row = note_win_config.row
-    note_width = note_win_config.width
-  else
-    -- Older Neovim versions with indexable values
-    note_col = note_win_config.col[false]
-    note_row = note_win_config.row[false]
-    note_width = note_win_config.width
-  end
-
-  -- Use the same width as the note window
-  local width = note_width
-
-  local col = note_col + math.floor((note_width - width) / 2)
-  local row = note_row - 2 -- Position above the note window
-
-  -- Window options
-  local opts = {
-    relative = 'editor',
-    width = width,
-    height = height,
-    col = col,
-    row = row,
-    style = 'minimal',
-    border = 'rounded',
-    title = '3P',
-  }
-
-  -- Create the window with the buffer
-  local selector_win = vim.api.nvim_open_win(selector_buf, false, opts) -- Don't focus initially
-
-  -- Set window options
-  vim.api.nvim_win_set_option(selector_win, 'winblend', 10)
-  vim.api.nvim_win_set_option(selector_win, 'cursorline', true)
-
-  -- Find the associated note window and update the pair in the tracking table
-  local note_win_id = nil
-  for id, pair in pairs(tamal_window_pairs) do
-    if pair.note_win == note_win then
-      note_win_id = id
-      pair.section_win = selector_win
-      break
-    end
-  end
-
-  -- Create autocommand to close windows when leaving to a non-tamal window
-  vim.api.nvim_create_autocmd('WinLeave', {
-    buffer = selector_buf,
-    callback = function()
-      vim.schedule(function()
-        -- Get the current window after leaving
-        local current_win = vim.api.nvim_get_current_win()
-
-        -- Check if we moved to a window that is part of our pairs
-        local is_related_window = false
-        for id, pair in pairs(tamal_window_pairs) do
-          if
-            (pair.section_win and current_win == pair.section_win)
-            or (pair.note_win and current_win == pair.note_win)
-            or (pair.time_block_win and current_win == pair.time_block_win)
-          then
-            is_related_window = true
-            break
-          end
-        end
-
-        -- If we moved to an unrelated window, close both windows in the pair
-        if not is_related_window and note_win_id then
-          close_window_pair(note_win_id)
-        end
-      end)
-    end,
-  })
-
-  -- Create autocommand to close the paired window when this window is closed
-  vim.api.nvim_create_autocmd('WinClosed', {
-    pattern = tostring(selector_win),
-    callback = function()
-      if note_win_id then
-        close_window_pair(note_win_id)
-      end
-    end,
-  })
-
-  -- Function to update the section display
-  local function update_section_display()
-    vim.schedule(function()
-      if vim.api.nvim_buf_is_valid(selector_buf) then
-        vim.api.nvim_buf_set_option(selector_buf, 'modifiable', true)
-        vim.api.nvim_buf_set_lines(selector_buf, 0, -1, false, { 'Section: ' .. sections[current_section_idx] })
-        vim.api.nvim_buf_set_option(selector_buf, 'modifiable', false)
-      end
-    end)
-  end
-
-  -- Define navigation between windows
-  -- CTRL+K: Move to section selector
-  vim.keymap.set({ 'n', 'i' }, '<C-k>', function()
-    if vim.api.nvim_win_is_valid(selector_win) then
-      -- If in insert mode, switch to normal mode first
-      if vim.fn.mode() == 'i' then
-        vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Esc>', true, false, true), 'n', true)
-      end
-      vim.api.nvim_set_current_win(selector_win)
-    end
-  end, { noremap = true, silent = true, buffer = note_buf })
-
-  -- CTRL+J: Move to note window
-  vim.keymap.set('n', '<C-j>', function()
-    if vim.api.nvim_win_is_valid(note_win) then
-      vim.api.nvim_set_current_win(note_win)
-      -- Return to insert mode in the note window
-      vim.cmd 'startinsert'
-    end
-  end, { noremap = true, silent = true, buffer = selector_buf })
-
-  -- Tab in section selector: Cycle through sections
-  vim.keymap.set('n', '<Tab>', function()
-    current_section_idx = (current_section_idx % #sections) + 1
-    update_section_display()
-  end, { noremap = true, silent = true, buffer = selector_buf })
-
-  -- Set up 'q' key to close both windows
-  vim.keymap.set('n', 'q', function()
-    if note_win_id then
-      close_window_pair(note_win_id)
-    end
-  end, { noremap = true, silent = true, buffer = selector_buf })
-
-  -- Make the section display read-only after initial setup
-  vim.api.nvim_buf_set_option(selector_buf, 'modifiable', false)
-
-  return {
-    win = selector_win,
-    buf = selector_buf,
-    get_current_section = function()
-      return sections[current_section_idx]
-    end,
-  }
+  -- Create selector with sections
+  return create_selector_window(note_win, note_buf, {
+    values = sections,
+    prefix = 'Section: ',
+    type = 'section',
+  }, '3P', true) -- Position above note window
 end
 
 -- Function to create and display the popup window
@@ -658,12 +540,8 @@ local function open_tamal_popup(command_info)
     return
   end
 
-  -- Common width for all tamal windows
-  local width = 80 -- Reduced from 160 to match section selector
-  local height = command_info.height
-
   -- Some commands don't need a popup
-  if height == 0 then
+  if command_info.height == 0 then
     -- If this command should use note path
     if command_info.use_note_path then
       local path_cmd = command_info.path_cmd or command_info.cmd .. '-note-path'
@@ -680,7 +558,9 @@ local function open_tamal_popup(command_info)
     return
   end
 
-  -- Calculate starting position to center the window
+  -- Calculate dimensions for the popup
+  local width = 80 -- Reduced from 160 to match section selector
+  local height = command_info.height
   local col = math.floor((vim.o.columns - width) / 2)
   local row = math.floor((vim.o.lines - height) / 2)
 
@@ -688,6 +568,7 @@ local function open_tamal_popup(command_info)
   if command_info.cmd == 'three-p' then
     title = ''
   end
+
   -- Window options
   local opts = {
     relative = 'editor',
@@ -766,14 +647,14 @@ local function open_tamal_popup(command_info)
 
     -- For three-p command, get the selected section and add it as --section argument
     if command_info.cmd == 'three-p' and section_selector then
-      local selected_section = section_selector.get_current_section()
+      local selected_section = section_selector.get_current_value()
       cmd = cmd .. ' --section ' .. selected_section:lower() .. ' ' .. vim.fn.shellescape(content)
 
       -- Use our centralized function to close both windows
       close_window_pair(window_id)
     -- For add-task command, get the selected time block and add start/end time arguments
     elseif command_info.cmd == 'add-task' and time_block_selector then
-      local start_time, end_time = time_block_selector.parse_time_block()
+      local start_time, end_time = time_block_selector.parse_value()
       cmd = cmd .. ' --start-time "' .. start_time .. '" --end-time "' .. end_time .. '" ' .. vim.fn.shellescape(content)
 
       -- Use our centralized function to close all windows
