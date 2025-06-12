@@ -59,6 +59,17 @@ local function open_file_in_floating_window(file_path)
   vim.api.nvim_win_set_option(win, 'number', false) -- Disable line numbers
   vim.api.nvim_win_set_option(win, 'textwidth', 120) -- Wrap at 120 characters
 
+  -- Create autocommand to close window when leaving it
+  vim.api.nvim_create_autocmd('WinLeave', {
+    buffer = buf,
+    once = true,
+    callback = function()
+      if vim.api.nvim_win_is_valid(win) then
+        vim.api.nvim_win_close(win, true)
+      end
+    end,
+  })
+
   -- Set buffer options for the window
   vim.api.nvim_win_call(win, function()
     vim.opt_local.laststatus = 0 -- Disable status line in this window
@@ -197,6 +208,17 @@ local function create_section_selector(note_win, note_buf)
   -- Set window options
   vim.api.nvim_win_set_option(selector_win, 'winblend', 10)
   vim.api.nvim_win_set_option(selector_win, 'cursorline', true)
+
+  -- Create autocommand to close section selector when leaving it
+  vim.api.nvim_create_autocmd('WinLeave', {
+    buffer = selector_buf,
+    once = true,
+    callback = function()
+      if vim.api.nvim_win_is_valid(selector_win) then
+        vim.api.nvim_win_close(selector_win, true)
+      end
+    end,
+  })
 
   -- Function to update the section display
   local function update_section_display()
