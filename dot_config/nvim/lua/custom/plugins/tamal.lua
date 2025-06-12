@@ -875,7 +875,7 @@ local function open_tamal_popup(command_info)
     -- For add-task command, get the selected time block and add start/end time arguments
     elseif command_info.cmd == 'add-task' and time_block_selector then
       local start_time, end_time = time_block_selector.parse_value()
-      cmd = cmd .. ' --start-time "' .. start_time .. '" --end-time "' .. end_time .. '" ' .. vim.fn.shellescape(content)
+      cmd = cmd .. ' ' .. vim.fn.shellescape(content) .. ' --start-time "' .. start_time .. '" --end-time "' .. end_time .. '"'
 
       -- Use our centralized function to close all windows
       close_window_pair(window_id)
