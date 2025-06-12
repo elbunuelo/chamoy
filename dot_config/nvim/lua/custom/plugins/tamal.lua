@@ -4,6 +4,27 @@
 -- Global table to track related windows (notes and their section selectors)
 local tamal_window_pairs = {}
 
+-- Function to close all windows in a pair
+local function close_window_pair(id)
+  local pair = tamal_window_pairs[id]
+  if not pair then
+    return
+  end
+
+  -- Close note window if valid
+  if pair.note_win and vim.api.nvim_win_is_valid(pair.note_win) then
+    pcall(vim.api.nvim_win_close, pair.note_win, true)
+  end
+
+  -- Close section window if valid
+  if pair.section_win and vim.api.nvim_win_is_valid(pair.section_win) then
+    pcall(vim.api.nvim_win_close, pair.section_win, true)
+  end
+
+  -- Remove from tracking table
+  tamal_window_pairs[id] = nil
+end
+
 -- Tamal commands and their descriptions
 local tamal_commands = {
   { cmd = 'add-task', desc = 'Add a new task', height = 1, key = 'a' },
@@ -76,7 +97,7 @@ local function open_file_in_floating_window(file_path)
 
         -- Check if we moved to a window that is part of our pairs
         local is_related_window = false
-        for _, pair in pairs(tamal_window_pairs) do
+        for id, pair in pairs(tamal_window_pairs) do
           if (pair.section_win and current_win == pair.section_win) or (pair.note_win and current_win == pair.note_win) then
             is_related_window = true
             break
@@ -85,22 +106,7 @@ local function open_file_in_floating_window(file_path)
 
         -- If we moved to an unrelated window, close both windows in the pair
         if not is_related_window then
-          if tamal_window_pairs[window_id] then
-            local pair = tamal_window_pairs[window_id]
-
-            -- Close note window if valid
-            if pair.note_win and vim.api.nvim_win_is_valid(pair.note_win) then
-              vim.api.nvim_win_close(pair.note_win, true)
-            end
-
-            -- Close section window if valid
-            if pair.section_win and vim.api.nvim_win_is_valid(pair.section_win) then
-              vim.api.nvim_win_close(pair.section_win, true)
-            end
-
-            -- Remove from tracking table
-            tamal_window_pairs[window_id] = nil
-          end
+          close_window_pair(window_id)
         end
       end)
     end,
@@ -110,15 +116,7 @@ local function open_file_in_floating_window(file_path)
   vim.api.nvim_create_autocmd('WinClosed', {
     pattern = tostring(win),
     callback = function()
-      if tamal_window_pairs[window_id] then
-        local pair = tamal_window_pairs[window_id]
-        -- Close section window if valid and not already closing
-        if pair.section_win and vim.api.nvim_win_is_valid(pair.section_win) then
-          vim.api.nvim_win_close(pair.section_win, true)
-        end
-        -- Remove from tracking table
-        tamal_window_pairs[window_id] = nil
-      end
+      close_window_pair(window_id)
     end,
   })
 
@@ -129,7 +127,9 @@ local function open_file_in_floating_window(file_path)
 
   -- Set keybindings for the window
   local keymap_opts = { noremap = true, silent = true, buffer = buf }
-  vim.keymap.set('n', 'q', ':q<CR>', keymap_opts)
+  vim.keymap.set('n', 'q', function()
+    close_window_pair(window_id)
+  end, keymap_opts)
 
   vim.api.nvim_win_call(win, function()
     vim.opt_local.laststatus = 0 -- Disable status line in this window
@@ -281,7 +281,7 @@ local function create_section_selector(note_win, note_buf)
 
         -- Check if we moved to a window that is part of our pairs
         local is_related_window = false
-        for _, pair in pairs(tamal_window_pairs) do
+        for id, pair in pairs(tamal_window_pairs) do
           if (pair.section_win and current_win == pair.section_win) or (pair.note_win and current_win == pair.note_win) then
             is_related_window = true
             break
@@ -290,21 +290,7 @@ local function create_section_selector(note_win, note_buf)
 
         -- If we moved to an unrelated window, close both windows in the pair
         if not is_related_window and note_win_id then
-          local pair = tamal_window_pairs[note_win_id]
-          if pair then
-            -- Close note window if valid
-            if pair.note_win and vim.api.nvim_win_is_valid(pair.note_win) then
-              vim.api.nvim_win_close(pair.note_win, true)
-            end
-
-            -- Close section window if valid
-            if pair.section_win and vim.api.nvim_win_is_valid(pair.section_win) then
-              vim.api.nvim_win_close(pair.section_win, true)
-            end
-
-            -- Remove from tracking table
-            tamal_window_pairs[note_win_id] = nil
-          end
+          close_window_pair(note_win_id)
         end
       end)
     end,
@@ -314,14 +300,8 @@ local function create_section_selector(note_win, note_buf)
   vim.api.nvim_create_autocmd('WinClosed', {
     pattern = tostring(selector_win),
     callback = function()
-      if note_win_id and tamal_window_pairs[note_win_id] then
-        local pair = tamal_window_pairs[note_win_id]
-        -- Close note window if valid and not already closing
-        if pair.note_win and vim.api.nvim_win_is_valid(pair.note_win) then
-          vim.api.nvim_win_close(pair.note_win, true)
-        end
-        -- Remove from tracking table
-        tamal_window_pairs[note_win_id] = nil
+      if note_win_id then
+        close_window_pair(note_win_id)
       end
     end,
   })
@@ -362,6 +342,13 @@ local function create_section_selector(note_win, note_buf)
   vim.keymap.set('n', '<Tab>', function()
     current_section_idx = (current_section_idx % #sections) + 1
     update_section_display()
+  end, { noremap = true, silent = true, buffer = selector_buf })
+
+  -- Set up 'q' key to close both windows
+  vim.keymap.set('n', 'q', function()
+    if note_win_id then
+      close_window_pair(note_win_id)
+    end
   end, { noremap = true, silent = true, buffer = selector_buf })
 
   -- Make the section display read-only after initial setup
@@ -443,9 +430,17 @@ local function open_tamal_popup(command_info)
   vim.api.nvim_win_set_option(win, 'winblend', 10)
   vim.api.nvim_win_set_option(win, 'cursorline', true)
 
+  -- Register this window in the global tracking table if it's not already there
+  local window_id = tostring(win)
+  if not tamal_window_pairs[window_id] then
+    tamal_window_pairs[window_id] = { note_win = win }
+  end
+
   -- Set keybindings for the popup
   local keymap_opts = { noremap = true, silent = true, buffer = buf }
-  vim.keymap.set('n', 'q', ':q<CR>', keymap_opts)
+  vim.keymap.set('n', 'q', function()
+    close_window_pair(window_id)
+  end, keymap_opts)
 
   -- If it's a read-only view (like tasks)
   if command_info.cmd == 'tasks' then
@@ -477,10 +472,8 @@ local function open_tamal_popup(command_info)
       local selected_section = section_selector.get_current_section()
       cmd = cmd .. ' --section ' .. selected_section:lower() .. ' ' .. vim.fn.shellescape(content)
 
-      -- Close the section selector window
-      if vim.api.nvim_win_is_valid(section_selector.win) then
-        vim.api.nvim_win_close(section_selector.win, true)
-      end
+      -- Use our centralized function to close both windows
+      close_window_pair(window_id)
     else
       -- Add parameter name if specified
       if command_info.param_name then
@@ -488,10 +481,10 @@ local function open_tamal_popup(command_info)
       else
         cmd = cmd .. ' ' .. vim.fn.shellescape(content)
       end
-    end
 
-    -- Close the input window
-    vim.api.nvim_win_close(win, true)
+      -- Close the input window
+      close_window_pair(window_id)
+    end
 
     -- If this command should use note path
     if command_info.use_note_path then
