@@ -172,6 +172,47 @@ local function open_note_with_telescope()
   }
 end
 
+-- Function to open a floating terminal and run a command
+local function open_floating_terminal(cmd)
+  -- Create a new buffer for the terminal
+  local buf = vim.api.nvim_create_buf(false, true)
+
+  -- Set up dimensions and position for the floating window
+  local width = math.floor(vim.o.columns * 0.8)
+  local height = math.floor(vim.o.lines * 0.8)
+  local col = math.floor((vim.o.columns - width) / 2)
+  local row = math.floor((vim.o.lines - height) / 2)
+
+  -- Window options
+  local opts = {
+    relative = 'editor',
+    width = width,
+    height = height,
+    col = col,
+    row = row,
+    style = 'minimal',
+    border = 'rounded',
+  }
+
+  -- Open the floating window
+  local win = vim.api.nvim_open_win(buf, true, opts)
+
+  -- Open terminal in the buffer and run the command
+  vim.fn.termopen(cmd, {
+    on_exit = function()
+      -- Close the window when terminal command exits
+      if vim.api.nvim_win_is_valid(win) then
+        vim.api.nvim_win_close(win, true)
+      end
+    end,
+  })
+
+  -- Enter terminal mode automatically
+  vim.cmd 'startinsert'
+
+  return { buf = buf, win = win }
+end
+
 -- Function to create a time block selector for add-task command
 local function create_time_block_selector(note_win, note_buf)
   -- Get available time blocks from tamal
@@ -183,7 +224,36 @@ local function create_time_block_selector(note_win, note_buf)
     return nil
   end
 
-  local current_block_idx = 1
+  -- Find the closest time block to current time
+  local function find_closest_time_block()
+    -- Get current time
+    local current_time = os.date '%H:%M'
+    local current_hours, current_minutes = current_time:match '(%d+):(%d+)'
+    local current_minutes_total = tonumber(current_hours) * 60 + tonumber(current_minutes)
+
+    local closest_idx = 1
+    local min_diff = math.huge
+
+    for i, block in ipairs(time_blocks_output) do
+      local start_time = block:match '(%d+:%d+)%s*-'
+      if start_time then
+        local hours, minutes = start_time:match '(%d+):(%d+)'
+        if hours and minutes then
+          local minutes_total = tonumber(hours) * 60 + tonumber(minutes)
+          local diff = math.abs(minutes_total - current_minutes_total)
+
+          if diff < min_diff then
+            min_diff = diff
+            closest_idx = i
+          end
+        end
+      end
+    end
+
+    return closest_idx
+  end
+
+  local current_block_idx = find_closest_time_block()
 
   -- Create buffer for the time block selector
   local selector_buf = vim.api.nvim_create_buf(false, true)
@@ -193,7 +263,7 @@ local function create_time_block_selector(note_win, note_buf)
   vim.api.nvim_buf_set_option(selector_buf, 'modifiable', true)
 
   -- Set initial content
-  vim.api.nvim_buf_set_lines(selector_buf, 0, -1, false, { time_blocks_output[current_block_idx] })
+  vim.api.nvim_buf_set_lines(selector_buf, 0, -1, false, { 'Time: ' .. time_blocks_output[current_block_idx] })
 
   -- Calculate position (above the note window)
   local note_win_config = vim.api.nvim_win_get_config(note_win)
