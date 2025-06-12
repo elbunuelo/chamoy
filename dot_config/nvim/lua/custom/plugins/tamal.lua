@@ -6,7 +6,7 @@ local tamal_commands = {
   { cmd = 'add-task', desc = 'Add a new task', height = 1, key = 'a' },
   { cmd = 'tasks', desc = 'View tasks', height = 15, key = 't' },
   { cmd = 'weekly', desc = 'Open weekly note', height = 0, key = 'w', use_note_path = true, path_cmd = 'weekly-note-path' },
-  { cmd = 'open', desc = 'Open a note', height = 1, param_name = 'NOTE_NAME', key = 'o', use_note_path = true, path_cmd = 'note-path' },
+  { cmd = 'open', desc = 'Open a note', height = 0, key = 'o', use_telescope = true },
   { cmd = 'add-note', desc = 'Add a note', height = 3, key = 'n' },
   { cmd = 'three-p', desc = 'Add a 3P note', height = 3, param_name = 'SECTION', key = 'p' },
 }
@@ -68,29 +68,9 @@ local function open_file_in_floating_window(file_path)
   local keymap_opts = { noremap = true, silent = true, buffer = buf }
   vim.keymap.set('n', 'q', ':q<CR>', keymap_opts)
 
-  -- Enable render-markdown with a slight delay to ensure content is loaded
-  vim.defer_fn(function()
-    -- Ensure we're still in a valid state
-    if not (vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_win_is_valid(win)) then
-      return
-    end
-
-    -- Ensure treesitter is attached to the buffer
-    pcall(function()
-      vim.treesitter.start(buf, 'markdown')
-    end)
-
-    -- Enable render-markdown for this buffer if the plugin is available
-    local ok, render_markdown = pcall(require, 'render-markdown')
-    if ok then
-      -- Focus the window to ensure we're operating on the right buffer
-      vim.api.nvim_set_current_win(win)
-      render_markdown.buf_enable()
-
-      -- Force a refresh
-      vim.cmd 'redraw'
-    end
-  end, 100) -- 100ms delay
+  vim.api.nvim_win_call(win, function()
+    vim.opt_local.laststatus = 0 -- Disable status line in this window
+  end)
 
   return { buf = buf, win = win }
 end
