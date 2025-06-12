@@ -450,7 +450,7 @@ local function open_file_in_floating_window(file_path)
     vim.keymap.set('n', 'q', function()
       close_window_pair(window_id)
     end, keymap_opts)
-    
+
     -- Create autocommand to close window when leaving to a non-tamal window
     -- This needs to be recreated for each buffer change
     vim.api.nvim_create_autocmd('WinLeave', {
@@ -460,7 +460,7 @@ local function open_file_in_floating_window(file_path)
         vim.schedule(function()
           -- Get the current window after leaving
           local current_win = vim.api.nvim_get_current_win()
-          
+
           -- Check if we moved to a window that is part of our pairs
           local is_related_window = false
           for id, pair in pairs(tamal_window_pairs) do
@@ -473,7 +473,7 @@ local function open_file_in_floating_window(file_path)
               break
             end
           end
-          
+
           -- If we moved to an unrelated window, close all windows in the pair
           if not is_related_window then
             close_window_pair(window_id)
@@ -495,11 +495,11 @@ local function open_file_in_floating_window(file_path)
   setup_buffer_keymaps_and_autocmds(buf)
 
   -- Create autocmds to maintain keybindings and autocmds after buffer changes
-  vim.api.nvim_create_autocmd({'BufEnter', 'BufWinEnter', 'BufWritePost'}, {
+  vim.api.nvim_create_autocmd({ 'BufEnter', 'BufWinEnter', 'BufWritePost' }, {
     callback = function(args)
       local current_buf = args.buf
       local current_win = vim.api.nvim_get_current_win()
-      
+
       -- Check if this is our floating window
       if tamal_window_pairs[window_id] and tamal_window_pairs[window_id].note_win == current_win then
         -- Re-apply keybindings and autocmds for the current buffer
@@ -507,7 +507,7 @@ local function open_file_in_floating_window(file_path)
           setup_buffer_keymaps_and_autocmds(current_buf)
         end)
       end
-    end
+    end,
   })
 
   -- Load the file content into the buffer - more reliable method
@@ -835,7 +835,39 @@ local function open_tamal_popup(command_info)
   if command_info.cmd == 'tasks' then
     -- Get tasks and populate buffer
     local tasks_output = vim.fn.systemlist 'tamal --tasks'
-    vim.api.nvim_buf_set_lines(buf, 0, -1, false, tasks_output)
+
+    -- Process tasks to add status icons
+    local processed_tasks = {}
+    for _, line in ipairs(tasks_output) do
+      -- Check if this line is a task (matches the task pattern)
+      local task_match = line:match '^%s*-%s+(%[([%s~x])%])'
+      if task_match then
+        -- Extract status character
+        local status_char = line:match '^%s*-%s+%[([%s~x])%]'
+
+        -- Map status character to nerdfont icon
+        local status_icon = ''
+        if status_char == ' ' then
+          -- Pending task
+          status_icon = '  ' -- Circle icon for pending
+        elseif status_char == 'x' then
+          -- Done task
+          status_icon = '  ' -- Check icon for done
+        elseif status_char == '~' then
+          -- Canceled task
+          status_icon = '  ' -- Cross icon for canceled
+        end
+
+        -- Replace the markdown checkbox with the icon
+        local modified_line = line:gsub('^(%s*-%s+)%[[%s~x]%]', '%1' .. status_icon)
+        table.insert(processed_tasks, modified_line)
+      else
+        -- Not a task line, keep as is
+        table.insert(processed_tasks, line)
+      end
+    end
+
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, processed_tasks)
     vim.api.nvim_buf_set_option(buf, 'modifiable', false) -- Make read-only
   end
 
