@@ -106,6 +106,22 @@ local function open_file_in_floating_window(file_path)
     end,
   })
 
+  -- Create autocommand to close the paired window when this window is closed
+  vim.api.nvim_create_autocmd('WinClosed', {
+    pattern = tostring(win),
+    callback = function()
+      if tamal_window_pairs[window_id] then
+        local pair = tamal_window_pairs[window_id]
+        -- Close section window if valid and not already closing
+        if pair.section_win and vim.api.nvim_win_is_valid(pair.section_win) then
+          vim.api.nvim_win_close(pair.section_win, true)
+        end
+        -- Remove from tracking table
+        tamal_window_pairs[window_id] = nil
+      end
+    end,
+  })
+
   -- Set buffer options for the window
   vim.api.nvim_win_call(win, function()
     vim.opt_local.laststatus = 0 -- Disable status line in this window
