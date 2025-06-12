@@ -769,8 +769,11 @@ local function open_tamal_popup(command_info)
     else
       -- Execute command directly
       vim.fn.system('tamal --' .. command_info.cmd)
-      -- Reload the current buffer
-      vim.cmd 'e!'
+      -- Reload the current buffer if it's a real file
+      local current_buf = vim.api.nvim_get_current_buf()
+      if vim.api.nvim_buf_get_name(current_buf) ~= '' then
+        vim.cmd 'e!'
+      end
     end
     return
   end
@@ -898,8 +901,16 @@ local function open_tamal_popup(command_info)
     else
       -- Execute the command
       local output = vim.fn.system(cmd)
-      -- Reload the current buffer
-      vim.cmd 'e!'
+      -- Show a notification of success
+      vim.notify('Task added successfully', vim.log.levels.INFO)
+
+      -- Reload the current buffer only if it's a real file
+      local current_buf = vim.api.nvim_get_current_buf()
+      if vim.api.nvim_buf_get_name(current_buf) ~= '' then
+        pcall(function()
+          vim.cmd 'e!'
+        end)
+      end
     end
   end, keymap_opts)
 
