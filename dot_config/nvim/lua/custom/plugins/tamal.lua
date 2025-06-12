@@ -160,8 +160,22 @@ local function create_section_selector(note_win, note_buf)
   local note_win_config = vim.api.nvim_win_get_config(note_win)
   local width = 40
   local height = 1
-  local col = note_win_config.col[false] + math.floor((note_win_config.width - width) / 2)
-  local row = note_win_config.row[false] - 2 -- Position above the note window
+
+  -- Get the window position from the config
+  -- The API returns different formats depending on Neovim version
+  local note_col, note_row
+  if type(note_win_config.col) == 'number' then
+    -- Newer Neovim versions
+    note_col = note_win_config.col
+    note_row = note_win_config.row
+  else
+    -- Older Neovim versions with indexable values
+    note_col = note_win_config.col[false]
+    note_row = note_win_config.row[false]
+  end
+
+  local col = note_col + math.floor((note_win_config.width - width) / 2)
+  local row = note_row - 2 -- Position above the note window
 
   -- Window options
   local opts = {
