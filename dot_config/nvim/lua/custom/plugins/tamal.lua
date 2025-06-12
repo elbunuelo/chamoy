@@ -888,7 +888,7 @@ local function open_tamal_popup(command_info)
       vim.api.nvim_buf_set_option(buf, 'modifiable', false)
 
       -- Update the task status in tamal
-      local cmd = 'tamal --update-task-status "' .. task.text .. '" ' .. next_status
+      local cmd = 'tamal --update-task "' .. task.text .. '" --status ' .. next_status
       vim.fn.system(cmd)
 
       -- Show notification
