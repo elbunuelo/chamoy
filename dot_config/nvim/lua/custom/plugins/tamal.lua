@@ -62,17 +62,35 @@ local function open_file_in_floating_window(file_path)
   -- Set buffer options for the window
   vim.api.nvim_win_call(win, function()
     vim.opt_local.laststatus = 0 -- Disable status line in this window
-
-    -- Enable render-markdown for this buffer if the plugin is available
-    local ok, render_markdown = pcall(require, 'render-markdown')
-    if ok then
-      render_markdown.buf_enable()
-    end
   end)
 
   -- Set keybindings for the window
   local keymap_opts = { noremap = true, silent = true, buffer = buf }
   vim.keymap.set('n', 'q', ':q<CR>', keymap_opts)
+
+  -- Enable render-markdown with a slight delay to ensure content is loaded
+  vim.defer_fn(function()
+    -- Ensure we're still in a valid state
+    if not (vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_win_is_valid(win)) then
+      return
+    end
+
+    -- Ensure treesitter is attached to the buffer
+    pcall(function()
+      vim.treesitter.start(buf, 'markdown')
+    end)
+
+    -- Enable render-markdown for this buffer if the plugin is available
+    local ok, render_markdown = pcall(require, 'render-markdown')
+    if ok then
+      -- Focus the window to ensure we're operating on the right buffer
+      vim.api.nvim_set_current_win(win)
+      render_markdown.buf_enable()
+
+      -- Force a refresh
+      vim.cmd 'redraw'
+    end
+  end, 100) -- 100ms delay
 
   return { buf = buf, win = win }
 end
