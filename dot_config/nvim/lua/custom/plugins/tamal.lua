@@ -158,8 +158,9 @@ local function setup_window_autocmds(selector_buf, selector_win, note_win_id)
 end
 
 -- Helper function to create a selector window
-local function create_selector_window(note_win, note_buf, items, title, position_above)
-  local current_idx = 1
+local function create_selector_window(note_win, note_buf, items, title, position_above, initial_idx)
+  -- Use initial_idx if provided, otherwise default to 1
+  local current_idx = initial_idx or 1
 
   -- Create buffer for the selector
   local selector_buf = vim.api.nvim_create_buf(false, true)
@@ -506,9 +507,10 @@ local function create_time_block_selector(note_win, note_buf)
     return closest_idx
   end
 
+  -- Get the best time block index
   local current_block_idx = find_best_time_block()
 
-  -- Create selector with time blocks
+  -- Create selector with time blocks, passing the best time block index
   return create_selector_window(note_win, note_buf, {
     values = time_blocks_output,
     prefix = 'Time: ',
@@ -517,7 +519,7 @@ local function create_time_block_selector(note_win, note_buf)
       local start_time, end_time = time_block:match '(%d%d:%d%d)%s*-%s*(%d%d:%d%d)'
       return start_time, end_time
     end,
-  }, 'Time Block', true) -- Position above note window
+  }, 'Time Block', true, current_block_idx) -- Position above note window, with best time block index
 end
 
 -- Function to create a section selector for three-p command
