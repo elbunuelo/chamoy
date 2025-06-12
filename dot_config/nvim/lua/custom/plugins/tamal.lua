@@ -92,6 +92,39 @@ local function open_file_in_floating_window(file_path)
   local window_id = tostring(win)
   tamal_window_pairs[window_id] = { note_win = win }
 
+  -- Check if this is a weekly note and position cursor on the current day's line
+  local filename = vim.fn.fnamemodify(file_path, ':t')
+  if string.match(filename, '^%d%d%d%d%-%d%d%-%d%d_week%.md$') then
+    -- Get the current day of the week (1 = Monday, 7 = Sunday)
+    local current_day = tonumber(os.date '%w')
+    if current_day == 0 then
+      current_day = 7
+    end -- Convert Sunday from 0 to 7
+
+    -- Get day line numbers from tamal
+    local day_lines_output = vim.fn.systemlist 'tamal --day-line-numbers'
+
+    -- Find the line for the current day
+    local target_line = nil
+    local day_names = { [1] = 'Mon', [2] = 'Tue', [3] = 'Wed', [4] = 'Thu', [5] = 'Fri', [6] = 'Sat', [7] = 'Sun' }
+    local current_day_name = day_names[current_day]
+
+    for _, line_info in ipairs(day_lines_output) do
+      local line_num, day = line_info:match '(%d+),(%a+)'
+      if day == current_day_name and line_num then
+        target_line = tonumber(line_num)
+        break
+      end
+    end
+
+    -- Position cursor on the target line if found
+    if target_line then
+      vim.schedule(function()
+        vim.api.nvim_win_set_cursor(win, { target_line, 0 })
+      end)
+    end
+  end
+
   -- Create autocommand to close window when leaving to a non-tamal window
   vim.api.nvim_create_autocmd('WinLeave', {
     buffer = buf,
