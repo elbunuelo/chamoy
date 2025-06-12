@@ -141,6 +141,74 @@ local function open_floating_terminal(cmd)
   return { buf = buf, win = win }
 end
 
+-- Function to create a section selector for three-p command
+local function create_section_selector(note_win, note_buf)
+  local sections = { 'Progress', 'Planned', 'Problems' }
+  local current_section_idx = 1
+
+  -- Create buffer for the section selector
+  local selector_buf = vim.api.nvim_create_buf(false, true)
+
+  -- Set buffer options
+  vim.api.nvim_buf_set_option(selector_buf, 'bufhidden', 'wipe')
+  vim.api.nvim_buf_set_option(selector_buf, 'modifiable', true)
+
+  -- Set initial content
+  vim.api.nvim_buf_set_lines(selector_buf, 0, -1, false, { 'Section: ' .. sections[current_section_idx] })
+
+  -- Calculate position (above the note window)
+  local note_win_config = vim.api.nvim_win_get_config(note_win)
+  local width = 40
+  local height = 1
+  local col = note_win_config.col[false] + math.floor((note_win_config.width - width) / 2)
+  local row = note_win_config.row[false] - 2 -- Position above the note window
+
+  -- Window options
+  local opts = {
+    relative = 'editor',
+    width = width,
+    height = height,
+    col = col,
+    row = row,
+    style = 'minimal',
+    border = 'rounded',
+    title = 'Select Section',
+  }
+
+  -- Create the window with the buffer
+  local selector_win = vim.api.nvim_open_win(selector_buf, false, opts)
+
+  -- Set window options
+  vim.api.nvim_win_set_option(selector_win, 'winblend', 10)
+  vim.api.nvim_win_set_option(selector_win, 'cursorline', true)
+
+  -- Function to update the section display
+  local function update_section_display()
+    vim.api.nvim_buf_set_option(selector_buf, 'modifiable', true)
+    vim.api.nvim_buf_set_lines(selector_buf, 0, -1, false, { 'Section: ' .. sections[current_section_idx] })
+    vim.api.nvim_buf_set_option(selector_buf, 'modifiable', false)
+  end
+
+  -- Set Tab key binding to cycle through sections
+  local keymap_opts = { noremap = true, silent = true, buffer = note_buf }
+  vim.keymap.set({ 'n', 'i' }, '<Tab>', function()
+    current_section_idx = (current_section_idx % #sections) + 1
+    update_section_display()
+    return '<Tab>'
+  end, { noremap = true, silent = true, buffer = note_buf, expr = true })
+
+  -- Make the section display read-only after initial setup
+  vim.api.nvim_buf_set_option(selector_buf, 'modifiable', false)
+
+  return {
+    win = selector_win,
+    buf = selector_buf,
+    get_current_section = function()
+      return sections[current_section_idx]
+    end,
+  }
+end
+
 -- Function to create and display the popup window
 local function open_tamal_popup(command_info)
   -- Check if this command should use telescope
@@ -217,6 +285,12 @@ local function open_tamal_popup(command_info)
     return { buf = buf, win = win }
   end
 
+  -- Create section selector for three-p command
+  local section_selector = nil
+  if command_info.cmd == 'three-p' then
+    section_selector = create_section_selector(win, buf)
+  end
+
   -- For commands that require input, set up Enter key binding
   vim.keymap.set({ 'n', 'i' }, '<CR>', function()
     -- Exit insert mode if we're in it
@@ -231,11 +305,22 @@ local function open_tamal_popup(command_info)
     -- Construct the command
     local cmd = 'tamal --' .. command_info.cmd
 
-    -- Add parameter name if specified
-    if command_info.param_name then
-      cmd = cmd .. ' ' .. content
+    -- For three-p command, get the selected section and add it as --section argument
+    if command_info.cmd == 'three-p' and section_selector then
+      local selected_section = section_selector.get_current_section()
+      cmd = cmd .. ' --section ' .. selected_section:lower() .. ' ' .. vim.fn.shellescape(content)
+
+      -- Close the section selector window
+      if vim.api.nvim_win_is_valid(section_selector.win) then
+        vim.api.nvim_win_close(section_selector.win, true)
+      end
     else
-      cmd = cmd .. ' ' .. vim.fn.shellescape(content)
+      -- Add parameter name if specified
+      if command_info.param_name then
+        cmd = cmd .. ' ' .. content
+      else
+        cmd = cmd .. ' ' .. vim.fn.shellescape(content)
+      end
     end
 
     -- Close the input window
