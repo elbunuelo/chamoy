@@ -256,8 +256,8 @@ local function open_tamal_popup(command_info)
     return
   end
 
-  -- Fixed width but variable height based on command
-  local width = 160
+  -- Common width for all tamal windows
+  local width = 80 -- Reduced from 160 to match section selector
   local height = command_info.height
 
   -- Some commands don't need a popup
