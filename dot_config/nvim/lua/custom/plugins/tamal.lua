@@ -839,30 +839,27 @@ local function open_tamal_popup(command_info)
     -- Process tasks to add status icons
     local processed_tasks = {}
     for _, line in ipairs(tasks_output) do
-      -- Check if this line is a task (matches the task pattern)
-      local task_match = line:match '^%s*-%s+(%[([%s~x])%])'
-      if task_match then
-        -- Extract status character
-        local status_char = line:match '^%s*-%s+%[([%s~x])%]'
+      -- Parse the status and task text (format: "status,task text")
+      local status, task_text = line:match '^([^,]+),(.*)$'
 
-        -- Map status character to nerdfont icon
+      if status then
+        -- Map status to nerdfont icon
         local status_icon = ''
-        if status_char == ' ' then
-          -- Pending task
-          status_icon = ' ' -- Circle icon for pending
-        elseif status_char == 'x' then
-          -- Done task
-          status_icon = 'x' -- Check icon for done
-        elseif status_char == '~' then
-          -- Canceled task
-          status_icon = '~' -- Cross icon for canceled
+        if status == 'pending' then
+          status_icon = '  ' -- Circle icon for pending
+        elseif status == 'done' then
+          status_icon = '  ' -- Check icon for done
+        elseif status == 'canceled' then
+          status_icon = '  ' -- Cross icon for canceled
+        else
+          status_icon = '  ' -- Question mark for unknown status
         end
 
-        -- Replace the markdown checkbox with the icon
-        local modified_line = line:gsub('^(%s*-%s+)%[[%s~x]%]', '%1' .. status_icon)
+        -- Create line with icon and task text
+        local modified_line = status_icon .. ' ' .. task_text
         table.insert(processed_tasks, modified_line)
       else
-        -- Not a task line, keep as is
+        -- Not a task line or couldn't parse, keep as is
         table.insert(processed_tasks, line)
       end
     end
