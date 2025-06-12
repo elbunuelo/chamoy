@@ -436,15 +436,83 @@ local function open_file_in_floating_window(file_path)
   -- Open the floating window
   local win = vim.api.nvim_open_win(buf, true, opts)
 
-  -- Load the file content into the buffer - more reliable method
-  vim.cmd('edit ' .. vim.fn.fnameescape(file_path))
+  -- Register this window in the global tracking table
+  local window_id = tostring(win)
+  tamal_window_pairs[window_id] = { note_win = win }
 
   -- Set common window options
   set_common_win_options(win)
 
-  -- Register this window in the global tracking table
-  local window_id = tostring(win)
-  tamal_window_pairs[window_id] = { note_win = win }
+  -- Function to setup keybindings for a buffer
+  local function setup_keybindings(buffer)
+    -- Set keybindings for the window
+    local keymap_opts = { noremap = true, silent = true, buffer = buffer }
+    vim.keymap.set('n', 'q', function()
+      close_window_pair(window_id)
+    end, keymap_opts)
+  end
+
+  -- Function to setup window leave autocmd
+  local function setup_win_leave_autocmd(buffer)
+    vim.api.nvim_create_autocmd('WinLeave', {
+      buffer = buffer,
+      callback = function()
+        vim.schedule(function()
+          -- Get the current window after leaving
+          local current_win = vim.api.nvim_get_current_win()
+
+          -- Check if we moved to a window that is part of our pairs
+          local is_related_window = false
+          for id, pair in pairs(tamal_window_pairs) do
+            if
+              (pair.section_win and current_win == pair.section_win)
+              or (pair.note_win and current_win == pair.note_win)
+              or (pair.time_block_win and current_win == pair.time_block_win)
+            then
+              is_related_window = true
+              break
+            end
+          end
+
+          -- If we moved to an unrelated window, close both windows in the pair
+          if not is_related_window then
+            close_window_pair(window_id)
+          end
+        end)
+      end,
+    })
+  end
+
+  -- Create autocommand to close the paired window when this window is closed
+  vim.api.nvim_create_autocmd('WinClosed', {
+    pattern = tostring(win),
+    callback = function()
+      close_window_pair(window_id)
+    end,
+  })
+
+  -- Initial setup of keybindings
+  setup_keybindings(buf)
+  setup_win_leave_autocmd(buf)
+
+  -- Create autocmds to maintain keybindings after buffer changes
+  vim.api.nvim_create_autocmd({'BufEnter', 'BufWinEnter', 'BufWritePost'}, {
+    callback = function(args)
+      local current_buf = args.buf
+      local current_win = vim.api.nvim_get_current_win()
+      
+      -- Check if this is our floating window
+      if tamal_window_pairs[window_id] and tamal_window_pairs[window_id].note_win == current_win then
+        -- Re-apply keybindings for the current buffer
+        vim.schedule(function()
+          setup_keybindings(current_buf)
+        end)
+      end
+    end
+  })
+
+  -- Load the file content into the buffer - more reliable method
+  vim.cmd('edit ' .. vim.fn.fnameescape(file_path))
 
   -- Check if this is a weekly note and position cursor on the current day's line
   local filename = vim.fn.fnamemodify(file_path, ':t')
@@ -488,64 +556,6 @@ local function open_file_in_floating_window(file_path)
       end, 100) -- 100ms delay
     end
   end
-
-  -- Create autocommand to close window when leaving to a non-tamal window
-  vim.api.nvim_create_autocmd('WinLeave', {
-    buffer = buf,
-    callback = function()
-      vim.schedule(function()
-        -- Get the current window after leaving
-        local current_win = vim.api.nvim_get_current_win()
-
-        -- Check if we moved to a window that is part of our pairs
-        local is_related_window = false
-        for id, pair in pairs(tamal_window_pairs) do
-          if
-            (pair.section_win and current_win == pair.section_win)
-            or (pair.note_win and current_win == pair.note_win)
-            or (pair.time_block_win and current_win == pair.time_block_win)
-          then
-            is_related_window = true
-            break
-          end
-        end
-
-        -- If we moved to an unrelated window, close both windows in the pair
-        if not is_related_window then
-          close_window_pair(window_id)
-        end
-      end)
-    end,
-  })
-
-  -- Create autocommand to close the paired window when this window is closed
-  vim.api.nvim_create_autocmd('WinClosed', {
-    pattern = tostring(win),
-    callback = function()
-      close_window_pair(window_id)
-    end,
-  })
-
-  -- Set keybindings for the window
-  local keymap_opts = { noremap = true, silent = true, buffer = buf }
-  vim.keymap.set('n', 'q', function()
-    close_window_pair(window_id)
-  end, keymap_opts)
-
-  -- Reapply keybindings after saving the file
-  vim.api.nvim_create_autocmd('BufWritePost', {
-    buffer = buf,
-    callback = function()
-      vim.schedule(function()
-        if vim.api.nvim_buf_is_valid(buf) then
-          -- Reapply the 'q' keybinding after save
-          vim.keymap.set('n', 'q', function()
-            close_window_pair(window_id)
-          end, keymap_opts)
-        end
-      end)
-    end,
-  })
 
   return { buf = buf, win = win }
 end
