@@ -5,8 +5,8 @@
 local tamal_commands = {
   { cmd = 'add-task', desc = 'Add a new task', height = 1, key = 'a' },
   { cmd = 'tasks', desc = 'View tasks', height = 15, key = 't' },
-  { cmd = 'weekly', desc = 'Open weekly note', height = 0, key = 'w', use_terminal = true },
-  { cmd = 'open', desc = 'Open a note', height = 1, param_name = 'NOTE_NAME', key = 'o', use_terminal = true },
+  { cmd = 'weekly', desc = 'Open weekly note', height = 0, key = 'w', use_note_path = true, path_cmd = 'weekly-note-path' },
+  { cmd = 'open', desc = 'Open a note', height = 1, param_name = 'NOTE_NAME', key = 'o', use_note_path = true, path_cmd = 'note-path' },
   { cmd = 'add-note', desc = 'Add a note', height = 3, key = 'n' },
   { cmd = 'three-p', desc = 'Add a 3P note', height = 3, param_name = 'SECTION', key = 'p' },
 }
