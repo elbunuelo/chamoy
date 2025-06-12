@@ -36,8 +36,8 @@ local tamal_commands = {
   { cmd = 'tasks', desc = 'View tasks', height = 15, key = 't' },
   { cmd = 'weekly', desc = 'Open weekly note', height = 0, key = 'w', use_note_path = true, path_cmd = 'weekly-note-path' },
   { cmd = 'open', desc = 'Open a note', height = 0, key = 'o', use_telescope = true },
-  { cmd = 'add-note', desc = 'Add a note', height = 3, key = 'n', needs_time_block = true },
-  { cmd = 'three-p', desc = 'Add a 3P note', height = 3, key = 'p' },
+  { cmd = 'add-note', desc = 'Add a note', height = 15, key = 'n', needs_time_block = true },
+  { cmd = 'three-p', desc = 'Add a 3P note', height = 15, key = 'p' },
 }
 
 -- Helper function to calculate window dimensions and position
@@ -421,7 +421,7 @@ local function open_file_in_floating_window(file_path)
     relative = 'editor',
     width = dimensions.width,
     height = dimensions.height,
-    col = dimensions.col,
+    col = 80,
     row = dimensions.row,
     style = 'minimal',
     border = 'rounded',
@@ -584,44 +584,6 @@ local function open_note_with_telescope()
   }
 end
 
--- Function to open a floating terminal and run a command
-local function open_floating_terminal(cmd)
-  -- Create a new buffer for the terminal
-  local buf = vim.api.nvim_create_buf(false, true)
-
-  -- Set up dimensions and position
-  local dimensions = calculate_window_dimensions(0.8, 0.8)
-
-  -- Window options
-  local opts = {
-    relative = 'editor',
-    width = dimensions.width,
-    height = dimensions.height,
-    col = dimensions.col,
-    row = dimensions.row,
-    style = 'minimal',
-    border = 'rounded',
-  }
-
-  -- Open the floating window
-  local win = vim.api.nvim_open_win(buf, true, opts)
-
-  -- Open terminal in the buffer and run the command
-  vim.fn.termopen(cmd, {
-    on_exit = function()
-      -- Close the window when terminal command exits
-      if vim.api.nvim_win_is_valid(win) then
-        vim.api.nvim_win_close(win, true)
-      end
-    end,
-  })
-
-  -- Enter terminal mode automatically
-  vim.cmd 'startinsert'
-
-  return { buf = buf, win = win }
-end
-
 -- Function to create a time block selector for add-task command
 local function create_time_block_selector(note_win, note_buf)
   -- Get available time blocks from tamal
@@ -647,7 +609,6 @@ local function create_time_block_selector(note_win, note_buf)
     -- Create selector with the single time block
     return create_selector_window(note_win, note_buf, {
       values = time_blocks_output,
-      prefix = 'Time: ',
       type = 'time_block',
       parse_value = function(time_block)
         local start_time, end_time = time_block:match '(%d%d:%d%d)%s*-%s*(%d%d:%d%d)'
@@ -752,7 +713,6 @@ local function create_time_block_selector(note_win, note_buf)
   -- Create selector with time blocks, passing the best time block index
   return create_selector_window(note_win, note_buf, {
     values = time_blocks_output,
-    prefix = 'Time: ',
     type = 'time_block',
     parse_value = function(time_block)
       local start_time, end_time = time_block:match '(%d%d:%d%d)%s*-%s*(%d%d:%d%d)'

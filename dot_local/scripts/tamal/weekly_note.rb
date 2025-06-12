@@ -188,7 +188,7 @@ def tasks(config)
 
   return unless block
 
-  puts(block[:tasks].map { |t| t[:task] })
+  puts(block[:tasks].map { |t| "#{t[:status]},#{t[:task]}" })
 end
 
 def time_blocks(config)
