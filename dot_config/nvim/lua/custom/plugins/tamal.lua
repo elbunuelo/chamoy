@@ -849,13 +849,13 @@ local function open_tamal_popup(command_info)
         local status_icon = ''
         if status_char == ' ' then
           -- Pending task
-          status_icon = '  ' -- Circle icon for pending
+          status_icon = ' ' -- Circle icon for pending
         elseif status_char == 'x' then
           -- Done task
-          status_icon = '  ' -- Check icon for done
+          status_icon = 'x' -- Check icon for done
         elseif status_char == '~' then
           -- Canceled task
-          status_icon = '  ' -- Cross icon for canceled
+          status_icon = '~' -- Cross icon for canceled
         end
 
         -- Replace the markdown checkbox with the icon
