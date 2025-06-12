@@ -16,10 +16,12 @@ def run(config)
   case config.action
   when 'open'
     open_note(config)
+  when 'note-path'
+    note_path(config)
   when 'weekly'
     open_weekly_note(config)
   when 'weekly-note-path'
-    print_weekly_file_path(config)
+    print_weekly_file_path
   when 'tasks'
     tasks(config)
   when 'add_task'
