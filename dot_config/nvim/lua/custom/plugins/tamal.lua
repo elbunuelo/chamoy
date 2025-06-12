@@ -45,15 +45,15 @@ local function open_file_in_floating_window(file_path)
 
   -- Set buffer name to the file path
   vim.api.nvim_buf_set_name(buf, file_path)
-  
+
   -- Load the file content into the buffer
   vim.cmd('buffer ' .. buf)
   vim.cmd('silent! edit ' .. file_path)
-  
+
   -- Set buffer options
-  vim.api.nvim_buf_set_option(buf, 'buftype', '')  -- Regular file buffer
+  vim.api.nvim_buf_set_option(buf, 'buftype', '') -- Regular file buffer
   vim.api.nvim_buf_set_option(buf, 'modifiable', true)
-  vim.api.nvim_buf_set_option(buf, 'filetype', 'markdown')  -- Assuming notes are markdown
+  vim.api.nvim_buf_set_option(buf, 'filetype', 'markdown') -- Assuming notes are markdown
 
   -- Set window options
   vim.api.nvim_win_set_option(win, 'winblend', 10)
@@ -116,9 +116,13 @@ local function open_tamal_popup(command_info)
 
   -- Some commands don't need a popup
   if height == 0 then
-    -- If this command should use a terminal
-    if command_info.use_terminal then
-      open_floating_terminal('tamal --' .. command_info.cmd)
+    -- If this command should use note path
+    if command_info.use_note_path then
+      local path_cmd = command_info.path_cmd or command_info.cmd .. '-note-path'
+      -- Get the path to the note file
+      local file_path = vim.fn.system('tamal --' .. path_cmd):gsub('\n$', '')
+      -- Open the file in a floating window
+      open_file_in_floating_window(file_path)
     else
       -- Execute command directly
       vim.fn.system('tamal --' .. command_info.cmd)
@@ -198,9 +202,13 @@ local function open_tamal_popup(command_info)
     -- Close the input window
     vim.api.nvim_win_close(win, true)
 
-    -- If this command should use a terminal
-    if command_info.use_terminal then
-      open_floating_terminal(cmd)
+    -- If this command should use note path
+    if command_info.use_note_path then
+      -- For the 'open' command, we need to get the path to the note file
+      local path_cmd = 'tamal --note-path ' .. content
+      local file_path = vim.fn.system(path_cmd):gsub('\n$', '')
+      -- Open the file in a floating window
+      open_file_in_floating_window(file_path)
     else
       -- Execute the command
       local output = vim.fn.system(cmd)
