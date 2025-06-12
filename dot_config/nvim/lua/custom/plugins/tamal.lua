@@ -240,6 +240,9 @@ local function create_section_selector(note_win, note_buf)
     note_width = note_win_config.width
   end
 
+  -- Use the same width as the note window
+  local width = note_width
+
   local col = note_col + math.floor((note_width - width) / 2)
   local row = note_row - 2 -- Position above the note window
 
