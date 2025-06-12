@@ -62,6 +62,12 @@ local function open_file_in_floating_window(file_path)
   -- Set buffer options for the window
   vim.api.nvim_win_call(win, function()
     vim.opt_local.laststatus = 0 -- Disable status line in this window
+
+    -- Enable render-markdown for this buffer if the plugin is available
+    local ok, render_markdown = pcall(require, 'render-markdown')
+    if ok then
+      render_markdown.buf_enable()
+    end
   end)
 
   -- Set keybindings for the window
