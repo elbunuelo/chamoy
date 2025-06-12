@@ -839,8 +839,9 @@ local function open_tamal_popup(command_info)
 
     -- Function to cycle task status
     local function cycle_task_status()
-      -- Get the current line number (1-based index)
-      local cursor_pos = vim.api.nvim_win_get_cursor(win)
+      -- Get the current window and the current line number (1-based index)
+      local current_win = vim.api.nvim_get_current_win()
+      local cursor_pos = vim.api.nvim_win_get_cursor(current_win)
       local line_num = cursor_pos[1]
 
       -- Check if this line is a task
