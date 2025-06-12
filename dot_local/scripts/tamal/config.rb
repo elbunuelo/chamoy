@@ -51,6 +51,14 @@ class TamalConfig
         @action = 'tasks'
       end
 
+      opts.on(
+        '-b',
+        '--time-blocks',
+        'List all time blocks for today in format <start_time>-<end_time>'
+      ) do
+        @action = 'time_blocks'
+      end
+
       opts.on('-D', '--debug') do
         @debug = true
       end
