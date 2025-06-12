@@ -8,7 +8,7 @@ local tamal_commands = {
   { cmd = 'weekly', desc = 'Open weekly note', height = 0, key = 'w', use_note_path = true, path_cmd = 'weekly-note-path' },
   { cmd = 'open', desc = 'Open a note', height = 0, key = 'o', use_telescope = true },
   { cmd = 'add-note', desc = 'Add a note', height = 3, key = 'n' },
-  { cmd = 'three-p', desc = 'Add a 3P note', height = 3, param_name = 'SECTION', key = 'p' },
+  { cmd = 'three-p', desc = 'Add a 3P note', height = 3, key = 'p' },
 }
 
 -- Function to open a file in a floating window
