@@ -221,8 +221,9 @@ local function create_section_selector(note_win, note_buf)
 
   -- Calculate position (above the note window)
   local note_win_config = vim.api.nvim_win_get_config(note_win)
-  local width = 40
   local height = 1
+
+  -- Use the same width as the note window for consistency
 
   -- Get the window position and dimensions from the config
   -- The API returns different formats depending on Neovim version
