@@ -117,11 +117,21 @@ local function open_file_in_floating_window(file_path)
       end
     end
 
-    -- Position cursor on the target line if found
+    -- Position cursor on the target line if found and ensure it's visible
     if target_line then
-      vim.schedule(function()
-        vim.api.nvim_win_set_cursor(win, { target_line, 0 })
-      end)
+      -- Use a longer delay to ensure the buffer is fully loaded
+      vim.defer_fn(function()
+        if vim.api.nvim_win_is_valid(win) then
+          -- Set cursor position
+          vim.api.nvim_win_set_cursor(win, { target_line, 0 })
+
+          -- Center the view on the cursor line
+          vim.cmd 'normal! zz'
+
+          -- Ensure the UI updates
+          vim.cmd 'redraw'
+        end
+      end, 100) -- 100ms delay
     end
   end
 
