@@ -27,15 +27,19 @@ def apply_template(config, template_path, file_path)
   end
 end
 
-# Opens a note for editing, optionally applying a template to the note.
+# Gets the note file path based on the note name.
 #
-# Creates the note if it doesn't already exist based on the value
-# of config.name.
+# @param note_name [String] The name of the note.
+# @return [String] The full path to the note file.
+def get_note_path(note_name)
+  "#{NOTES_DIRECTORY}/#{note_name}.md"
+end
+
+# Prepares a note file by applying a template and ensuring the file exists.
 #
-# When config.template exists and the note does not yet exist, the
-# note is created and the template applied to it, replacing
-# mustache values when applicable.
-def open_note(config)
+# @param config [TamalConfig] The configuration object.
+# @return [String] The path to the prepared note file.
+def prepare_note_file(config)
   note_name = config.name
   if note_name.empty?
     puts 'Please provide a note name.'
@@ -43,13 +47,16 @@ def open_note(config)
   end
 
   template_path = "#{TEMPLATES_DIRECTORY}/#{config.template}.md"
-  file_path = "#{NOTES_DIRECTORY}/#{note_name}.md"
+  file_path = get_note_path(note_name)
   log("Destination filepath is #{file_path}", 'DEBUG', config)
 
+  # Create notes directory if it doesn't exist
+  FileUtils.mkdir_p(File.dirname(file_path)) unless Dir.exist?(File.dirname(file_path))
+
   if config.template.empty?
-    log('No template specified, will open an empty note.', 'DEBUG', config)
+    log('No template specified, will create an empty note if needed.', 'DEBUG', config)
   else
-    log("Opening note using template #{template_path}.", 'DEBUG', config)
+    log("Using template #{template_path}.", 'DEBUG', config)
   end
 
   if !config.template.empty? && !File.exist?(template_path)
@@ -60,5 +67,27 @@ def open_note(config)
 
   apply_template(config, template_path, file_path)
   File.new(file_path, 'w+') unless File.exist? file_path
+  
+  file_path
+end
+
+# Creates a note if it doesn't exist and returns its path.
+#
+# @param config [TamalConfig] The configuration object.
+def note_path(config)
+  file_path = prepare_note_file(config)
+  puts file_path
+end
+
+# Opens a note for editing, optionally applying a template to the note.
+#
+# Creates the note if it doesn't already exist based on the value
+# of config.name.
+#
+# When config.template exists and the note does not yet exist, the
+# note is created and the template applied to it, replacing
+# mustache values when applicable.
+def open_note(config)
+  file_path = prepare_note_file(config)
   system(EDITOR, file_path)
 end
