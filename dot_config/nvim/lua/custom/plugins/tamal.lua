@@ -443,24 +443,24 @@ local function open_file_in_floating_window(file_path)
   -- Set common window options
   set_common_win_options(win)
 
-  -- Function to setup keybindings for a buffer
-  local function setup_keybindings(buffer)
+  -- Function to setup keybindings and autocmds for a buffer
+  local function setup_buffer_keymaps_and_autocmds(buffer)
     -- Set keybindings for the window
     local keymap_opts = { noremap = true, silent = true, buffer = buffer }
     vim.keymap.set('n', 'q', function()
       close_window_pair(window_id)
     end, keymap_opts)
-  end
-
-  -- Function to setup window leave autocmd
-  local function setup_win_leave_autocmd(buffer)
+    
+    -- Create autocommand to close window when leaving to a non-tamal window
+    -- This needs to be recreated for each buffer change
     vim.api.nvim_create_autocmd('WinLeave', {
       buffer = buffer,
+      group = vim.api.nvim_create_augroup('TamalWinLeave_' .. window_id, { clear = true }),
       callback = function()
         vim.schedule(function()
           -- Get the current window after leaving
           local current_win = vim.api.nvim_get_current_win()
-
+          
           -- Check if we moved to a window that is part of our pairs
           local is_related_window = false
           for id, pair in pairs(tamal_window_pairs) do
@@ -473,8 +473,8 @@ local function open_file_in_floating_window(file_path)
               break
             end
           end
-
-          -- If we moved to an unrelated window, close both windows in the pair
+          
+          -- If we moved to an unrelated window, close all windows in the pair
           if not is_related_window then
             close_window_pair(window_id)
           end
@@ -491,11 +491,10 @@ local function open_file_in_floating_window(file_path)
     end,
   })
 
-  -- Initial setup of keybindings
-  setup_keybindings(buf)
-  setup_win_leave_autocmd(buf)
+  -- Initial setup of keybindings and autocmds
+  setup_buffer_keymaps_and_autocmds(buf)
 
-  -- Create autocmds to maintain keybindings after buffer changes
+  -- Create autocmds to maintain keybindings and autocmds after buffer changes
   vim.api.nvim_create_autocmd({'BufEnter', 'BufWinEnter', 'BufWritePost'}, {
     callback = function(args)
       local current_buf = args.buf
@@ -503,9 +502,9 @@ local function open_file_in_floating_window(file_path)
       
       -- Check if this is our floating window
       if tamal_window_pairs[window_id] and tamal_window_pairs[window_id].note_win == current_win then
-        -- Re-apply keybindings for the current buffer
+        -- Re-apply keybindings and autocmds for the current buffer
         vim.schedule(function()
-          setup_keybindings(current_buf)
+          setup_buffer_keymaps_and_autocmds(current_buf)
         end)
       end
     end
