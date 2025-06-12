@@ -103,9 +103,9 @@ class TamalConfig
         @section = section.downcase
       end
 
-      opts.on('-u', '--update-task INDEX') do |index|
+      opts.on('-u', '--update-task TASK') do |task|
         @action = 'update_task'
-        @task_index = index.to_i
+        @task = task
       end
 
       opts.on('-S', '--status STATUS') do |status|
