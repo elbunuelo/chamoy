@@ -21,6 +21,11 @@ local function close_window_pair(id)
     pcall(vim.api.nvim_win_close, pair.section_win, true)
   end
 
+  -- Close time block window if valid
+  if pair.time_block_win and vim.api.nvim_win_is_valid(pair.time_block_win) then
+    pcall(vim.api.nvim_win_close, pair.time_block_win, true)
+  end
+
   -- Remove from tracking table
   tamal_window_pairs[id] = nil
 end
@@ -98,7 +103,11 @@ local function open_file_in_floating_window(file_path)
         -- Check if we moved to a window that is part of our pairs
         local is_related_window = false
         for id, pair in pairs(tamal_window_pairs) do
-          if (pair.section_win and current_win == pair.section_win) or (pair.note_win and current_win == pair.note_win) then
+          if
+            (pair.section_win and current_win == pair.section_win)
+            or (pair.note_win and current_win == pair.note_win)
+            or (pair.time_block_win and current_win == pair.time_block_win)
+          then
             is_related_window = true
             break
           end
@@ -204,6 +213,184 @@ local function open_floating_terminal(cmd)
   return { buf = buf, win = win }
 end
 
+-- Function to create a time block selector for add-task command
+local function create_time_block_selector(note_win, note_buf)
+  -- Get available time blocks from tamal
+  local time_blocks_output = vim.fn.systemlist 'tamal --time-blocks'
+
+  -- If no time blocks available, return nil
+  if #time_blocks_output == 0 then
+    vim.notify('No time blocks available', vim.log.levels.WARN)
+    return nil
+  end
+
+  local current_block_idx = 1
+
+  -- Create buffer for the time block selector
+  local selector_buf = vim.api.nvim_create_buf(false, true)
+
+  -- Set buffer options
+  vim.api.nvim_buf_set_option(selector_buf, 'bufhidden', 'wipe')
+  vim.api.nvim_buf_set_option(selector_buf, 'modifiable', true)
+
+  -- Set initial content
+  vim.api.nvim_buf_set_lines(selector_buf, 0, -1, false, { 'Time: ' .. time_blocks_output[current_block_idx] })
+
+  -- Calculate position (above the note window)
+  local note_win_config = vim.api.nvim_win_get_config(note_win)
+  local height = 1
+
+  -- Get the window position and dimensions from the config
+  -- The API returns different formats depending on Neovim version
+  local note_col, note_row, note_width
+  if type(note_win_config.col) == 'number' then
+    -- Newer Neovim versions
+    note_col = note_win_config.col
+    note_row = note_win_config.row
+    note_width = note_win_config.width
+  else
+    -- Older Neovim versions with indexable values
+    note_col = note_win_config.col[false]
+    note_row = note_win_config.row[false]
+    note_width = note_win_config.width
+  end
+
+  -- Use the same width as the note window
+  local width = note_width
+
+  local col = note_col + math.floor((note_width - width) / 2)
+  local row = note_row - 2 -- Position above the note window
+
+  -- Window options
+  local opts = {
+    relative = 'editor',
+    width = width,
+    height = height,
+    col = col,
+    row = row,
+    style = 'minimal',
+    border = 'rounded',
+    title = 'Time Block',
+  }
+
+  -- Create the window with the buffer
+  local selector_win = vim.api.nvim_open_win(selector_buf, false, opts) -- Don't focus initially
+
+  -- Set window options
+  vim.api.nvim_win_set_option(selector_win, 'winblend', 10)
+  vim.api.nvim_win_set_option(selector_win, 'cursorline', true)
+
+  -- Find the associated note window and update the pair in the tracking table
+  local note_win_id = nil
+  for id, pair in pairs(tamal_window_pairs) do
+    if pair.note_win == note_win then
+      note_win_id = id
+      pair.time_block_win = selector_win
+      break
+    end
+  end
+
+  -- Create autocommand to close windows when leaving to a non-tamal window
+  vim.api.nvim_create_autocmd('WinLeave', {
+    buffer = selector_buf,
+    callback = function()
+      vim.schedule(function()
+        -- Get the current window after leaving
+        local current_win = vim.api.nvim_get_current_win()
+
+        -- Check if we moved to a window that is part of our pairs
+        local is_related_window = false
+        for id, pair in pairs(tamal_window_pairs) do
+          if
+            (pair.section_win and current_win == pair.section_win)
+            or (pair.note_win and current_win == pair.note_win)
+            or (pair.time_block_win and current_win == pair.time_block_win)
+          then
+            is_related_window = true
+            break
+          end
+        end
+
+        -- If we moved to an unrelated window, close all windows in the pair
+        if not is_related_window and note_win_id then
+          close_window_pair(note_win_id)
+        end
+      end)
+    end,
+  })
+
+  -- Create autocommand to close the paired windows when this window is closed
+  vim.api.nvim_create_autocmd('WinClosed', {
+    pattern = tostring(selector_win),
+    callback = function()
+      if note_win_id then
+        close_window_pair(note_win_id)
+      end
+    end,
+  })
+
+  -- Function to update the time block display
+  local function update_time_block_display()
+    vim.schedule(function()
+      if vim.api.nvim_buf_is_valid(selector_buf) then
+        vim.api.nvim_buf_set_option(selector_buf, 'modifiable', true)
+        vim.api.nvim_buf_set_lines(selector_buf, 0, -1, false, { 'Time: ' .. time_blocks_output[current_block_idx] })
+        vim.api.nvim_buf_set_option(selector_buf, 'modifiable', false)
+      end
+    end)
+  end
+
+  -- Define navigation between windows
+  -- CTRL+K: Move to time block selector
+  vim.keymap.set({ 'n', 'i' }, '<C-k>', function()
+    if vim.api.nvim_win_is_valid(selector_win) then
+      -- If in insert mode, switch to normal mode first
+      if vim.fn.mode() == 'i' then
+        vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Esc>', true, false, true), 'n', true)
+      end
+      vim.api.nvim_set_current_win(selector_win)
+    end
+  end, { noremap = true, silent = true, buffer = note_buf })
+
+  -- CTRL+J: Move to note window
+  vim.keymap.set('n', '<C-j>', function()
+    if vim.api.nvim_win_is_valid(note_win) then
+      vim.api.nvim_set_current_win(note_win)
+      -- Return to insert mode in the note window
+      vim.cmd 'startinsert'
+    end
+  end, { noremap = true, silent = true, buffer = selector_buf })
+
+  -- Tab in time block selector: Cycle through time blocks
+  vim.keymap.set('n', '<Tab>', function()
+    current_block_idx = (current_block_idx % #time_blocks_output) + 1
+    update_time_block_display()
+  end, { noremap = true, silent = true, buffer = selector_buf })
+
+  -- Set up 'q' key to close all windows
+  vim.keymap.set('n', 'q', function()
+    if note_win_id then
+      close_window_pair(note_win_id)
+    end
+  end, { noremap = true, silent = true, buffer = selector_buf })
+
+  -- Make the time block display read-only after initial setup
+  vim.api.nvim_buf_set_option(selector_buf, 'modifiable', false)
+
+  return {
+    win = selector_win,
+    buf = selector_buf,
+    get_current_time_block = function()
+      return time_blocks_output[current_block_idx]
+    end,
+    parse_time_block = function()
+      local time_block = time_blocks_output[current_block_idx]
+      local start_time, end_time = time_block:match '(%d%d:%d%d)%s*-%s*(%d%d:%d%d)'
+      return start_time, end_time
+    end,
+  }
+end
+
 -- Function to create a section selector for three-p command
 local function create_section_selector(note_win, note_buf)
   local sections = { 'Progress', 'Planned', 'Problems' }
@@ -286,7 +473,11 @@ local function create_section_selector(note_win, note_buf)
         -- Check if we moved to a window that is part of our pairs
         local is_related_window = false
         for id, pair in pairs(tamal_window_pairs) do
-          if (pair.section_win and current_win == pair.section_win) or (pair.note_win and current_win == pair.note_win) then
+          if
+            (pair.section_win and current_win == pair.section_win)
+            or (pair.note_win and current_win == pair.note_win)
+            or (pair.time_block_win and current_win == pair.time_block_win)
+          then
             is_related_window = true
             break
           end
@@ -461,6 +652,12 @@ local function open_tamal_popup(command_info)
     section_selector = create_section_selector(win, buf)
   end
 
+  -- Create time block selector for add-task command
+  local time_block_selector = nil
+  if command_info.cmd == 'add-task' then
+    time_block_selector = create_time_block_selector(win, buf)
+  end
+
   -- For commands that require input, set up Enter key binding
   vim.keymap.set({ 'n', 'i' }, '<CR>', function()
     -- Exit insert mode if we're in it
@@ -481,6 +678,13 @@ local function open_tamal_popup(command_info)
       cmd = cmd .. ' --section ' .. selected_section:lower() .. ' ' .. vim.fn.shellescape(content)
 
       -- Use our centralized function to close both windows
+      close_window_pair(window_id)
+    -- For add-task command, get the selected time block and add start/end time arguments
+    elseif command_info.cmd == 'add-task' and time_block_selector then
+      local start_time, end_time = time_block_selector.parse_time_block()
+      cmd = cmd .. ' --start-time "' .. start_time .. '" --end-time "' .. end_time .. '" ' .. vim.fn.shellescape(content)
+
+      -- Use our centralized function to close all windows
       close_window_pair(window_id)
     else
       -- Add parameter name if specified
