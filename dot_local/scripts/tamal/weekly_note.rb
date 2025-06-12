@@ -206,6 +206,22 @@ def time_blocks(config)
   end
 end
 
+def day_line_numbers(config)
+  # Open the weekly note file and scan through it line by line
+  File.open(weekly_file_path) do |file|
+    lines = file.readlines
+
+    # Iterate through each line with its line number
+    lines.each_with_index do |line, index|
+      # Check if the line matches the day header pattern
+      if match = line.match(DAY_HEADER_REGEX)
+        # Output the line number (1-based) and the day of the week
+        puts "#{index + 1},#{match[:day]}"
+      end
+    end
+  end
+end
+
 def add_task(config)
   week = parse_weekly_note
   blocks = week[:days][config.date][:blocks]
