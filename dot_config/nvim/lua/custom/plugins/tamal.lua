@@ -143,6 +143,12 @@ end
 
 -- Function to create and display the popup window
 local function open_tamal_popup(command_info)
+  -- Check if this command should use telescope
+  if command_info.use_telescope then
+    open_note_with_telescope()
+    return
+  end
+
   -- Fixed width but variable height based on command
   local width = 160
   local height = command_info.height
