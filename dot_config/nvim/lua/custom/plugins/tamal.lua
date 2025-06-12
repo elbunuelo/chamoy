@@ -255,7 +255,7 @@ local function create_section_selector(note_win, note_buf)
     row = row,
     style = 'minimal',
     border = 'rounded',
-    title = 'Select Section',
+    title = '3P',
   }
 
   -- Create the window with the buffer
@@ -401,6 +401,10 @@ local function open_tamal_popup(command_info)
   local col = math.floor((vim.o.columns - width) / 2)
   local row = math.floor((vim.o.lines - height) / 2)
 
+  local title = command_info.desc
+  if command_info.cmd == 'three-p' then
+    title = ''
+  end
   -- Window options
   local opts = {
     relative = 'editor',
@@ -410,7 +414,7 @@ local function open_tamal_popup(command_info)
     row = row,
     style = 'minimal',
     border = 'rounded',
-    title = 'Tamal: ' .. command_info.desc,
+    title = title,
   }
 
   -- Create buffer for the popup
