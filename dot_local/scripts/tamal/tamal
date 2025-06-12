@@ -24,6 +24,8 @@ def run(config)
     print_weekly_file_path
   when 'tasks'
     tasks(config)
+  when 'time_blocks'
+    time_blocks(config)
   when 'add_task'
     add_task(config)
   when 'add_note'
