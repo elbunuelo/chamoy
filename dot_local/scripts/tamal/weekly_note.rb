@@ -325,6 +325,15 @@ end
 
 def add_note(config)
   week = parse_weekly_note
+
+  # Check if the date exists in the weekly note, if not, create it
+  if week[:days][config.date].nil?
+    week[:days][config.date] = {
+      blocks: [],
+      notes: []
+    }
+  end
+
   blocks = week[:days][config.date][:blocks]
 
   block_index = 0
