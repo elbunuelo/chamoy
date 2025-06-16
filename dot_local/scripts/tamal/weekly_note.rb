@@ -346,15 +346,15 @@ def update_task(config)
   week = parse_weekly_note
   blocks = week[:days][config.date][:blocks]
 
-  block_index = 0
-  blocks.each_with_index do |block, i|
-    next if block[:start_time] < config.start_time
+  # Find the block that contains the current time
+  block = blocks.detect { |b| config.time >= b[:start_time] && config.time <= b[:end_time] }
+  return unless block
 
-    block_index = i
-    break
+  # Find the task by matching its text
+  task = block[:tasks].detect { |t| t[:task].strip == config.task.strip }
+  if task
+    task[:status] = config.status
   end
-
-  blocks[block_index][:tasks][config.task_index][:status] = config.status
 
   output_weekly_note(week, config)
 end
