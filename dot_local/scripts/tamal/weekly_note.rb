@@ -230,6 +230,15 @@ end
 
 def add_task(config)
   week = parse_weekly_note
+
+  # Check if the date exists in the weekly note, if not, create it
+  if week[:days][config.date].nil?
+    week[:days][config.date] = {
+      blocks: [],
+      notes: []
+    }
+  end
+
   blocks = week[:days][config.date][:blocks]
 
   # First, check if the current time falls within any existing block
