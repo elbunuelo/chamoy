@@ -258,7 +258,7 @@ local function create_selector_window(note_win, note_buf, items, title, position
   local selector_win = vim.api.nvim_open_win(selector_buf, false, opts) -- Don't focus initially
 
   -- Set window options
-  vim.api.nvim_win_set_option(selector_win, 'winblend', 10)
+  vim.api.nvim_win_set_option(selector_win, 'winblend', 0)
   vim.api.nvim_win_set_option(selector_win, 'cursorline', true)
 
   -- Find the associated note window and update the pair in the tracking table
