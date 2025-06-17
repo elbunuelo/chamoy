@@ -943,13 +943,8 @@ local function open_tamal_popup(command_info)
     time_block_selector = create_time_block_selector(win, buf)
   end
 
-  -- For commands that require input, set up Enter key binding
-  vim.keymap.set({ 'n', 'i' }, '<CR>', function()
-    -- Exit insert mode if we're in it
-    if vim.fn.mode() == 'i' then
-      vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Esc>', true, false, true), 'n', true)
-    end
-
+  -- For commands that require input, set up Enter key binding (normal mode only)
+  vim.keymap.set('n', '<CR>', function()
     -- Get the content of the buffer
     local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
     local content = table.concat(lines, '\n')
