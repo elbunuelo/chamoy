@@ -34,7 +34,6 @@ def replace_mustache(mustache)
 
     target_day = Date.parse(relative_day).wday
     days_until = (target_day - date.wday) % 7
-    days_until = 7 if days_until == 0
     days_until *= -1 if relative_part == 'last'
 
     date += days_until

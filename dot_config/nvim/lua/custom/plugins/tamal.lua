@@ -69,7 +69,7 @@ end
 
 -- Helper function to set common window options
 local function set_common_win_options(win)
-  vim.api.nvim_win_set_option(win, 'winblend', 10)
+  vim.api.nvim_win_set_option(win, 'winblend', 0)
   vim.api.nvim_win_set_option(win, 'cursorline', true)
   vim.api.nvim_win_set_option(win, 'wrap', true) -- Enable line wrapping
   vim.api.nvim_win_set_option(win, 'linebreak', true) -- Wrap at word boundaries
@@ -258,7 +258,7 @@ local function create_selector_window(note_win, note_buf, items, title, position
   local selector_win = vim.api.nvim_open_win(selector_buf, false, opts) -- Don't focus initially
 
   -- Set window options
-  vim.api.nvim_win_set_option(selector_win, 'winblend', 10)
+  vim.api.nvim_win_set_option(selector_win, 'winblend', 0)
   vim.api.nvim_win_set_option(selector_win, 'cursorline', true)
 
   -- Find the associated note window and update the pair in the tracking table
@@ -896,13 +896,6 @@ local function open_tamal_popup(command_info)
     -- Add Tab key mapping to cycle through task statuses
     vim.keymap.set('n', '<Tab>', cycle_task_status, { noremap = true, silent = true, buffer = buf })
 
-    -- Add a helpful message at the top of the buffer
-    vim.api.nvim_echo({
-      { 'Press ', 'Normal' },
-      { 'Tab', 'Special' },
-      { ' to cycle task status (pending → done → canceled → pending)', 'Normal' },
-    }, false, {})
-
     -- Make the buffer read-only
     vim.api.nvim_buf_set_option(buf, 'modifiable', false)
   end
@@ -911,7 +904,7 @@ local function open_tamal_popup(command_info)
   local win = vim.api.nvim_open_win(buf, true, opts)
 
   -- Set window options
-  vim.api.nvim_win_set_option(win, 'winblend', 10)
+  vim.api.nvim_win_set_option(win, 'winblend', 0)
   vim.api.nvim_win_set_option(win, 'cursorline', true)
 
   -- Register this window in the global tracking table if it's not already there
@@ -943,13 +936,8 @@ local function open_tamal_popup(command_info)
     time_block_selector = create_time_block_selector(win, buf)
   end
 
-  -- For commands that require input, set up Enter key binding
-  vim.keymap.set({ 'n', 'i' }, '<CR>', function()
-    -- Exit insert mode if we're in it
-    if vim.fn.mode() == 'i' then
-      vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Esc>', true, false, true), 'n', true)
-    end
-
+  -- For commands that require input, set up Enter key binding (normal mode only)
+  vim.keymap.set('n', '<CR>', function()
     -- Get the content of the buffer
     local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
     local content = table.concat(lines, '\n')
