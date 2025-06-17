@@ -418,7 +418,7 @@ local function open_file_in_floating_window(file_path)
   -- Window options
   local opts = {
     relative = 'editor',
-    width = dimensions.width,
+    width = 80,
     height = dimensions.height,
     col = 80,
     row = dimensions.row,
