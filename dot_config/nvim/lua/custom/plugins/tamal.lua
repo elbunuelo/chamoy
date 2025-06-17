@@ -911,7 +911,7 @@ local function open_tamal_popup(command_info)
   local win = vim.api.nvim_open_win(buf, true, opts)
 
   -- Set window options
-  vim.api.nvim_win_set_option(win, 'winblend', 10)
+  vim.api.nvim_win_set_option(win, 'winblend', 0)
   vim.api.nvim_win_set_option(win, 'cursorline', true)
 
   -- Register this window in the global tracking table if it's not already there
