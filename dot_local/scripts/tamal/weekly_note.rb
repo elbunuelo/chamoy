@@ -368,6 +368,13 @@ end
 
 def update_task(config)
   week = parse_weekly_note
+
+  # Check if the date exists in the weekly note
+  if week[:days][config.date].nil?
+    puts "No entries found for date: #{config.date}"
+    return
+  end
+
   blocks = week[:days][config.date][:blocks]
 
   # Find the block that contains the current time

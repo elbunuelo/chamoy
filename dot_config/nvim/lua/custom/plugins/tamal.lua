@@ -232,7 +232,7 @@ local function create_selector_window(note_win, note_buf, items, title, position
   vim.api.nvim_buf_set_option(selector_buf, 'modifiable', true)
 
   -- Set initial content
-  vim.api.nvim_buf_set_lines(selector_buf, 0, -1, false, { items.prefix .. items.values[current_idx] })
+  vim.api.nvim_buf_set_lines(selector_buf, 0, -1, false, { items.values[current_idx] })
 
   -- Calculate position relative to note window
   local note_win_config = vim.api.nvim_win_get_config(note_win)
@@ -286,7 +286,7 @@ local function create_selector_window(note_win, note_buf, items, title, position
     vim.schedule(function()
       if vim.api.nvim_buf_is_valid(selector_buf) then
         vim.api.nvim_buf_set_option(selector_buf, 'modifiable', true)
-        vim.api.nvim_buf_set_lines(selector_buf, 0, -1, false, { items.prefix .. items.values[current_idx] })
+        vim.api.nvim_buf_set_lines(selector_buf, 0, -1, false, { items.values[current_idx] })
         vim.api.nvim_buf_set_option(selector_buf, 'modifiable', false)
       end
     end)
@@ -307,8 +307,7 @@ local function create_selector_window(note_win, note_buf, items, title, position
       local line = vim.api.nvim_buf_get_lines(selector_buf, 0, 1, false)[1]
 
       -- Calculate positions in the line, accounting for the prefix
-      local prefix_len = #items.prefix
-      local time_block = line:sub(prefix_len + 1)
+      local time_block = line
       local start_time, end_time = time_block:match '(%d%d:%d%d)%s*-%s*(%d%d:%d%d)'
 
       if not start_time or not end_time then
@@ -316,8 +315,8 @@ local function create_selector_window(note_win, note_buf, items, title, position
       end
 
       -- Find positions of start and end times in the line
-      local start_pos = line:find(start_time, prefix_len, true)
-      local end_pos = line:find(end_time, prefix_len, true)
+      local start_pos = line:find(start_time, 1, true)
+      local end_pos = line:find(end_time, 1, true)
 
       if not start_pos or not end_pos then
         return nil
@@ -728,7 +727,6 @@ local function create_section_selector(note_win, note_buf)
   -- Create selector with sections
   return create_selector_window(note_win, note_buf, {
     values = sections,
-    prefix = 'Section: ',
     type = 'section',
   }, '3P', true) -- Position above note window
 end
