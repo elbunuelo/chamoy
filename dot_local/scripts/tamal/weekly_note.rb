@@ -197,22 +197,22 @@ def tasks(config)
   puts(block[:tasks].map { |t| "#{t[:status]},#{t[:task]}" })
 end
 
-def time_blocks(config)
+def time_blocks(_config)
   week = parse_weekly_note
   today = Date.today
 
   # Check if today exists in the weekly note
-  if week[:days][today]
-    blocks = week[:days][today][:blocks]
+  return unless week[:days][today]
 
-    # Output each time block in the requested format
-    blocks.each do |block|
-      puts "#{block[:start_time].strftime('%H:%M')} - #{block[:end_time].strftime('%H:%M')}"
-    end
+  blocks = week[:days][today][:blocks]
+
+  # Output each time block in the requested format
+  blocks.each do |block|
+    puts "#{block[:start_time].strftime('%H:%M')} - #{block[:end_time].strftime('%H:%M')}"
   end
 end
 
-def day_line_numbers(config)
+def day_line_numbers(_config)
   # Open the weekly note file and scan through it line by line
   File.open(weekly_file_path) do |file|
     lines = file.readlines
@@ -242,7 +242,9 @@ def add_task(config)
   blocks = week[:days][config.date][:blocks]
 
   # First, check if the current time falls within any existing block
-  existing_block_index = blocks.find_index { |block| config.time >= block[:start_time] && config.time <= block[:end_time] }
+  existing_block_index = blocks.find_index do |block|
+    config.time >= block[:start_time] && config.time <= block[:end_time]
+  end
 
   # If we found an existing block that contains the current time, use it
   if existing_block_index
@@ -275,13 +277,11 @@ def add_task(config)
 
         # If there's a previous block, start from its end time
         if i > 0
-          new_start_time = blocks[i-1][:end_time]
+          new_start_time = blocks[i - 1][:end_time]
           new_end_time = new_start_time + (30 * 60) # 30 minutes later
 
           # If this would overlap with the next block, adjust end time
-          if new_end_time > block[:start_time]
-            new_end_time = block[:start_time]
-          end
+          new_end_time = block[:start_time] if new_end_time > block[:start_time]
         else
           # No previous block, start from current time
           new_start_time = config.time
@@ -289,11 +289,11 @@ def add_task(config)
         end
 
         blocks.insert(block_index, {
-          start_time: new_start_time,
-          end_time: new_end_time,
-          tasks: [],
-          notes: []
-        })
+                        start_time: new_start_time,
+                        end_time: new_end_time,
+                        tasks: [],
+                        notes: []
+                      })
 
         inserted = true
         break
@@ -345,11 +345,11 @@ def add_note(config)
       block[:end_time] = [block[:end_time], config.end_time].max
     else
       blocks.insert(block_index, {
-        start_time: config.start_time,
-        end_time: config.end_time,
-        tasks: [],
-        notes: []
-      })
+                      start_time: config.start_time,
+                      end_time: config.end_time,
+                      tasks: [],
+                      notes: []
+                    })
     end
     break
   end
@@ -383,9 +383,7 @@ def update_task(config)
 
   # Find the task by matching its text
   task = block[:tasks].detect { |t| t[:task].strip == config.task.strip }
-  if task
-    task[:status] = config.status
-  end
+  task[:status] = config.status if task
 
   output_weekly_note(week, config)
 end
