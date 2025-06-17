@@ -69,7 +69,7 @@ end
 
 -- Helper function to set common window options
 local function set_common_win_options(win)
-  vim.api.nvim_win_set_option(win, 'winblend', 10)
+  vim.api.nvim_win_set_option(win, 'winblend', 0)
   vim.api.nvim_win_set_option(win, 'cursorline', true)
   vim.api.nvim_win_set_option(win, 'wrap', true) -- Enable line wrapping
   vim.api.nvim_win_set_option(win, 'linebreak', true) -- Wrap at word boundaries
