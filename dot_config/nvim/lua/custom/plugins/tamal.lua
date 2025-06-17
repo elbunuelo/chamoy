@@ -896,13 +896,6 @@ local function open_tamal_popup(command_info)
     -- Add Tab key mapping to cycle through task statuses
     vim.keymap.set('n', '<Tab>', cycle_task_status, { noremap = true, silent = true, buffer = buf })
 
-    -- Add a helpful message at the top of the buffer
-    vim.api.nvim_echo({
-      { 'Press ', 'Normal' },
-      { 'Tab', 'Special' },
-      { ' to cycle task status (pending → done → canceled → pending)', 'Normal' },
-    }, false, {})
-
     -- Make the buffer read-only
     vim.api.nvim_buf_set_option(buf, 'modifiable', false)
   end
