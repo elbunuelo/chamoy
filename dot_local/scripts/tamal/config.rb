@@ -1,6 +1,6 @@
 class TamalConfig
   attr_accessor :debug, :action, :date, :time, :task, :note, :name, :template, :start_time, :end_time, :task_index,
-                :status, :section
+                :status, :section, :ticket_id, :user_name, :user_link, :account_name, :account_link
 
   def initialize
     @debug = false
