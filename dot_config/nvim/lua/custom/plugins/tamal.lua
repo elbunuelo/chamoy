@@ -542,6 +542,8 @@ local function open_file_in_floating_window(file_path, is_weekly_note)
       -- Set cursor to the current day's line if found
       if target_line then
         vim.api.nvim_win_set_cursor(win, { target_line, 0 })
+        -- Position the selected line at the top of the window
+        vim.cmd 'normal! zt'
       end
     end)
   end
