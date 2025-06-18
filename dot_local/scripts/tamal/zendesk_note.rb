@@ -9,6 +9,10 @@ end
 
 # Prints the file path for a Zendesk ticket note
 def print_zendesk_file_path(ticket_id)
+  if ticket_id.nil? || ticket_id.empty?
+    puts 'Please provide a ticket ID.'
+    exit 1
+  end
   puts zendesk_file_path(ticket_id)
 end
 
