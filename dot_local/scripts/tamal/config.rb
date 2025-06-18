@@ -122,6 +122,11 @@ class TamalConfig
         @ticket_id = ticket_id
       end
 
+      opts.on('--zendesk-note-path TICKET_ID', 'Output the path to a Zendesk ticket note') do |ticket_id|
+        @action = 'zendesk-note-path'
+        @ticket_id = ticket_id
+      end
+
       opts.on('--user-name USER_NAME', 'User name for Zendesk ticket') do |user_name|
         @user_name = user_name
       end
