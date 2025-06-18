@@ -37,6 +37,8 @@ def run(config)
     add_three_p(config)
   when 'update_task'
     update_task(config)
+  when 'zendesk'
+    open_zendesk_note(config)
   end
 end
 
