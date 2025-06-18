@@ -17,6 +17,11 @@ class TamalConfig
     @template = nil
     @task_index = nil
     @section = nil
+    @ticket_id = nil
+    @user_name = ''
+    @user_link = ''
+    @account_name = ''
+    @account_link = ''
 
     parse_options
   end
