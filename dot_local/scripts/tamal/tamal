@@ -9,6 +9,7 @@ require_relative 'config'
 require_relative 'constants'
 require_relative 'note'
 require_relative 'weekly_note'
+require_relative 'zendesk_note'
 require_relative 'utils'
 
 def run(config)
