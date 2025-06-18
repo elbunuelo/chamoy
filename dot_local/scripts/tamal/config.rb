@@ -117,6 +117,27 @@ class TamalConfig
         @status = status
       end
 
+      opts.on('--zendesk TICKET_ID', 'Open or create a Zendesk ticket note') do |ticket_id|
+        @action = 'zendesk'
+        @ticket_id = ticket_id
+      end
+
+      opts.on('--user-name USER_NAME', 'User name for Zendesk ticket') do |user_name|
+        @user_name = user_name
+      end
+
+      opts.on('--user-link USER_LINK', 'User link for Zendesk ticket') do |user_link|
+        @user_link = user_link
+      end
+
+      opts.on('--account-name ACCOUNT_NAME', 'Account name for Zendesk ticket') do |account_name|
+        @account_name = account_name
+      end
+
+      opts.on('--account-link ACCOUNT_LINK', 'Account link for Zendesk ticket') do |account_link|
+        @account_link = account_link
+      end
+
       opts.on('-h', '--help') do
         print opts
         exit
