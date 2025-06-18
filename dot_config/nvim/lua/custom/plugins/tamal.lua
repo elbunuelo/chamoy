@@ -731,8 +731,35 @@ local function create_section_selector(note_win, note_buf)
   }, '3P', true) -- Position above note window
 end
 
+-- Helper function to get visually selected text
+local function get_visual_selection()
+  local _, start_line, start_col, _ = unpack(vim.fn.getpos "'<")
+  local _, end_line, end_col, _ = unpack(vim.fn.getpos "'>")
+
+  -- Handle case where visual mode hasn't been used yet
+  if start_line == 0 then
+    return ''
+  end
+
+  local lines = vim.fn.getline(start_line, end_line)
+
+  -- Adjust columns for the first and last lines
+  if #lines == 0 then
+    return ''
+  end
+
+  if #lines == 1 then
+    lines[1] = string.sub(lines[1], start_col, end_col)
+  else
+    lines[1] = string.sub(lines[1], start_col)
+    lines[#lines] = string.sub(lines[#lines], 1, end_col)
+  end
+
+  return table.concat(lines, '\n')
+end
+
 -- Function to create and display the popup window
-local function open_tamal_popup(command_info)
+local function open_tamal_popup(command_info, initial_content)
   -- Check if this command should use telescope
   if command_info.use_telescope then
     open_note_with_telescope()
