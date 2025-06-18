@@ -39,6 +39,8 @@ def run(config)
     update_task(config)
   when 'zendesk'
     open_zendesk_note(config)
+  when 'zendesk-note-path'
+    print_zendesk_file_path(config.ticket_id)
   end
 end
 
