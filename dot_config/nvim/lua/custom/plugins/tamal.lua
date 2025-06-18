@@ -402,7 +402,7 @@ local function create_selector_window(note_win, note_buf, items, title, position
 end
 
 -- Function to open a file in a floating window
-local function open_file_in_floating_window(file_path)
+local function open_file_in_floating_window(file_path, is_weekly_note)
   -- Check if file exists
   if vim.fn.filereadable(file_path) == 0 then
     vim.notify('File not found: ' .. file_path, vim.log.levels.ERROR)
@@ -511,6 +511,40 @@ local function open_file_in_floating_window(file_path)
 
   -- Load the file content into the buffer - more reliable method
   vim.cmd('edit ' .. vim.fn.fnameescape(file_path))
+
+  -- If this is a weekly note, position the cursor on the current day's line
+  if is_weekly_note then
+    vim.schedule(function()
+      -- Get the current day of the week (1 = Sunday, 2 = Monday, ..., 7 = Saturday)
+      local current_day = tonumber(os.date '%w')
+      -- Convert to day name (Mon, Tue, Wed, Thu, Fri)
+      local day_names = { [1] = 'Mon', [2] = 'Tue', [3] = 'Wed', [4] = 'Thu', [5] = 'Fri' }
+      local day_name = day_names[current_day == 0 and 5 or current_day] -- Map Sunday(0) to Friday(5) as fallback
+
+      -- If it's a weekend, default to Monday
+      if not day_name then
+        day_name = 'Mon'
+      end
+
+      -- Get day line numbers from tamal
+      local day_lines_output = vim.fn.systemlist 'tamal --day-line-numbers'
+      local target_line = nil
+
+      -- Parse the output to find the line number for the current day
+      for _, line in ipairs(day_lines_output) do
+        local line_num, line_day = line:match '(%d+),(%a+)'
+        if line_day == day_name then
+          target_line = tonumber(line_num)
+          break
+        end
+      end
+
+      -- Set cursor to the current day's line if found
+      if target_line then
+        vim.api.nvim_win_set_cursor(win, { target_line, 0 })
+      end
+    end)
+  end
 end
 
 -- Function to open notes using Telescope
