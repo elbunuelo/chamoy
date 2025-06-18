@@ -12,8 +12,7 @@ def print_zendesk_file_path(ticket_id)
   puts zendesk_file_path(ticket_id)
 end
 
-# Custom template handling for Zendesk tickets
-# This applies our specific placeholders without modifying the core mustache system
+# Apply the zendesk template with custom placeholders
 def apply_zendesk_template(template_path, file_path, config)
   return if File.exist?(file_path) || !File.exist?(template_path)
   
@@ -24,11 +23,11 @@ def apply_zendesk_template(template_path, file_path, config)
   template_content = File.read(template_path)
   
   # Replace our custom placeholders
-  template_content.gsub!('{{ ticket_id }}', config.ticket_id || '')
-  template_content.gsub!('{{ user_name }}', config.user_name || '')
-  template_content.gsub!('{{ user_link }}', config.user_link || '')
-  template_content.gsub!('{{ account_name }}', config.account_name || '')
-  template_content.gsub!('{{ account_link }}', config.account_link || '')
+  template_content = template_content.gsub('{{ ticket_id }}', config.ticket_id || '')
+  template_content = template_content.gsub('{{ user_name }}', config.user_name || '')
+  template_content = template_content.gsub('{{ user_link }}', config.user_link || '')
+  template_content = template_content.gsub('{{ account_name }}', config.account_name || '')
+  template_content = template_content.gsub('{{ account_link }}', config.account_link || '')
   
   # Process any remaining mustache expressions (like dates) using the existing system
   final_content = ''
