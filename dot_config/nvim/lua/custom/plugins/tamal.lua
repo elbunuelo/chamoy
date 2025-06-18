@@ -1005,7 +1005,7 @@ local function open_tamal_popup(command_info, initial_content)
       local path_cmd = 'tamal --note-path ' .. content
       local file_path = vim.fn.system(path_cmd):gsub('\n$', '')
       -- Open the file in a floating window
-      open_file_in_floating_window(file_path)
+      open_file_in_floating_window(file_path, false)
     else
       -- Execute the command
       local output = vim.fn.system(cmd)
