@@ -515,71 +515,120 @@ local function open_file_in_floating_window(file_path)
   -- Check if this is a weekly note and position cursor on the current day's line
   local filename = vim.fn.fnamemodify(file_path, ':t')
   if string.match(filename, '^%d%d%d%d%-%d%d%-%d%d_week%.md$') then
-    -- Get the current day of the week (1 = Monday, 7 = Sunday)
-    local current_day = tonumber(os.date '%w')
-    if current_day == 0 then
-      current_day = 7
-    end -- Convert Sunday from 0 to 7
+    -- Create a unique autocmd group for this specific file
+    local augroup_name = 'TamalWeeklyNote_' .. tostring(vim.fn.fnamemodify(file_path, ':t'))
+    local augroup = vim.api.nvim_create_augroup(augroup_name, { clear = true })
 
-    -- Get day line numbers from tamal
-    local day_lines_output = vim.fn.systemlist 'tamal --day-line-numbers'
+    -- Set up an autocmd that will run when the buffer is loaded
+    vim.api.nvim_create_autocmd({ 'BufEnter', 'BufWinEnter' }, {
+      group = augroup,
+      buffer = buf, -- Target the specific buffer
+      callback = function()
+        -- Get the current day of the week (1 = Monday, 7 = Sunday)
+        local current_day = tonumber(os.date '%w')
+        if current_day == 0 then
+          current_day = 7
+        end -- Convert Sunday from 0 to 7
 
-    -- Find the line for the current day
-    local target_line = nil
-    local day_names = { [1] = 'Mon', [2] = 'Tue', [3] = 'Wed', [4] = 'Thu', [5] = 'Fri', [6] = 'Sat', [7] = 'Sun' }
-    local current_day_name = day_names[current_day]
+        -- Get day line numbers from tamal
+        local day_lines_output = vim.fn.systemlist 'tamal --day-line-numbers'
 
-    -- Debug notification to verify day detection
-    vim.notify('Current day: ' .. current_day .. ' (' .. current_day_name .. ')', vim.log.levels.INFO)
+        -- Find the line for the current day
+        local target_line = nil
+        local day_names = { [1] = 'Mon', [2] = 'Tue', [3] = 'Wed', [4] = 'Thu', [5] = 'Fri', [6] = 'Sat', [7] = 'Sun' }
+        local current_day_name = day_names[current_day]
 
-    for _, line_info in ipairs(day_lines_output) do
-      local line_num, day = line_info:match '(%d+),(%a+)'
-      if day == current_day_name and line_num then
-        target_line = tonumber(line_num)
-        vim.notify('Found target line: ' .. target_line .. ' for day: ' .. day, vim.log.levels.INFO)
-        break
-      end
-    end
+        vim.notify('Positioning for day: ' .. current_day_name .. ' in ' .. vim.fn.fnamemodify(file_path, ':t'), vim.log.levels.INFO)
 
-    -- Position cursor on the target line if found and ensure it's visible
-    if target_line then
-      -- Use multiple attempts with increasing delays to ensure the buffer is fully loaded
-      local function attempt_cursor_positioning(attempts)
-        vim.defer_fn(function()
-          if vim.api.nvim_win_is_valid(win) then
-            -- Get current buffer in the window
-            local buf = vim.api.nvim_win_get_buf(win)
+        for _, line_info in ipairs(day_lines_output) do
+          local line_num, day = line_info:match '(%d+),(%a+)'
+          if day == current_day_name and line_num then
+            target_line = tonumber(line_num)
+            vim.notify('Found target line: ' .. target_line .. ' for day: ' .. day, vim.log.levels.INFO)
+            break
+          end
+        end
 
-            -- Check if buffer has enough lines
-            local line_count = vim.api.nvim_buf_line_count(buf)
+        if not target_line then
+          vim.notify('Could not find line number for day: ' .. current_day_name, vim.log.levels.WARN)
+          return
+        end
 
-            if line_count >= target_line then
-              -- Set cursor position
-              vim.api.nvim_win_set_cursor(win, { target_line, 0 })
+        -- Find all windows displaying this buffer
+        for _, win_id in ipairs(vim.api.nvim_list_wins()) do
+          if vim.api.nvim_win_is_valid(win_id) then
+            local win_buf = vim.api.nvim_win_get_buf(win_id)
+            local buf_name = vim.api.nvim_buf_get_name(win_buf)
 
-              -- Center the view on the cursor line
-              vim.cmd 'normal! zz'
+            -- Check if this window is displaying our weekly note
+            if buf_name:match(filename .. '$') then
+              -- Safety check for line count
+              local line_count = vim.api.nvim_buf_line_count(win_buf)
 
-              -- Highlight the current line
-              vim.api.nvim_win_set_option(win, 'cursorline', true)
+              if line_count >= target_line then
+                -- Position cursor at the target line
+                vim.api.nvim_win_set_cursor(win_id, { target_line, 0 })
 
-              -- Ensure the UI updates
-              vim.cmd 'redraw'
+                -- Center the view on the cursor line
+                vim.api.nvim_command 'normal! zz'
 
-              vim.notify('Positioned cursor at line ' .. target_line, vim.log.levels.INFO)
-            elseif attempts > 1 then
-              -- Try again with remaining attempts
-              attempt_cursor_positioning(attempts - 1)
-            else
-              vim.notify('Failed to position cursor: buffer has ' .. line_count .. ' lines, target was ' .. target_line, vim.log.levels.WARN)
+                -- Ensure cursorline is enabled
+                vim.api.nvim_win_set_option(win_id, 'cursorline', true)
+
+                vim.notify('Successfully positioned cursor at line ' .. target_line .. ' for day: ' .. current_day_name, vim.log.levels.INFO)
+              else
+                vim.notify('Buffer has only ' .. line_count .. ' lines, cannot position at line ' .. target_line, vim.log.levels.WARN)
+              end
             end
           end
-        end, 200 * (4 - attempts)) -- Increasing delays: 600ms, 400ms, 200ms
-      end
+        end
+      end,
+      once = true, -- Run only once when the buffer is loaded
+    })
 
-      -- Start with 3 attempts
-      attempt_cursor_positioning(3)
-    end
+    -- Also try the direct approach with a longer delay as a fallback
+    vim.defer_fn(function()
+      if vim.api.nvim_win_is_valid(win) then
+        -- Get the current day of the week (1 = Monday, 7 = Sunday)
+        local current_day = tonumber(os.date '%w')
+        if current_day == 0 then
+          current_day = 7
+        end
+
+        -- Get day line numbers from tamal
+        local day_lines_output = vim.fn.systemlist 'tamal --day-line-numbers'
+
+        -- Find the line for the current day
+        local target_line = nil
+        local day_names = { [1] = 'Mon', [2] = 'Tue', [3] = 'Wed', [4] = 'Thu', [5] = 'Fri', [6] = 'Sat', [7] = 'Sun' }
+        local current_day_name = day_names[current_day]
+
+        for _, line_info in ipairs(day_lines_output) do
+          local line_num, day = line_info:match '(%d+),(%a+)'
+          if day == current_day_name and line_num then
+            target_line = tonumber(line_num)
+            break
+          end
+        end
+
+        if target_line then
+          -- Safety check for line count
+          local buf = vim.api.nvim_win_get_buf(win)
+          local line_count = vim.api.nvim_buf_line_count(buf)
+
+          if line_count >= target_line then
+            -- Position cursor at the target line
+            vim.api.nvim_win_set_cursor(win, { target_line, 0 })
+
+            -- Center the view on the cursor line
+            vim.api.nvim_command 'normal! zz'
+
+            -- Ensure cursorline is enabled
+            vim.api.nvim_win_set_option(win, 'cursorline', true)
+          end
+        end
+      end
+    end, 800) -- Longer delay as a fallback
   end
 
   return { buf = buf, win = win }
