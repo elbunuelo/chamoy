@@ -529,29 +529,56 @@ local function open_file_in_floating_window(file_path)
     local day_names = { [1] = 'Mon', [2] = 'Tue', [3] = 'Wed', [4] = 'Thu', [5] = 'Fri', [6] = 'Sat', [7] = 'Sun' }
     local current_day_name = day_names[current_day]
 
+    -- Debug notification to verify day detection
+    vim.notify('Current day: ' .. current_day .. ' (' .. current_day_name .. ')', vim.log.levels.INFO)
+
     for _, line_info in ipairs(day_lines_output) do
       local line_num, day = line_info:match '(%d+),(%a+)'
       if day == current_day_name and line_num then
         target_line = tonumber(line_num)
+        vim.notify('Found target line: ' .. target_line .. ' for day: ' .. day, vim.log.levels.INFO)
         break
       end
     end
 
     -- Position cursor on the target line if found and ensure it's visible
     if target_line then
-      -- Use a longer delay to ensure the buffer is fully loaded
-      vim.defer_fn(function()
-        if vim.api.nvim_win_is_valid(win) then
-          -- Set cursor position
-          vim.api.nvim_win_set_cursor(win, { target_line, 0 })
+      -- Use multiple attempts with increasing delays to ensure the buffer is fully loaded
+      local function attempt_cursor_positioning(attempts)
+        vim.defer_fn(function()
+          if vim.api.nvim_win_is_valid(win) then
+            -- Get current buffer in the window
+            local buf = vim.api.nvim_win_get_buf(win)
 
-          -- Center the view on the cursor line
-          vim.cmd 'normal! zz'
+            -- Check if buffer has enough lines
+            local line_count = vim.api.nvim_buf_line_count(buf)
 
-          -- Ensure the UI updates
-          vim.cmd 'redraw'
-        end
-      end, 100) -- 100ms delay
+            if line_count >= target_line then
+              -- Set cursor position
+              vim.api.nvim_win_set_cursor(win, { target_line, 0 })
+
+              -- Center the view on the cursor line
+              vim.cmd 'normal! zz'
+
+              -- Highlight the current line
+              vim.api.nvim_win_set_option(win, 'cursorline', true)
+
+              -- Ensure the UI updates
+              vim.cmd 'redraw'
+
+              vim.notify('Positioned cursor at line ' .. target_line, vim.log.levels.INFO)
+            elseif attempts > 1 then
+              -- Try again with remaining attempts
+              attempt_cursor_positioning(attempts - 1)
+            else
+              vim.notify('Failed to position cursor: buffer has ' .. line_count .. ' lines, target was ' .. target_line, vim.log.levels.WARN)
+            end
+          end
+        end, 200 * (4 - attempts)) -- Increasing delays: 600ms, 400ms, 200ms
+      end
+
+      -- Start with 3 attempts
+      attempt_cursor_positioning(3)
     end
   end
 
