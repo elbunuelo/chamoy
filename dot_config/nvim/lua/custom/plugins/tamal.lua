@@ -1261,7 +1261,21 @@ local function open_tamal_popup(command_info, initial_content)
 
       -- For zendesk-note command, open the ticket note after adding the note
       if command_info.cmd == 'zendesk-note' then
-        local file_path = vim.fn.system('tamal --zendesk ' .. command_info.ticket_id):gsub('\n$', '')
+        -- Build the command with all provided options
+        local options = command_info.zendesk_options
+        local zendesk_cmd = 'tamal --zendesk'
+
+        -- Add ticket_id if provided, otherwise let tamal extract it from ticket_link
+        if options.ticket_id and options.ticket_id ~= '' then
+          zendesk_cmd = zendesk_cmd .. ' ' .. options.ticket_id
+        end
+
+        -- Add ticket_link option (needed to extract ticket_id if not provided)
+        if options.ticket_link and options.ticket_link ~= '' then
+          zendesk_cmd = zendesk_cmd .. ' --ticket-link ' .. vim.fn.shellescape(options.ticket_link)
+        end
+
+        local file_path = vim.fn.system(zendesk_cmd):gsub('\n$', '')
         open_file_in_floating_window(file_path, false)
       else
         -- Show a notification of success
