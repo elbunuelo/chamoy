@@ -89,5 +89,25 @@ end
 # mustache values when applicable.
 def open_note(config)
   file_path = prepare_note_file(config)
-  puts file_path
+  system(EDITOR, file_path)
+end
+
+# Central method to handle adding notes to different types of documents
+# Determines the appropriate note handler based on the config
+def add_note(config)
+  # Check if it's a Zendesk note
+  if config.ticket_id
+    require_relative 'zendesk_note'
+    return add_zendesk_section_note(config)
+  end
+
+  # Check if it's a 3P note
+  if config.section && config.action == 'three_p'
+    require_relative 'weekly_note'
+    return add_three_p_note(config)
+  end
+
+  # Default to time block note
+  require_relative 'weekly_note'
+  add_time_block_note(config)
 end
