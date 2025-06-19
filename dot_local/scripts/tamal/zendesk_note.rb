@@ -26,6 +26,7 @@ def apply_zendesk_template(template_path, file_path, config)
 
   # Replace our custom placeholders
   template_content = template_content.gsub('{{ ticket_id }}', config.ticket_id || '')
+  template_content = template_content.gsub('{{ ticket_link }}', config.ticket_link || '')
   template_content = template_content.gsub('{{ user_name }}', config.user_name || '')
   template_content = template_content.gsub('{{ user_link }}', config.user_link || '')
   template_content = template_content.gsub('{{ account_name }}', config.account_name || '')
