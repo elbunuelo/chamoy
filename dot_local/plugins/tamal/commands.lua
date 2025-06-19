@@ -53,16 +53,8 @@ M.open_zendesk_note_with_telescope = function(command_info)
           -- Extract note ID from filename (remove .md extension)
           local note_id = selection.value:gsub("%.md$", "")
 
-          -- Read the file content
-          local content = ""
-          local file = io.open(file_path, "r")
-          if file then
-            content = file:read("*all")
-            file:close()
-          else
-            vim.notify("Could not read file: " .. file_path, vim.log.levels.ERROR)
-            return
-          end
+          -- We don't want to load the content of the markdown file into the note field
+          -- Just extract the note ID from the filename
 
           -- Create a popup for the section selector
           local width = 80
