@@ -380,6 +380,11 @@ M.open_tamal_popup = function(command_info, initial_content)
   vim.keymap.set("n", "q", function()
     window_manager.close_window_pair(window_id)
   end, keymap_opts)
+  
+  -- Allow Enter key in insert mode to insert a new line
+  vim.keymap.set("i", "<CR>", function()
+    return "\n"
+  end, { expr = true, noremap = true, silent = true, buffer = buf })
 
   -- If it's a read-only view (like tasks)
   if command_info.cmd == "tasks" then
