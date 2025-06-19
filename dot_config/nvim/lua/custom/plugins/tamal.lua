@@ -1,7 +1,7 @@
 -- Plugin: tamal.lua
 -- Description: Interface for the tamal task management system with mnemonic keybindings
 -- Function to open Zendesk note using Telescope
-local function open_zendesk_note_with_telescope(command_info, options)
+local function open_zendesk_note_with_telescope(command_info)
   local telescope = require 'telescope.builtin'
   local actions = require 'telescope.actions'
   local action_state = require 'telescope.actions.state'
@@ -77,7 +77,7 @@ local function open_zendesk_note_with_telescope(command_info, options)
           -- Create section selector for zendesk-note
           local zendesk_section_selector = create_zendesk_section_selector(win, buf)
 
-          -- Set up Enter key binding to submit the note
+          -- Set up Enter key binding to show the form for ticket details
           vim.keymap.set('n', '<CR>', function()
             -- Get the content of the buffer
             local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
@@ -86,54 +86,57 @@ local function open_zendesk_note_with_telescope(command_info, options)
             -- Get the selected section
             local selected_section = zendesk_section_selector.get_current_value()
 
-            -- Build the command with all provided options
-            local cmd = 'tamal --zendesk'
-
-            -- Add ticket_id if provided, otherwise let tamal extract it from ticket_link
-            if options.ticket_id and options.ticket_id ~= '' then
-              cmd = cmd .. ' ' .. options.ticket_id
-            end
-
-            -- Add all other options
-            if options.ticket_link and options.ticket_link ~= '' then
-              cmd = cmd .. ' --ticket-link ' .. vim.fn.shellescape(options.ticket_link)
-            end
-            if options.user_name and options.user_name ~= '' then
-              cmd = cmd .. ' --user-name ' .. vim.fn.shellescape(options.user_name)
-            end
-            if options.user_link and options.user_link ~= '' then
-              cmd = cmd .. ' --user-link ' .. vim.fn.shellescape(options.user_link)
-            end
-            if options.account_name and options.account_name ~= '' then
-              cmd = cmd .. ' --account-name ' .. vim.fn.shellescape(options.account_name)
-            end
-            if options.account_link and options.account_link ~= '' then
-              cmd = cmd .. ' --account-link ' .. vim.fn.shellescape(options.account_link)
-            end
-
-            -- Add section and note
-            cmd = cmd .. ' --section ' .. selected_section:lower() .. ' --note ' .. vim.fn.shellescape(note_content)
-            cmd = cmd .. ' --note-id ' .. note_id
-
-            -- Close the windows
+            -- Close the note window and section selector
             close_window_pair(window_id)
 
-            -- Execute the command
-            local output = vim.fn.system(cmd)
+            -- Now show the form for ticket details
+            create_zendesk_options_input(function(options)
+              -- Build the command with all provided options
+              local cmd = 'tamal --zendesk'
 
-            -- Open the ticket note after adding the note
-            local zendesk_cmd = 'tamal --zendesk'
-            if options.ticket_id and options.ticket_id ~= '' then
-              zendesk_cmd = zendesk_cmd .. ' ' .. options.ticket_id
-            end
-            if options.ticket_link and options.ticket_link ~= '' then
-              zendesk_cmd = zendesk_cmd .. ' --ticket-link ' .. vim.fn.shellescape(options.ticket_link)
-            end
+              -- Add ticket_id if provided, otherwise let tamal extract it from ticket_link
+              if options.ticket_id and options.ticket_id ~= '' then
+                cmd = cmd .. ' ' .. options.ticket_id
+              end
 
-            local file_path = vim.fn.system(zendesk_cmd):gsub('\n$', '')
-            open_file_in_floating_window(file_path, false)
+              -- Add all other options
+              if options.ticket_link and options.ticket_link ~= '' then
+                cmd = cmd .. ' --ticket-link ' .. vim.fn.shellescape(options.ticket_link)
+              end
+              if options.user_name and options.user_name ~= '' then
+                cmd = cmd .. ' --user-name ' .. vim.fn.shellescape(options.user_name)
+              end
+              if options.user_link and options.user_link ~= '' then
+                cmd = cmd .. ' --user-link ' .. vim.fn.shellescape(options.user_link)
+              end
+              if options.account_name and options.account_name ~= '' then
+                cmd = cmd .. ' --account-name ' .. vim.fn.shellescape(options.account_name)
+              end
+              if options.account_link and options.account_link ~= '' then
+                cmd = cmd .. ' --account-link ' .. vim.fn.shellescape(options.account_link)
+              end
 
-            vim.notify('Zendesk note added successfully', vim.log.levels.INFO)
+              -- Add section, note content, and note ID
+              cmd = cmd .. ' --section ' .. selected_section:lower() .. ' --note ' .. vim.fn.shellescape(note_content)
+              cmd = cmd .. ' --note-id ' .. note_id
+
+              -- Execute the command
+              local output = vim.fn.system(cmd)
+
+              -- Open the ticket note after adding the note
+              local zendesk_cmd = 'tamal --zendesk'
+              if options.ticket_id and options.ticket_id ~= '' then
+                zendesk_cmd = zendesk_cmd .. ' ' .. options.ticket_id
+              end
+              if options.ticket_link and options.ticket_link ~= '' then
+                zendesk_cmd = zendesk_cmd .. ' --ticket-link ' .. vim.fn.shellescape(options.ticket_link)
+              end
+
+              local file_path = vim.fn.system(zendesk_cmd):gsub('\n$', '')
+              open_file_in_floating_window(file_path, false)
+
+              vim.notify('Zendesk note added successfully', vim.log.levels.INFO)
+            end)
           end, keymap_opts)
         end
       end)
