@@ -56,7 +56,7 @@ M.open_zendesk_note_with_telescope = function(command_info)
           -- We don't want to load the content of the markdown file into the note field
           -- Just extract the note ID from the filename
 
-          -- Create a popup for the section selector
+          -- Create a popup for the section selector and note input
           local width = 80
           local height = 15
           local col = math.floor((vim.o.columns - width) / 2)
@@ -76,9 +76,9 @@ M.open_zendesk_note_with_telescope = function(command_info)
           -- Create buffer for the popup
           local buf = vim.api.nvim_create_buf(false, true)
           vim.api.nvim_buf_set_option(buf, "bufhidden", "wipe")
-
-          -- Set the content to empty since we don't want to load the markdown file content
-          -- The user will input the note content in the form
+            
+          -- Set empty content for user to input the note
+          vim.api.nvim_buf_set_lines(buf, 0, -1, false, {})
 
           -- Create the window with the buffer
           local win = vim.api.nvim_open_win(buf, true, opts)
