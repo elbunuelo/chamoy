@@ -2,12 +2,12 @@
 -- Description: Interface for the tamal task management system with mnemonic keybindings
 
 return {
-  -- No dependencies needed for this plugin
-  dependencies = {},
-
-  -- Plugin configuration
+  dir = '~/.local/plugins/tamal',
   config = function()
-    -- Load and setup the tamal plugin
-    require('custom.plugins.tamal.init').setup()
+    -- Add the plugin directory to the Lua path
+    local plugin_path = vim.fn.expand '~/.local/plugins'
+    package.path = package.path .. ';' .. plugin_path .. '/?.lua;' .. plugin_path .. '/?/init.lua'
+
+    require('tamal').setup()
   end,
 }

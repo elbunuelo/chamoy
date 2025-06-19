@@ -1,6 +1,6 @@
 -- forms.lua: Form UI components for the tamal plugin
 
-local window_manager = require('custom.plugins.tamal.window_manager')
+local window_manager = require("tamal.window_manager")
 
 local M = {}
 
@@ -8,11 +8,11 @@ local M = {}
 M.create_zendesk_options_input = function(callback)
   -- Define the form fields
   local fields = {
-    { name = 'ticket_link', label = 'Ticket Link', value = '', required = true },
-    { name = 'user_name', label = 'User Name', value = '' },
-    { name = 'user_link', label = 'User Link', value = '' },
-    { name = 'account_name', label = 'Account Name', value = '' },
-    { name = 'account_link', label = 'Account Link', value = '' },
+    { name = "ticket_link", label = "Ticket Link", value = "", required = true },
+    { name = "user_name", label = "User Name", value = "" },
+    { name = "user_link", label = "User Link", value = "" },
+    { name = "account_name", label = "Account Name", value = "" },
+    { name = "account_link", label = "Account Link", value = "" },
   }
   local current_field_idx = 1
 
@@ -31,7 +31,7 @@ M.create_zendesk_options_input = function(callback)
   for i, field in ipairs(fields) do
     -- Create buffer for the field
     local buf = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_buf_set_option(buf, 'bufhidden', 'wipe')
+    vim.api.nvim_buf_set_option(buf, "bufhidden", "wipe")
 
     -- Set initial content
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, { field.value })
@@ -39,25 +39,25 @@ M.create_zendesk_options_input = function(callback)
     -- Label for the window title
     local title = field.label
     if field.required then
-      title = title .. ' *'
+      title = title .. " *"
     end
 
     -- Window options
     local opts = {
-      relative = 'editor',
+      relative = "editor",
       width = width,
       height = field_height,
       col = base_col,
       row = base_row + (i - 1) * field_spacing,
-      style = 'minimal',
-      border = 'rounded',
-      title = ' ' .. title .. ' ',
+      style = "minimal",
+      border = "rounded",
+      title = " " .. title .. " ",
     }
 
     -- Create window
     local win = vim.api.nvim_open_win(buf, i == 1, opts) -- Focus the first field
-    vim.api.nvim_win_set_option(win, 'winblend', 0)
-    vim.api.nvim_win_set_option(win, 'cursorline', false)
+    vim.api.nvim_win_set_option(win, "winblend", 0)
+    vim.api.nvim_win_set_option(win, "cursorline", false)
 
     -- Store window and buffer
     field_windows[i] = win
@@ -75,18 +75,18 @@ M.create_zendesk_options_input = function(callback)
   -- Add all windows to the tracking table
   for i, win in ipairs(field_windows) do
     if i > 1 then -- Skip the first one as it's already added as note_win
-      window_manager.tamal_window_pairs[form_id]['field' .. i .. '_win'] = win
+      window_manager.tamal_window_pairs[form_id]["field" .. i .. "_win"] = win
     end
   end
 
   -- Start in insert mode for the first field
-  vim.cmd 'startinsert'
+  vim.cmd("startinsert")
 
   -- Function to move focus to a specific field
   local function focus_field(idx)
     -- Save current field value
     local current_buf = field_buffers[current_field_idx]
-    local current_content = vim.api.nvim_buf_get_lines(current_buf, 0, 1, false)[1] or ''
+    local current_content = vim.api.nvim_buf_get_lines(current_buf, 0, 1, false)[1] or ""
     fields[current_field_idx].value = current_content
 
     -- Update index
@@ -94,13 +94,13 @@ M.create_zendesk_options_input = function(callback)
 
     -- Focus the window
     vim.api.nvim_set_current_win(field_windows[idx])
-    vim.cmd 'startinsert!'
+    vim.cmd("startinsert!")
   end
 
   -- Function to navigate to next/previous field
   local function navigate_field(direction)
     local new_idx
-    if direction == 'next' then
+    if direction == "next" then
       new_idx = current_field_idx % #fields + 1
     else
       new_idx = (current_field_idx - 2) % #fields + 1
@@ -112,7 +112,7 @@ M.create_zendesk_options_input = function(callback)
   local function submit_form()
     -- Save current field value
     local current_buf = field_buffers[current_field_idx]
-    local current_content = vim.api.nvim_buf_get_lines(current_buf, 0, 1, false)[1] or ''
+    local current_content = vim.api.nvim_buf_get_lines(current_buf, 0, 1, false)[1] or ""
     fields[current_field_idx].value = current_content
 
     -- Collect all field values from our fields table
@@ -123,8 +123,8 @@ M.create_zendesk_options_input = function(callback)
 
     -- Validate required fields
     for _, field in ipairs(fields) do
-      if field.required and (not field.value or field.value == '') then
-        vim.notify(field.label .. ' is required', vim.log.levels.WARN)
+      if field.required and (not field.value or field.value == "") then
+        vim.notify(field.label .. " is required", vim.log.levels.WARN)
 
         -- Focus the required field
         for idx, f in ipairs(fields) do
@@ -147,39 +147,39 @@ M.create_zendesk_options_input = function(callback)
   -- Function to cancel the form
   local function cancel_form()
     window_manager.close_window_pair(form_id)
-    vim.notify('Cancelled', vim.log.levels.INFO)
+    vim.notify("Cancelled", vim.log.levels.INFO)
   end
 
   -- Set up keybindings for all fields
   for i, buf in ipairs(field_buffers) do
     -- Tab to move to next field
-    vim.keymap.set('i', '<Tab>', function()
-      navigate_field 'next'
+    vim.keymap.set("i", "<Tab>", function()
+      navigate_field("next")
     end, { buffer = buf, noremap = true, silent = true })
 
     -- Shift+Tab to move to previous field
-    vim.keymap.set('i', '<S-Tab>', function()
-      navigate_field 'prev'
+    vim.keymap.set("i", "<S-Tab>", function()
+      navigate_field("prev")
     end, { buffer = buf, noremap = true, silent = true })
 
     -- Enter to submit the form
-    vim.keymap.set('i', '<CR>', submit_form, { buffer = buf, noremap = true, silent = true })
-    vim.keymap.set('n', '<CR>', submit_form, { buffer = buf, noremap = true, silent = true })
+    vim.keymap.set("i", "<CR>", submit_form, { buffer = buf, noremap = true, silent = true })
+    vim.keymap.set("n", "<CR>", submit_form, { buffer = buf, noremap = true, silent = true })
 
     -- Escape to cancel
-    vim.keymap.set({ 'i', 'n' }, '<Esc>', cancel_form, { buffer = buf, noremap = true, silent = true })
+    vim.keymap.set({ "i", "n" }, "<Esc>", cancel_form, { buffer = buf, noremap = true, silent = true })
 
     -- q to cancel
-    vim.keymap.set('n', 'q', cancel_form, { buffer = buf, noremap = true, silent = true })
+    vim.keymap.set("n", "q", cancel_form, { buffer = buf, noremap = true, silent = true })
 
     -- Ctrl+j and Ctrl+k for navigation
-    vim.keymap.set({ 'n', 'i' }, '<C-j>', function()
+    vim.keymap.set({ "n", "i" }, "<C-j>", function()
       if i < #fields then
         focus_field(i + 1)
       end
     end, { buffer = buf, noremap = true, silent = true })
 
-    vim.keymap.set({ 'n', 'i' }, '<C-k>', function()
+    vim.keymap.set({ "n", "i" }, "<C-k>", function()
       if i > 1 then
         focus_field(i - 1)
       end
@@ -188,7 +188,7 @@ M.create_zendesk_options_input = function(callback)
 
   -- Set up autocmds for closing when leaving to a non-form window
   for i, buf in ipairs(field_buffers) do
-    vim.api.nvim_create_autocmd('WinLeave', {
+    vim.api.nvim_create_autocmd("WinLeave", {
       buffer = buf,
       callback = function()
         vim.schedule(function()

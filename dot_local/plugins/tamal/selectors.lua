@@ -1,8 +1,8 @@
 -- selectors.lua: Selector UI components for the tamal plugin
 
-local ui_utils = require('custom.plugins.tamal.ui_utils')
-local window_manager = require('custom.plugins.tamal.window_manager')
-local time_utils = require('custom.plugins.tamal.time_utils')
+local ui_utils = require("tamal.ui_utils")
+local window_manager = require("tamal.window_manager")
+local time_utils = require("tamal.time_utils")
 
 local M = {}
 
@@ -15,8 +15,8 @@ local function create_selector_window(note_win, note_buf, items, title, position
   local selector_buf = vim.api.nvim_create_buf(false, true)
 
   -- Set buffer options
-  vim.api.nvim_buf_set_option(selector_buf, 'bufhidden', 'wipe')
-  vim.api.nvim_buf_set_option(selector_buf, 'modifiable', true)
+  vim.api.nvim_buf_set_option(selector_buf, "bufhidden", "wipe")
+  vim.api.nvim_buf_set_option(selector_buf, "modifiable", true)
 
   -- Set initial content
   vim.api.nvim_buf_set_lines(selector_buf, 0, -1, false, { items.values[current_idx] })
@@ -31,13 +31,13 @@ local function create_selector_window(note_win, note_buf, items, title, position
 
   -- Window options
   local opts = {
-    relative = 'editor',
+    relative = "editor",
     width = width,
     height = height,
     col = col,
     row = row,
-    style = 'minimal',
-    border = 'rounded',
+    style = "minimal",
+    border = "rounded",
     title = title,
   }
 
@@ -45,17 +45,17 @@ local function create_selector_window(note_win, note_buf, items, title, position
   local selector_win = vim.api.nvim_open_win(selector_buf, false, opts) -- Don't focus initially
 
   -- Set window options
-  vim.api.nvim_win_set_option(selector_win, 'winblend', 0)
-  vim.api.nvim_win_set_option(selector_win, 'cursorline', true)
+  vim.api.nvim_win_set_option(selector_win, "winblend", 0)
+  vim.api.nvim_win_set_option(selector_win, "cursorline", true)
 
   -- Find the associated note window and update the pair in the tracking table
   local note_win_id = nil
   for id, pair in pairs(window_manager.tamal_window_pairs) do
     if pair.note_win == note_win then
       note_win_id = id
-      if items.type == 'section' then
+      if items.type == "section" then
         pair.section_win = selector_win
-      elseif items.type == 'time_block' then
+      elseif items.type == "time_block" then
         pair.time_block_win = selector_win
       end
       break
@@ -72,21 +72,21 @@ local function create_selector_window(note_win, note_buf, items, title, position
   local function update_display()
     vim.schedule(function()
       if vim.api.nvim_buf_is_valid(selector_buf) then
-        vim.api.nvim_buf_set_option(selector_buf, 'modifiable', true)
+        vim.api.nvim_buf_set_option(selector_buf, "modifiable", true)
         vim.api.nvim_buf_set_lines(selector_buf, 0, -1, false, { items.values[current_idx] })
-        vim.api.nvim_buf_set_option(selector_buf, 'modifiable', false)
+        vim.api.nvim_buf_set_option(selector_buf, "modifiable", false)
       end
     end)
   end
 
   -- Tab in selector: Cycle through values
-  vim.keymap.set('n', '<Tab>', function()
+  vim.keymap.set("n", "<Tab>", function()
     current_idx = (current_idx % #items.values) + 1
     update_display()
   end, { noremap = true, silent = true, buffer = selector_buf })
 
   -- Add time adjustment keybindings for time blocks
-  if items.type == 'time_block' then
+  if items.type == "time_block" then
     -- Function to determine if cursor is on start time or end time
     local function get_time_part_at_cursor()
       -- Get cursor position
@@ -95,7 +95,7 @@ local function create_selector_window(note_win, note_buf, items, title, position
 
       -- Calculate positions in the line, accounting for the prefix
       local time_block = line
-      local start_time, end_time = time_block:match '(%d%d:%d%d)%s*-%s*(%d%d:%d%d)'
+      local start_time, end_time = time_block:match("(%d%d:%d%d)%s*-%s*(%d%d:%d%d)")
 
       if not start_time or not end_time then
         return nil
@@ -111,9 +111,9 @@ local function create_selector_window(note_win, note_buf, items, title, position
 
       -- Determine if cursor is on start time or end time
       if cursor_pos >= start_pos - 1 and cursor_pos < start_pos + #start_time - 1 then
-        return 'start', start_time
+        return "start", start_time
       elseif cursor_pos >= end_pos - 1 and cursor_pos < end_pos + #end_time - 1 then
-        return 'end', end_time
+        return "end", end_time
       end
 
       return nil
@@ -123,7 +123,7 @@ local function create_selector_window(note_win, note_buf, items, title, position
     local function adjust_time_block(increment)
       -- Get current time block
       local time_block = items.values[current_idx]
-      local start_time, end_time = time_block:match '(%d%d:%d%d)%s*-%s*(%d%d:%d%d)'
+      local start_time, end_time = time_block:match("(%d%d:%d%d)%s*-%s*(%d%d:%d%d)")
 
       if not start_time or not end_time then
         return
@@ -141,17 +141,17 @@ local function create_selector_window(note_win, note_buf, items, title, position
 
       -- Create new time block string
       local new_time_block
-      if time_part == 'start' then
+      if time_part == "start" then
         -- Ensure start time doesn't exceed end time
         if time_utils.parse_time_to_minutes(new_time) < time_utils.parse_time_to_minutes(end_time) then
-          new_time_block = new_time .. ' - ' .. end_time
+          new_time_block = new_time .. " - " .. end_time
         else
           return -- Invalid adjustment
         end
       else -- end time
         -- Ensure end time doesn't precede start time
         if time_utils.parse_time_to_minutes(new_time) > time_utils.parse_time_to_minutes(start_time) then
-          new_time_block = start_time .. ' - ' .. new_time
+          new_time_block = start_time .. " - " .. new_time
         else
           return -- Invalid adjustment
         end
@@ -165,16 +165,16 @@ local function create_selector_window(note_win, note_buf, items, title, position
     end
 
     -- Add keybindings for + and -
-    vim.keymap.set('n', '+', function()
+    vim.keymap.set("n", "+", function()
       adjust_time_block(true)
     end, { noremap = true, silent = true, buffer = selector_buf })
-    vim.keymap.set('n', '-', function()
+    vim.keymap.set("n", "-", function()
       adjust_time_block(false)
     end, { noremap = true, silent = true, buffer = selector_buf })
   end
 
   -- Make the selector display read-only after initial setup
-  vim.api.nvim_buf_set_option(selector_buf, 'modifiable', false)
+  vim.api.nvim_buf_set_option(selector_buf, "modifiable", false)
 
   return {
     win = selector_win,
@@ -190,25 +190,25 @@ end
 
 -- Function to create a section selector for three-p command
 M.create_section_selector = function(note_win, note_buf)
-  local sections = { 'Progress', 'Planned', 'Problems' }
+  local sections = { "Progress", "Planned", "Problems" }
 
   -- Create selector with sections
   return create_selector_window(note_win, note_buf, {
     values = sections,
-    type = 'section',
-  }, '3P', true) -- Position above note window
+    type = "section",
+  }, "3P", true) -- Position above note window
 end
 
 -- Function to create a time block selector for add-task command
 M.create_time_block_selector = function(note_win, note_buf)
   -- Get available time blocks from tamal
-  local time_blocks_output = vim.fn.systemlist 'tamal --time-blocks'
+  local time_blocks_output = vim.fn.systemlist("tamal --time-blocks")
 
   -- If no time blocks available, create a default block around current time
   if #time_blocks_output == 0 then
     -- Get current time
-    local current_time = os.date '%H:%M'
-    local current_hours, current_minutes = current_time:match '(%d+):(%d+)'
+    local current_time = os.date("%H:%M")
+    local current_hours, current_minutes = current_time:match("(%d+):(%d+)")
     current_hours = tonumber(current_hours)
     current_minutes = tonumber(current_minutes)
 
@@ -218,31 +218,33 @@ M.create_time_block_selector = function(note_win, note_buf)
     local end_hours, end_minutes = time_utils.round_time_to_15min(current_hours, current_minutes + 15, true)
 
     -- Create a time block
-    local time_block = time_utils.format_time(start_hours, start_minutes) .. ' - ' .. time_utils.format_time(end_hours, end_minutes)
+    local time_block = time_utils.format_time(start_hours, start_minutes)
+      .. " - "
+      .. time_utils.format_time(end_hours, end_minutes)
     time_blocks_output = { time_block }
 
     -- Create selector with the single time block
     return create_selector_window(note_win, note_buf, {
       values = time_blocks_output,
-      type = 'time_block',
+      type = "time_block",
       parse_value = function(time_block)
-        local start_time, end_time = time_block:match '(%d%d:%d%d)%s*-%s*(%d%d:%d%d)'
+        local start_time, end_time = time_block:match("(%d%d:%d%d)%s*-%s*(%d%d:%d%d)")
         return start_time, end_time
       end,
-    }, 'Time Block', true, 1) -- Position above note window, with index 1
+    }, "Time Block", true, 1) -- Position above note window, with index 1
   end
 
   -- Find the time block containing current time or create a gap filler
   local function find_or_create_time_block()
     -- Get current time
-    local current_time = os.date '%H:%M'
-    local current_hours, current_minutes = current_time:match '(%d+):(%d+)'
+    local current_time = os.date("%H:%M")
+    local current_hours, current_minutes = current_time:match("(%d+):(%d+)")
     local current_minutes_total = tonumber(current_hours) * 60 + tonumber(current_minutes)
 
     -- Parse all time blocks and their start/end times
     local blocks = {}
     for i, block in ipairs(time_blocks_output) do
-      local start_time, end_time = block:match '(%d+:%d+)%s*-%s*(%d+:%d+)'
+      local start_time, end_time = block:match("(%d+:%d+)%s*-%s*(%d+:%d+)")
       if start_time and end_time then
         local start_minutes = time_utils.parse_time_to_minutes(start_time)
         local end_minutes = time_utils.parse_time_to_minutes(end_time)
@@ -300,23 +302,27 @@ M.create_time_block_selector = function(note_win, note_buf)
     elseif prev_block then
       -- Case 2: After all blocks - use end of last block and current time + 15min rounded
       start_time = prev_block.end_time
-      local end_hours, end_minutes = time_utils.round_time_to_15min(tonumber(current_hours), tonumber(current_minutes) + 15, true)
+      local end_hours, end_minutes =
+        time_utils.round_time_to_15min(tonumber(current_hours), tonumber(current_minutes) + 15, true)
       end_time = time_utils.format_time(end_hours, end_minutes)
     elseif next_block then
       -- Case 3: Before all blocks - use current time rounded and start of first block
-      local start_hours, start_minutes = time_utils.round_time_to_15min(tonumber(current_hours), tonumber(current_minutes), false)
+      local start_hours, start_minutes =
+        time_utils.round_time_to_15min(tonumber(current_hours), tonumber(current_minutes), false)
       start_time = time_utils.format_time(start_hours, start_minutes)
       end_time = next_block.start_time
     else
       -- Case 4: No blocks at all (shouldn't happen here but just in case)
-      local start_hours, start_minutes = time_utils.round_time_to_15min(tonumber(current_hours), tonumber(current_minutes), false)
-      local end_hours, end_minutes = time_utils.round_time_to_15min(tonumber(current_hours), tonumber(current_minutes) + 15, true)
+      local start_hours, start_minutes =
+        time_utils.round_time_to_15min(tonumber(current_hours), tonumber(current_minutes), false)
+      local end_hours, end_minutes =
+        time_utils.round_time_to_15min(tonumber(current_hours), tonumber(current_minutes) + 15, true)
       start_time = time_utils.format_time(start_hours, start_minutes)
       end_time = time_utils.format_time(end_hours, end_minutes)
     end
 
     -- Create the dynamic block and add it to the list
-    local dynamic_block = start_time .. ' - ' .. end_time
+    local dynamic_block = start_time .. " - " .. end_time
     table.insert(time_blocks_output, dynamic_block)
 
     return #time_blocks_output -- Return the index of the new block
@@ -328,21 +334,21 @@ M.create_time_block_selector = function(note_win, note_buf)
   -- Create selector with time blocks, passing the best time block index
   return create_selector_window(note_win, note_buf, {
     values = time_blocks_output,
-    type = 'time_block',
+    type = "time_block",
     parse_value = function(time_block)
-      local start_time, end_time = time_block:match '(%d%d:%d%d)%s*-%s*(%d%d:%d%d)'
+      local start_time, end_time = time_block:match("(%d%d:%d%d)%s*-%s*(%d%d:%d%d)")
       return start_time, end_time
     end,
-  }, 'Time Block', true, current_block_idx) -- Position above note window, with best time block index
+  }, "Time Block", true, current_block_idx) -- Position above note window, with best time block index
 end
 
 -- Function to create a zendesk section selector
 M.create_zendesk_section_selector = function(note_win, note_buf)
-  local sections = { 'Internal', 'Public' }
+  local sections = { "Internal", "Public" }
   return create_selector_window(note_win, note_buf, {
     values = sections,
-    type = 'section',
-  }, 'Zendesk Section', true) -- Position above note window
+    type = "section",
+  }, "Zendesk Section", true) -- Position above note window
 end
 
 return M
