@@ -77,8 +77,8 @@ M.open_zendesk_note_with_telescope = function(command_info)
           local buf = vim.api.nvim_create_buf(false, true)
           vim.api.nvim_buf_set_option(buf, "bufhidden", "wipe")
 
-          -- Set the content
-          vim.api.nvim_buf_set_lines(buf, 0, -1, false, vim.split(content, "\n"))
+          -- Set the content to empty since we don't want to load the markdown file content
+          -- The user will input the note content in the form
 
           -- Create the window with the buffer
           local win = vim.api.nvim_open_win(buf, true, opts)
