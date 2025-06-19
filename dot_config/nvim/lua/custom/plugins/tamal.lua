@@ -761,10 +761,8 @@ local function open_tamal_popup(command_info, initial_content)
   if command_info.height == 0 then
     -- If this command should use note path
     if command_info.use_note_path then
-      -- Get the path to the note file
-      local path_cmd = command_info.path_cmd or command_info.cmd .. '-note-path'
-      -- Get the path to the note file
-      local file_path = vim.fn.system('tamal --' .. path_cmd):gsub('\n$', '')
+      -- Get the path to the note file using the regular command
+      local file_path = vim.fn.system('tamal --' .. command_info.cmd):gsub('\n$', '')
       -- Open the file in a floating window (pass true for weekly notes to position cursor)
       open_file_in_floating_window(file_path, command_info.cmd == 'weekly')
     else
