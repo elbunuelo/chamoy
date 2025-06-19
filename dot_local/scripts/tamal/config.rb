@@ -112,6 +112,10 @@ class TamalConfig
         @ticket_id = ticket_id
       end
 
+      opts.on('--section SECTION', 'Section for Zendesk ticket note') do |section|
+        @section = section
+      end
+
       opts.on('--ticket-link TICKET_LINK', 'Zendesk ticket link URL') do |ticket_link|
         @ticket_link = ticket_link
       end
