@@ -1175,8 +1175,8 @@ for _, cmd_info in ipairs(tamal_commands) do
     open_tamal_popup(cmd_info)
   end, { desc = 'Tamal: ' .. cmd_info.desc, silent = true })
 
-  -- Add visual mode keybindings for add-note and three-p
-  if cmd_info.cmd == 'add-note' or cmd_info.cmd == 'three-p' then
+  -- Add visual mode keybindings for add-note, three-p, and zendesk-note
+  if cmd_info.cmd == 'add-note' or cmd_info.cmd == 'three-p' or cmd_info.cmd == 'zendesk-note' then
     vim.keymap.set('v', '<leader>T' .. cmd_info.key, function()
       -- Get the selected text
       local selected_text = get_visual_selection()
