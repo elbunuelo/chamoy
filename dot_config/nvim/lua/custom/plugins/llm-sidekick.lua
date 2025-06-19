@@ -67,8 +67,8 @@ Feel free to use any terminal tools - I have `fd`, `rg`, `gh`, `jq`, `aws` insta
       },
     }
     -- Add keybindings for llm-sidekick under <leader>s
-    vim.keymap.set('n', '<leader>sc', ':vsplit | Chat<CR>', { noremap = true, silent = true, desc = 'Open Chat in vertical split' })
-    vim.keymap.set('n', '<leader>sa', ':Accept<CR>', { noremap = true, silent = true, desc = 'Accept suggestion' })
-    vim.keymap.set('n', '<leader>sA', ':Add<CR>', { noremap = true, silent = true, desc = 'Add suggestion' })
+    vim.keymap.set('n', '<leader>lc', ':vsplit | Chat<CR>', { noremap = true, silent = true, desc = 'Open Chat in vertical split' })
+    vim.keymap.set('n', '<leader>la', ':Accept<CR>', { noremap = true, silent = true, desc = 'Accept suggestion' })
+    vim.keymap.set('n', '<leader>lA', ':Add<CR>', { noremap = true, silent = true, desc = 'Add suggestion' })
   end,
 }

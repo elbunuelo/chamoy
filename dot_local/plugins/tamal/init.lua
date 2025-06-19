@@ -11,7 +11,7 @@ local tamal_commands = {
   { cmd = "open", desc = "Open a note", height = 0, key = "o", use_telescope = true },
   { cmd = "add-note", desc = "Add a note", height = 15, key = "n", needs_time_block = true },
   { cmd = "three-p", desc = "Add a 3P note", height = 15, key = "p" },
-  { cmd = "zendesk", desc = "Create Zendesk ticket note", height = 0, key = "z", needs_ticket_id = true },
+  { cmd = "zendesk", desc = "Create Zendesk ticket note", height = 0, key = "zc", needs_ticket_id = true },
   {
     cmd = "zendesk-note",
     desc = "Add note to Zendesk ticket",
