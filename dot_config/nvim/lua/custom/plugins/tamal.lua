@@ -148,9 +148,6 @@ local function open_zendesk_note_with_telescope(command_info)
     end,
   }
 end
--- Global table to track related windows (notes and their section selectors)
-local tamal_window_pairs = {}
-
 -- Function to close all windows in a pair
 local function close_window_pair(id)
   local pair = tamal_window_pairs[id]
