@@ -18,12 +18,8 @@ def run(config)
   case config.action
   when 'open'
     open_note(config)
-  when 'note-path'
-    note_path(config)
   when 'weekly'
     open_weekly_note(config)
-  when 'weekly-note-path'
-    print_weekly_file_path
   when 'tasks'
     tasks(config)
   when 'time_blocks'
@@ -38,8 +34,6 @@ def run(config)
     update_task(config)
   when 'zendesk'
     open_zendesk_note(config)
-  when 'zendesk-note-path'
-    print_zendesk_file_path(config.ticket_id)
   end
 end
 
