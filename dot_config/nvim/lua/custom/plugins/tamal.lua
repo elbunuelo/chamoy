@@ -1,6 +1,146 @@
 -- Plugin: tamal.lua
 -- Description: Interface for the tamal task management system with mnemonic keybindings
+-- Function to open Zendesk note using Telescope
+local function open_zendesk_note_with_telescope(command_info, options)
+  local telescope = require 'telescope.builtin'
+  local actions = require 'telescope.actions'
+  local action_state = require 'telescope.actions.state'
 
+  telescope.find_files {
+    prompt_title = 'Select Zendesk Note',
+    cwd = '~/notes/zendesk',
+    attach_mappings = function(prompt_bufnr, map)
+      actions.select_default:replace(function()
+        actions.close(prompt_bufnr)
+        local selection = action_state.get_selected_entry()
+        if selection then
+          -- Get the full file path
+          local file_path = '~/notes/zendesk/' .. selection.value
+          -- Expand the path to handle the tilde
+          file_path = vim.fn.expand(file_path)
+
+          -- Extract note ID from filename (remove .md extension)
+          local note_id = selection.value:gsub('%.md$', '')
+
+          -- Read the file content
+          local content = ''
+          local file = io.open(file_path, 'r')
+          if file then
+            content = file:read '*all'
+            file:close()
+          else
+            vim.notify('Could not read file: ' .. file_path, vim.log.levels.ERROR)
+            return
+          end
+
+          -- Create a popup for the section selector
+          local width = 80
+          local height = 15
+          local col = math.floor((vim.o.columns - width) / 2)
+          local row = math.floor((vim.o.lines - height) / 2)
+
+          local opts = {
+            relative = 'editor',
+            width = width,
+            height = height,
+            col = col,
+            row = row,
+            style = 'minimal',
+            border = 'rounded',
+            title = 'Zendesk Note: ' .. note_id,
+          }
+
+          -- Create buffer for the popup
+          local buf = vim.api.nvim_create_buf(false, true)
+          vim.api.nvim_buf_set_option(buf, 'bufhidden', 'wipe')
+
+          -- Set the content
+          vim.api.nvim_buf_set_lines(buf, 0, -1, false, vim.split(content, '\n'))
+
+          -- Create the window with the buffer
+          local win = vim.api.nvim_open_win(buf, true, opts)
+
+          -- Set window options
+          vim.api.nvim_win_set_option(win, 'winblend', 0)
+          vim.api.nvim_win_set_option(win, 'cursorline', true)
+
+          -- Register this window in the global tracking table
+          local window_id = tostring(win)
+          tamal_window_pairs[window_id] = { note_win = win }
+
+          -- Set keybindings for the popup
+          local keymap_opts = { noremap = true, silent = true, buffer = buf }
+          vim.keymap.set('n', 'q', function()
+            close_window_pair(window_id)
+          end, keymap_opts)
+
+          -- Create section selector for zendesk-note
+          local zendesk_section_selector = create_zendesk_section_selector(win, buf)
+
+          -- Set up Enter key binding to submit the note
+          vim.keymap.set('n', '<CR>', function()
+            -- Get the content of the buffer
+            local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+            local note_content = table.concat(lines, '\n')
+
+            -- Get the selected section
+            local selected_section = zendesk_section_selector.get_current_value()
+
+            -- Build the command with all provided options
+            local cmd = 'tamal --zendesk'
+
+            -- Add ticket_id if provided, otherwise let tamal extract it from ticket_link
+            if options.ticket_id and options.ticket_id ~= '' then
+              cmd = cmd .. ' ' .. options.ticket_id
+            end
+
+            -- Add all other options
+            if options.ticket_link and options.ticket_link ~= '' then
+              cmd = cmd .. ' --ticket-link ' .. vim.fn.shellescape(options.ticket_link)
+            end
+            if options.user_name and options.user_name ~= '' then
+              cmd = cmd .. ' --user-name ' .. vim.fn.shellescape(options.user_name)
+            end
+            if options.user_link and options.user_link ~= '' then
+              cmd = cmd .. ' --user-link ' .. vim.fn.shellescape(options.user_link)
+            end
+            if options.account_name and options.account_name ~= '' then
+              cmd = cmd .. ' --account-name ' .. vim.fn.shellescape(options.account_name)
+            end
+            if options.account_link and options.account_link ~= '' then
+              cmd = cmd .. ' --account-link ' .. vim.fn.shellescape(options.account_link)
+            end
+
+            -- Add section and note
+            cmd = cmd .. ' --section ' .. selected_section:lower() .. ' --note ' .. vim.fn.shellescape(note_content)
+            cmd = cmd .. ' --note-id ' .. note_id
+
+            -- Close the windows
+            close_window_pair(window_id)
+
+            -- Execute the command
+            local output = vim.fn.system(cmd)
+
+            -- Open the ticket note after adding the note
+            local zendesk_cmd = 'tamal --zendesk'
+            if options.ticket_id and options.ticket_id ~= '' then
+              zendesk_cmd = zendesk_cmd .. ' ' .. options.ticket_id
+            end
+            if options.ticket_link and options.ticket_link ~= '' then
+              zendesk_cmd = zendesk_cmd .. ' --ticket-link ' .. vim.fn.shellescape(options.ticket_link)
+            end
+
+            local file_path = vim.fn.system(zendesk_cmd):gsub('\n$', '')
+            open_file_in_floating_window(file_path, false)
+
+            vim.notify('Zendesk note added successfully', vim.log.levels.INFO)
+          end, keymap_opts)
+        end
+      end)
+      return true
+    end,
+  }
+end
 -- Global table to track related windows (notes and their section selectors)
 local tamal_window_pairs = {}
 
