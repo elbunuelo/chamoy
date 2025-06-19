@@ -15,9 +15,6 @@ require_relative 'utils'
 def run(config)
   log("Attempting to run #{config.action}", 'DEBUG', config)
 
-  # Special case: if both ticket_id and note are provided, add a note to the zendesk ticket
-  return add_zendesk_section_note(config) if config.ticket_id && config.note && (config.action == 'add_note')
-
   case config.action
   when 'open'
     open_note(config)
@@ -35,10 +32,8 @@ def run(config)
     day_line_numbers(config)
   when 'add_task'
     add_task(config)
-  when 'add_note'
+  when 'add_note', 'three_p'
     add_note(config)
-  when 'three_p'
-    add_three_p(config)
   when 'update_task'
     update_task(config)
   when 'zendesk'
