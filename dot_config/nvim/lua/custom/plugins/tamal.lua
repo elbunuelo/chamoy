@@ -1,5 +1,9 @@
 -- Plugin: tamal.lua
 -- Description: Interface for the tamal task management system with mnemonic keybindings
+
+-- Global table to track related windows (notes and their section selectors)
+local tamal_window_pairs = {}
+
 -- Function to open Zendesk note using Telescope
 local function open_zendesk_note_with_telescope(command_info)
   local telescope = require 'telescope.builtin'
