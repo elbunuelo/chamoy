@@ -1166,14 +1166,9 @@ local function open_tamal_popup(command_info, initial_content)
 
         local file_path = vim.fn.system(cmd):gsub('\n$', '')
         open_file_in_floating_window(file_path, false)
-      -- For zendesk-note command, continue with the note input popup
+      -- For zendesk-note command, use Telescope to select a note from ~/notes/zendesk
       elseif command_info.cmd == 'zendesk-note' then
-        -- Create a modified command_info without the ticket_id requirement
-        local note_cmd_info = vim.deepcopy(command_info)
-        note_cmd_info.needs_ticket_id = false
-        note_cmd_info.zendesk_options = options -- Store all the options
-        -- Open the note popup with the ticket ID
-        open_tamal_popup(note_cmd_info, initial_content)
+        open_zendesk_note_with_telescope(command_info, options)
       end
     end)
     return
