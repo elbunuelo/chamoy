@@ -29,23 +29,13 @@ class TamalConfig
   def parse_options
     OptionParser.new do |opts|
       @parser = opts
-      opts.on('-o', '--open NOTE_NAME', 'Open or create note NOTE_NAME in your default editor.') do |name|
+      opts.on('-o', '--open NOTE_NAME', 'Open or create note NOTE_NAME and output its path.') do |name|
         @action = 'open'
         @name = name
       end
 
-      opts.on('-p', '--note-path NOTE_NAME',
-              'Create note NOTE_NAME if it doesn\'t exist and output its path.') do |name|
-        @action = 'note-path'
-        @name = name
-      end
-
-      opts.on('-w', '--weekly', 'Open the weekly notes in your default editor.') do
+      opts.on('-w', '--weekly', 'Create the weekly notes if needed and output its path.') do
         @action = 'weekly'
-      end
-
-      opts.on('-W', '--weekly-note-path', 'Open the weekly notes in your default editor.') do
-        @action = 'weekly-note-path'
       end
 
       opts.on(
@@ -117,13 +107,8 @@ class TamalConfig
         @status = status
       end
 
-      opts.on('--zendesk TICKET_ID', 'Open or create a Zendesk ticket note') do |ticket_id|
+      opts.on('--zendesk TICKET_ID', 'Create a Zendesk ticket note if needed and output its path') do |ticket_id|
         @action = 'zendesk'
-        @ticket_id = ticket_id
-      end
-
-      opts.on('--zendesk-note-path TICKET_ID', 'Output the path to a Zendesk ticket note') do |ticket_id|
-        @action = 'zendesk-note-path'
         @ticket_id = ticket_id
       end
 
