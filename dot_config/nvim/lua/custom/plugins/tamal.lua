@@ -826,6 +826,26 @@ end
 
 -- Modified open_tamal_popup to accept initial content
 local function open_tamal_popup(command_info, initial_content)
+  -- Check if this command needs a ticket ID input first
+  if command_info.needs_ticket_id then
+    create_ticket_id_input(function(ticket_id)
+      -- For zendesk command, open the ticket note directly
+      if command_info.cmd == 'zendesk' then
+        local file_path = vim.fn.system('tamal --zendesk ' .. ticket_id):gsub('\n$', '')
+        open_file_in_floating_window(file_path, false)
+      -- For zendesk-note command, continue with the note input popup
+      elseif command_info.cmd == 'zendesk-note' then
+        -- Create a modified command_info without the ticket_id requirement
+        local note_cmd_info = vim.deepcopy(command_info)
+        note_cmd_info.needs_ticket_id = false
+        note_cmd_info.ticket_id = ticket_id -- Store the ticket ID
+        -- Open the note popup with the ticket ID
+        open_tamal_popup(note_cmd_info, initial_content)
+      end
+    end)
+    return
+  end
+
   -- Check if this command should use telescope
   if command_info.use_telescope then
     open_note_with_telescope()
@@ -861,6 +881,8 @@ local function open_tamal_popup(command_info, initial_content)
   local title = command_info.desc
   if command_info.cmd == 'three-p' then
     title = ''
+  elseif command_info.cmd == 'zendesk-note' then
+    title = 'Zendesk Note for Ticket #' .. command_info.ticket_id
   end
 
   -- Window options
@@ -1027,6 +1049,12 @@ local function open_tamal_popup(command_info, initial_content)
     section_selector = create_section_selector(win, buf)
   end
 
+  -- Create section selector for zendesk-note command
+  local zendesk_section_selector = nil
+  if command_info.cmd == 'zendesk-note' and command_info.needs_section then
+    zendesk_section_selector = create_zendesk_section_selector(win, buf)
+  end
+
   -- Create time block selector for commands that need time blocks
   local time_block_selector = nil
   if command_info.cmd == 'add-task' or command_info.needs_time_block then
@@ -1046,6 +1074,13 @@ local function open_tamal_popup(command_info, initial_content)
     if command_info.cmd == 'three-p' and section_selector then
       local selected_section = section_selector.get_current_value()
       cmd = cmd .. ' --three-p ' .. selected_section:lower() .. ' --note ' .. vim.fn.shellescape(content)
+
+      -- Use our centralized function to close both windows
+      close_window_pair(window_id)
+    -- For zendesk-note command, get the selected section and add as --section argument
+    elseif command_info.cmd == 'zendesk-note' and zendesk_section_selector then
+      local selected_section = zendesk_section_selector.get_current_value()
+      cmd = cmd .. ' --zendesk ' .. command_info.ticket_id .. ' --section ' .. selected_section:lower() .. ' --note ' .. vim.fn.shellescape(content)
 
       -- Use our centralized function to close both windows
       close_window_pair(window_id)
@@ -1085,25 +1120,33 @@ local function open_tamal_popup(command_info, initial_content)
       -- Execute the command
       local output = vim.fn.system(cmd)
 
-      -- Show a notification of success
-      local success_message = ''
-      if command_info.cmd == 'add-task' then
-        success_message = 'Task added successfully'
-      elseif command_info.cmd == 'add-note' then
-        success_message = 'Note added successfully'
-      elseif command_info.cmd == 'three-p' then
-        success_message = '3P note added successfully'
+      -- For zendesk-note command, open the ticket note after adding the note
+      if command_info.cmd == 'zendesk-note' then
+        local file_path = vim.fn.system('tamal --zendesk ' .. command_info.ticket_id):gsub('\n$', '')
+        open_file_in_floating_window(file_path, false)
       else
-        success_message = 'Command executed successfully'
-      end
-      vim.notify(success_message, vim.log.levels.INFO)
+        -- Show a notification of success
+        local success_message = ''
+        if command_info.cmd == 'add-task' then
+          success_message = 'Task added successfully'
+        elseif command_info.cmd == 'add-note' then
+          success_message = 'Note added successfully'
+        elseif command_info.cmd == 'three-p' then
+          success_message = '3P note added successfully'
+        elseif command_info.cmd == 'zendesk-note' then
+          success_message = 'Zendesk note added successfully'
+        else
+          success_message = 'Command executed successfully'
+        end
+        vim.notify(success_message, vim.log.levels.INFO)
 
-      -- Reload the current buffer only if it's a real file
-      local current_buf = vim.api.nvim_get_current_buf()
-      if vim.api.nvim_buf_get_name(current_buf) ~= '' then
-        pcall(function()
-          vim.cmd 'e!'
-        end)
+        -- Reload the current buffer only if it's a real file
+        local current_buf = vim.api.nvim_get_current_buf()
+        if vim.api.nvim_buf_get_name(current_buf) ~= '' then
+          pcall(function()
+            vim.cmd 'e!'
+          end)
+        end
       end
     end
   end, keymap_opts)
