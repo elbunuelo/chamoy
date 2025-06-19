@@ -47,7 +47,7 @@ def apply_zendesk_template(template_path, file_path, config)
   File.write(file_path, final_content)
 end
 
-# Opens a Zendesk ticket note, creating it if it doesn't exist
+# Creates a Zendesk ticket note if it doesn't exist and returns its path
 def open_zendesk_note(config)
   ticket_id = config.ticket_id
   if ticket_id.nil? || ticket_id.empty?
@@ -65,6 +65,6 @@ def open_zendesk_note(config)
   # Create an empty file if it doesn't exist
   File.new(file_path, 'w+') unless File.exist?(file_path)
   
-  # Open the file in the editor
-  system(EDITOR, file_path)
+  # Output the file path instead of opening it
+  puts file_path
 end
