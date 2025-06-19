@@ -26,30 +26,30 @@ end
 # Apply the zendesk template with custom placeholders
 def apply_zendesk_template(template_path, file_path, config)
   return if File.exist?(file_path) || !File.exist?(template_path)
-  
+
   # Create the directory if it doesn't exist
   FileUtils.mkdir_p(File.dirname(file_path)) unless Dir.exist?(File.dirname(file_path))
-  
+
   # Read the template and replace our custom placeholders
   template_content = File.read(template_path)
-  
+
   # Replace our custom placeholders
   template_content = template_content.gsub('{{ ticket_id }}', config.ticket_id || '')
   template_content = template_content.gsub('{{ user_name }}', config.user_name || '')
   template_content = template_content.gsub('{{ user_link }}', config.user_link || '')
   template_content = template_content.gsub('{{ account_name }}', config.account_name || '')
   template_content = template_content.gsub('{{ account_link }}', config.account_link || '')
-  
+
   # Process any remaining mustache expressions (like dates) using the existing system
   final_content = ''
   template_content.each_line do |line|
-    if matches = line.match(MUSTACHE_REGEX)
-      final_content += line.gsub(MUSTACHE_REGEX, replace_mustache(matches[:mustache]))
-    else
-      final_content += line
-    end
+    final_content += if matches = line.match(MUSTACHE_REGEX)
+                       line.gsub(MUSTACHE_REGEX, replace_mustache(matches[:mustache]))
+                     else
+                       line
+                     end
   end
-  
+
   # Write the processed content to the file
   File.write(file_path, final_content)
 end
@@ -61,17 +61,17 @@ def open_zendesk_note(config)
     puts 'Please provide a ticket ID.'
     exit 1
   end
-  
+
   # Define the paths
   template_path = "#{TEMPLATES_DIRECTORY}/zendesk.md"
   file_path = zendesk_file_path(ticket_id)
-  
+
   # Apply our custom template handling
   apply_zendesk_template(template_path, file_path, config)
-  
+
   # Create an empty file if it doesn't exist
   File.new(file_path, 'w+') unless File.exist?(file_path)
-  
+
   # Output the file path instead of opening it
   puts file_path
 end
@@ -79,14 +79,14 @@ end
 # Parse a Zendesk ticket note and return its content as a hash with sections
 def parse_zendesk_note(ticket_id)
   file_path = zendesk_file_path(ticket_id)
-  
+
   # If the file doesn't exist, create it first
   unless File.exist?(file_path)
     config = TamalConfig.new
     config.ticket_id = ticket_id
     open_zendesk_note(config)
   end
-  
+
   # Initialize the structure to hold the parsed content
   content = {
     header: [],
@@ -96,9 +96,9 @@ def parse_zendesk_note(ticket_id)
     notes: [],
     resolution: []
   }
-  
+
   current_section = :header
-  
+
   # Parse the file line by line
   File.open(file_path) do |file|
     file.each_line do |line|
@@ -122,66 +122,69 @@ def parse_zendesk_note(ticket_id)
       end
     end
   end
-  
+
   content
 end
 
 # Add a note to a specific section of a Zendesk ticket note
 def add_zendesk_section_note(config)
   ticket_id = config.ticket_id
-  section = config.section.to_sym
+  section = config.section ? config.section.to_sym : :notes # Default to notes section if not specified
   note = config.note
-  
+
   if ticket_id.nil? || ticket_id.empty?
     puts 'Please provide a ticket ID.'
     exit 1
   end
-  
+
   if note.nil? || note.empty?
     puts 'Please provide a note to add.'
     exit 1
   end
-  
+
   # Map the section name to the internal section key
   section_map = {
     'description' => :description,
     'hypothesis' => :hypothesis,
     'investigation' => :investigation,
     'notes' => :notes,
-    'resolution' => :resolution
+    'resolution' => :resolution,
+    # Add aliases for easier typing
+    'desc' => :description,
+    'hyp' => :hypothesis,
+    'invest' => :investigation,
+    'res' => :resolution
   }
-  
+
   section_key = section_map[section.to_s.downcase]
   if section_key.nil?
     puts "Unknown section: #{section}. Valid sections are: description, hypothesis, investigation, notes, resolution."
     exit 1
   end
-  
+
   # Parse the current content
   content = parse_zendesk_note(ticket_id)
-  
+
   # Add the note to the specified section
   # Find the last non-empty line in the section
   last_non_empty_index = content[section_key].rindex { |line| !line.strip.empty? } || 0
-  
+
   # Add a blank line if the last line isn't already blank
-  if last_non_empty_index == content[section_key].length - 1
-    content[section_key] << ''
-  end
-  
+  content[section_key] << '' if last_non_empty_index == content[section_key].length - 1
+
   # Add the note with a bullet point
   content[section_key] << "- #{note}"
   content[section_key] << ''
-  
+
   # Write the updated content back to the file
   file_path = zendesk_file_path(ticket_id)
   File.open(file_path, 'w') do |file|
-    [:header, :description, :hypothesis, :investigation, :notes, :resolution].each do |section|
+    %i[header description hypothesis investigation notes resolution].each do |section|
       content[section].each do |line|
         file.puts line
       end
     end
   end
-  
+
   puts file_path
 end
