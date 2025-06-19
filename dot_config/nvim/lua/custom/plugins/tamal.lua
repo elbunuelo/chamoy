@@ -1191,7 +1191,35 @@ local function open_tamal_popup(command_info, initial_content)
     -- For zendesk-note command, get the selected section and add as --section argument
     elseif command_info.cmd == 'zendesk-note' and zendesk_section_selector then
       local selected_section = zendesk_section_selector.get_current_value()
-      cmd = cmd .. ' --zendesk ' .. command_info.ticket_id .. ' --section ' .. selected_section:lower() .. ' --note ' .. vim.fn.shellescape(content)
+
+      -- Build the command with all provided options
+      cmd = 'tamal --zendesk'
+
+      -- Add ticket_id if provided, otherwise let tamal extract it from ticket_link
+      local options = command_info.zendesk_options
+      if options.ticket_id and options.ticket_id ~= '' then
+        cmd = cmd .. ' ' .. options.ticket_id
+      end
+
+      -- Add all other options
+      if options.ticket_link and options.ticket_link ~= '' then
+        cmd = cmd .. ' --ticket-link ' .. vim.fn.shellescape(options.ticket_link)
+      end
+      if options.user_name and options.user_name ~= '' then
+        cmd = cmd .. ' --user-name ' .. vim.fn.shellescape(options.user_name)
+      end
+      if options.user_link and options.user_link ~= '' then
+        cmd = cmd .. ' --user-link ' .. vim.fn.shellescape(options.user_link)
+      end
+      if options.account_name and options.account_name ~= '' then
+        cmd = cmd .. ' --account-name ' .. vim.fn.shellescape(options.account_name)
+      end
+      if options.account_link and options.account_link ~= '' then
+        cmd = cmd .. ' --account-link ' .. vim.fn.shellescape(options.account_link)
+      end
+
+      -- Add section and note
+      cmd = cmd .. ' --section ' .. selected_section:lower() .. ' --note ' .. vim.fn.shellescape(content)
 
       -- Use our centralized function to close both windows
       close_window_pair(window_id)
