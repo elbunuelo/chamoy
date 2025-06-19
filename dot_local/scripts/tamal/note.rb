@@ -67,7 +67,7 @@ def prepare_note_file(config)
 
   apply_template(config, template_path, file_path)
   File.new(file_path, 'w+') unless File.exist? file_path
-  
+
   file_path
 end
 
@@ -89,5 +89,5 @@ end
 # mustache values when applicable.
 def open_note(config)
   file_path = prepare_note_file(config)
-  system(EDITOR, file_path)
+  puts file_path
 end
