@@ -46,11 +46,32 @@ def apply_zendesk_template(template_path, file_path, config)
   File.write(file_path, final_content)
 end
 
+# Extract ticket ID from a Zendesk ticket link URL
+def extract_ticket_id_from_link(ticket_link)
+  return nil if ticket_link.nil? || ticket_link.empty?
+
+  # Extract the last part of the URL which should be the ticket ID
+  # This handles URLs like https://company.zendesk.com/agent/tickets/123456
+  match = ticket_link.match(%r{/([0-9]+)(?:/|$)})
+  match ? match[1] : nil
+end
+
 # Creates a Zendesk ticket note if it doesn't exist and returns its path
 def open_zendesk_note(config)
+  # If ticket_id is not provided but ticket_link is, extract the ID from the link
+  if (config.ticket_id.nil? || config.ticket_id.empty?) && !config.ticket_link.empty?
+    extracted_id = extract_ticket_id_from_link(config.ticket_link)
+    if extracted_id
+      config.ticket_id = extracted_id
+    else
+      puts 'Could not extract ticket ID from the provided ticket link.'
+      exit 1
+    end
+  end
+
   ticket_id = config.ticket_id
   if ticket_id.nil? || ticket_id.empty?
-    puts 'Please provide a ticket ID.'
+    puts 'Please provide a ticket ID or a valid ticket link.'
     exit 1
   end
 
