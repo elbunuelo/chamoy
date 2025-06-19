@@ -762,7 +762,8 @@ local function create_zendesk_options_input(callback)
   -- Window dimensions
   local width = 60
   local field_height = 1
-  local field_spacing = 2
+  -- Increase field spacing to ensure titles are always visible
+  local field_spacing = 4 -- Increased from 2 to 4
   local base_col = math.floor((vim.o.columns - width) / 2)
   local base_row = math.floor(vim.o.lines / 2) - (#fields * field_spacing / 2)
 
