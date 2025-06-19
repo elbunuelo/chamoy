@@ -361,7 +361,7 @@ def add_time_block_note(config)
   output_weekly_note(week, config)
 end
 
-def add_three_p(config)
+def add_three_p_note(config)
   week = parse_weekly_note
   week[:three_p][config.section.to_sym] << "- #{config.note}"
 
