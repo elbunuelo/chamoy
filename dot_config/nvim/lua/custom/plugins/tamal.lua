@@ -1003,8 +1003,7 @@ local function open_tamal_popup(command_info, initial_content)
     -- If this command should use note path
     if command_info.use_note_path then
       -- For the 'open' command, we need to get the path to the note file
-      local path_cmd = 'tamal --note-path ' .. content
-      local file_path = vim.fn.system(path_cmd):gsub('\n$', '')
+      local file_path = vim.fn.system('tamal --open ' .. content):gsub('\n$', '')
       -- Open the file in a floating window
       open_file_in_floating_window(file_path, false)
     else
