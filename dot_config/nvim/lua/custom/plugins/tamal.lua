@@ -914,17 +914,42 @@ end
 local function open_tamal_popup(command_info, initial_content)
   -- Check if this command needs a ticket ID input first
   if command_info.needs_ticket_id then
-    create_ticket_id_input(function(ticket_id)
+    create_zendesk_options_input(function(options)
       -- For zendesk command, open the ticket note directly
       if command_info.cmd == 'zendesk' then
-        local file_path = vim.fn.system('tamal --zendesk ' .. ticket_id):gsub('\n$', '')
+        -- Build the command with all provided options
+        local cmd = 'tamal --zendesk'
+
+        -- Add ticket_id if provided, otherwise let tamal extract it from ticket_link
+        if options.ticket_id and options.ticket_id ~= '' then
+          cmd = cmd .. ' ' .. options.ticket_id
+        end
+
+        -- Add all other options
+        if options.ticket_link and options.ticket_link ~= '' then
+          cmd = cmd .. ' --ticket-link ' .. vim.fn.shellescape(options.ticket_link)
+        end
+        if options.user_name and options.user_name ~= '' then
+          cmd = cmd .. ' --user-name ' .. vim.fn.shellescape(options.user_name)
+        end
+        if options.user_link and options.user_link ~= '' then
+          cmd = cmd .. ' --user-link ' .. vim.fn.shellescape(options.user_link)
+        end
+        if options.account_name and options.account_name ~= '' then
+          cmd = cmd .. ' --account-name ' .. vim.fn.shellescape(options.account_name)
+        end
+        if options.account_link and options.account_link ~= '' then
+          cmd = cmd .. ' --account-link ' .. vim.fn.shellescape(options.account_link)
+        end
+
+        local file_path = vim.fn.system(cmd):gsub('\n$', '')
         open_file_in_floating_window(file_path, false)
       -- For zendesk-note command, continue with the note input popup
       elseif command_info.cmd == 'zendesk-note' then
         -- Create a modified command_info without the ticket_id requirement
         local note_cmd_info = vim.deepcopy(command_info)
         note_cmd_info.needs_ticket_id = false
-        note_cmd_info.ticket_id = ticket_id -- Store the ticket ID
+        note_cmd_info.zendesk_options = options -- Store all the options
         -- Open the note popup with the ticket ID
         open_tamal_popup(note_cmd_info, initial_content)
       end
