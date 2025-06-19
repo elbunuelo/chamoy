@@ -14,15 +14,6 @@ def zendesk_file_path(ticket_id)
   "#{NOTES_DIRECTORY}/zendesk/#{ticket_id}.md"
 end
 
-# Prints the file path for a Zendesk ticket note
-def print_zendesk_file_path(ticket_id)
-  if ticket_id.nil? || ticket_id.empty?
-    puts 'Please provide a ticket ID.'
-    exit 1
-  end
-  puts zendesk_file_path(ticket_id)
-end
-
 # Apply the zendesk template with custom placeholders
 def apply_zendesk_template(template_path, file_path, config)
   return if File.exist?(file_path) || !File.exist?(template_path)
