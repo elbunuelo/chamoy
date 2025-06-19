@@ -115,11 +115,10 @@ M.open_zendesk_note_with_telescope = function(command_info)
             -- Close the note window and section selector
             window_manager.close_window_pair(window_id)
 
-            -- Build the command with the note ID as the ticket ID
-            local cmd = "tamal --zendesk " .. note_id
-            
-            -- Add section and note content
-            cmd = cmd .. " --section " .. selected_section:lower() .. " --note " .. vim.fn.shellescape(note_content)
+            -- Build the command with the proper options
+            -- We need to use --note to set the note content and --section for the section
+            -- The --zendesk option sets the ticket_id
+            local cmd = "tamal --zendesk " .. note_id .. " --section " .. selected_section:lower() .. " --note " .. vim.fn.shellescape(note_content)
 
             -- Execute the command
             local output = vim.fn.system(cmd)
