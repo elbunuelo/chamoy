@@ -724,6 +724,79 @@ local function create_section_selector(note_win, note_buf)
   }, '3P', true) -- Position above note window
 end
 
+-- Function to create a section selector for Zendesk notes
+local function create_zendesk_section_selector(note_win, note_buf)
+  local sections = { 'Description', 'Hypothesis', 'Investigation', 'Notes', 'Resolution' }
+
+  -- Create selector with sections
+  return create_selector_window(note_win, note_buf, {
+    values = sections,
+    type = 'section',
+  }, 'Zendesk Section', true) -- Position above note window
+end
+
+-- Helper function to create a ticket ID input window
+local function create_ticket_id_input(callback)
+  -- Calculate dimensions for the popup
+  local width = 40
+  local height = 1
+  local col = math.floor((vim.o.columns - width) / 2)
+  local row = math.floor((vim.o.lines - height) / 2)
+
+  -- Window options
+  local opts = {
+    relative = 'editor',
+    width = width,
+    height = height,
+    col = col,
+    row = row,
+    style = 'minimal',
+    border = 'rounded',
+    title = 'Enter Zendesk Ticket ID',
+  }
+
+  -- Create buffer for the popup
+  local buf = vim.api.nvim_create_buf(false, true)
+
+  -- Set buffer options
+  vim.api.nvim_buf_set_option(buf, 'bufhidden', 'wipe')
+
+  -- Create the window with the buffer
+  local win = vim.api.nvim_open_win(buf, true, opts)
+
+  -- Set window options
+  vim.api.nvim_win_set_option(win, 'winblend', 0)
+  vim.api.nvim_win_set_option(win, 'cursorline', true)
+
+  -- Start in insert mode
+  vim.cmd 'startinsert'
+
+  -- Set up Enter key binding to process the input
+  vim.keymap.set('i', '<CR>', function()
+    local ticket_id = vim.api.nvim_buf_get_lines(buf, 0, -1, false)[1] or ''
+    vim.api.nvim_win_close(win, true)
+    if ticket_id and ticket_id ~= '' then
+      callback(ticket_id)
+    else
+      vim.notify('No ticket ID provided', vim.log.levels.WARN)
+    end
+  end, { buffer = buf, noremap = true, silent = true })
+
+  -- Set up Escape key binding to cancel
+  vim.keymap.set({ 'i', 'n' }, '<Esc>', function()
+    vim.api.nvim_win_close(win, true)
+    vim.notify('Cancelled', vim.log.levels.INFO)
+  end, { buffer = buf, noremap = true, silent = true })
+
+  -- Set up q key binding to cancel
+  vim.keymap.set('n', 'q', function()
+    vim.api.nvim_win_close(win, true)
+    vim.notify('Cancelled', vim.log.levels.INFO)
+  end, { buffer = buf, noremap = true, silent = true })
+
+  return { buf = buf, win = win }
+end
+
 -- Helper function to get visually selected text
 local function get_visual_selection()
   local _, start_line, start_col, _ = unpack(vim.fn.getpos "'<")
