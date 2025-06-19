@@ -80,12 +80,8 @@ M.open_zendesk_note_with_telescope = function(command_info)
           -- Set empty content for user to input the note
           vim.api.nvim_buf_set_lines(buf, 0, -1, false, {})
 
-          -- Create the window with the buffer
-          local win = vim.api.nvim_open_win(buf, true, opts)
-
-          -- Set window options
-          vim.api.nvim_win_set_option(win, "winblend", 0)
-          vim.api.nvim_win_set_option(win, "cursorline", true)
+          -- Start in insert mode for the user to input the note content
+          vim.cmd("startinsert")
 
           -- Register this window in the global tracking table
           local window_id = tostring(win)
