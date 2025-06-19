@@ -880,17 +880,6 @@ local function create_section_selector(note_win, note_buf)
   }, '3P', true) -- Position above note window
 end
 
--- Function to create a section selector for Zendesk notes
-local function create_zendesk_section_selector(note_win, note_buf)
-  local sections = { 'Description', 'Hypothesis', 'Investigation', 'Notes', 'Resolution' }
-
-  -- Create selector with sections
-  return create_selector_window(note_win, note_buf, {
-    values = sections,
-    type = 'section',
-  }, 'Zendesk Section', true) -- Position above note window
-end
-
 -- Helper function to create a zendesk options input form with separate floating panes for each field
 local function create_zendesk_options_input(callback)
   -- Define the form fields
@@ -1134,6 +1123,17 @@ local function get_visual_selection()
   end
 
   return table.concat(lines, '\n')
+end
+
+-- Function to create a section selector for Zendesk notes
+local function create_zendesk_section_selector(note_win, note_buf)
+  local sections = { 'Description', 'Hypothesis', 'Investigation', 'Notes', 'Resolution' }
+
+  -- Create selector with sections
+  return create_selector_window(note_win, note_buf, {
+    values = sections,
+    type = 'section',
+  }, 'Zendesk Section', true) -- Position above note window
 end
 
 -- Modified open_tamal_popup to accept initial content
