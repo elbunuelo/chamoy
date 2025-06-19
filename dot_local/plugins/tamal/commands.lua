@@ -39,8 +39,7 @@ M.open_zendesk_note_with_telescope = function(command_info)
 
   telescope.find_files({
     prompt_title = "Select Zendesk Note",
-    cwd = "~/notes/zendesk",
-    find_command = { "sh", "-c", "find . -type f -not -path '*/.*' -exec stat -f '%m %N' {} ; | sort -n" },
+    cwd = vim.fn.expand("~/notes/zendesk"),
     attach_mappings = function(prompt_bufnr, map)
       actions.select_default:replace(function()
         actions.close(prompt_bufnr)
