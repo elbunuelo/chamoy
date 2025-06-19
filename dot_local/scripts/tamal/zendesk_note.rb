@@ -141,12 +141,23 @@ end
 
 # Add a note to a specific section of a Zendesk ticket note
 def add_zendesk_section_note(config)
+  # If ticket_id is not provided but ticket_link is, extract the ID from the link
+  if (config.ticket_id.nil? || config.ticket_id.empty?) && !config.ticket_link.empty?
+    extracted_id = extract_ticket_id_from_link(config.ticket_link)
+    if extracted_id
+      config.ticket_id = extracted_id
+    else
+      puts 'Could not extract ticket ID from the provided ticket link.'
+      exit 1
+    end
+  end
+
   ticket_id = config.ticket_id
   section = config.section ? config.section.to_sym : :notes # Default to notes section if not specified
   note = config.note
 
   if ticket_id.nil? || ticket_id.empty?
-    puts 'Please provide a ticket ID.'
+    puts 'Please provide a ticket ID or a valid ticket link.'
     exit 1
   end
 
