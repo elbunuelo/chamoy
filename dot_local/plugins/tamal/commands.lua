@@ -20,9 +20,7 @@ M.open_note_with_telescope = function()
         actions.close(prompt_bufnr)
         local selection = action_state.get_selected_entry()
         if selection then
-          local file_path = "~/notes/" .. selection.value
-          -- Expand the path to handle the tilde
-          file_path = vim.fn.expand(file_path)
+          local file_path = vim.fn.expand("~/notes/" .. selection[1])
           window_manager.open_file_in_floating_window(file_path)
         end
       end)
