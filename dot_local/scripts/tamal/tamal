@@ -33,7 +33,13 @@ def run(config)
   when 'update_task'
     update_task(config)
   when 'zendesk'
-    open_zendesk_note(config)
+    # If both section and note are provided, add a note to the ticket
+    if config.section && config.note
+      add_zendesk_section_note(config)
+    else
+      # Otherwise just open the ticket note
+      open_zendesk_note(config)
+    end
   end
 end
 
