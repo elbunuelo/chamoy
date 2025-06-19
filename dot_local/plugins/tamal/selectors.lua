@@ -344,7 +344,13 @@ end
 
 -- Function to create a zendesk section selector
 M.create_zendesk_section_selector = function(note_win, note_buf)
-  local sections = { "Internal", "Public" }
+  local sections = {
+    "Description of the Issue",
+    "Hypothesis",
+    "Investigation Steps",
+    "Notes",
+    "Resolution",
+  }
   return create_selector_window(note_win, note_buf, {
     values = sections,
     type = "section",
