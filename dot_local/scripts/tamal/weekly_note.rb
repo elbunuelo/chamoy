@@ -15,10 +15,6 @@ def weekly_file_path
   "#{NOTES_DIRECTORY}/#{note_name}.md"
 end
 
-def print_weekly_file_path
-  puts weekly_file_path
-end
-
 def open_weekly_note(config)
   config.name = File.basename(weekly_file_path)[0..-4]
   config.template = 'weekly'
