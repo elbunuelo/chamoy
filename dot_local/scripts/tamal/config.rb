@@ -113,6 +113,10 @@ class TamalConfig
         @ticket_id = ticket_id
       end
 
+      opts.on('--ticket-link TICKET_LINK', 'Zendesk ticket link URL') do |ticket_link|
+        @ticket_link = ticket_link
+      end
+
       opts.on('--user-name USER_NAME', 'User name for Zendesk ticket') do |user_name|
         @user_name = user_name
       end
