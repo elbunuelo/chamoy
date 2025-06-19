@@ -752,7 +752,6 @@ local function create_zendesk_options_input(callback)
   -- Define the form fields
   local fields = {
     { name = 'ticket_link', label = 'Ticket Link', value = '', required = true },
-    { name = 'ticket_id', label = 'Ticket ID (optional)', value = '' },
     { name = 'user_name', label = 'User Name', value = '' },
     { name = 'user_link', label = 'User Link', value = '' },
     { name = 'account_name', label = 'Account Name', value = '' },
@@ -766,26 +765,6 @@ local function create_zendesk_options_input(callback)
   local field_spacing = 2
   local base_col = math.floor((vim.o.columns - width) / 2)
   local base_row = math.floor(vim.o.lines / 2) - (#fields * field_spacing / 2)
-
-  -- Create an instruction window at the top
-  local instructions_buf = vim.api.nvim_create_buf(false, true)
-  vim.api.nvim_buf_set_lines(instructions_buf, 0, -1, false, { 'Use Tab/Shift+Tab to navigate, Enter to submit' })
-  vim.api.nvim_buf_set_option(instructions_buf, 'bufhidden', 'wipe')
-  vim.api.nvim_buf_set_option(instructions_buf, 'modifiable', false)
-
-  local instructions_opts = {
-    relative = 'editor',
-    width = width,
-    height = 1,
-    col = base_col,
-    row = base_row - 2,
-    style = 'minimal',
-    border = 'rounded',
-    title = 'Zendesk Ticket Options',
-  }
-
-  local instructions_win = vim.api.nvim_open_win(instructions_buf, false, instructions_opts)
-  vim.api.nvim_win_set_option(instructions_win, 'winblend', 0)
 
   -- Create a buffer and window for each field
   local field_windows = {}
@@ -841,9 +820,6 @@ local function create_zendesk_options_input(callback)
       tamal_window_pairs[form_id]['field' .. i .. '_win'] = win
     end
   end
-
-  -- Add instruction window to tracking
-  tamal_window_pairs[form_id]['instructions_win'] = instructions_win
 
   -- Start in insert mode for the first field
   vim.cmd 'startinsert'
