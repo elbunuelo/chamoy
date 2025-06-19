@@ -11,26 +11,11 @@ M.open_note_with_telescope = function()
   local telescope = require("telescope.builtin")
   local actions = require("telescope.actions")
   local action_state = require("telescope.actions.state")
-  local sorters = require("telescope.sorters")
-  local Path = require("plenary.path")
-
-  -- Custom sorter that sorts by last modified time (descending)
-  local file_sorter = sorters.new({
-    scoring_function = function(_, prompt, line, _)
-      local path = Path:new("~/notes/" .. line)
-      local stat = path:stat()
-      if not stat then
-        return 0
-      end
-      -- Return negative mtime to sort in descending order (most recent at bottom)
-      return -stat.mtime.sec
-    end,
-  })
 
   telescope.find_files({
     prompt_title = "Open Note",
     cwd = "~/notes",
-    sorter = file_sorter,
+    find_command = { "find", ".", "-type", "f", "-not", "-path", "*/.*", "-printf", "%T@ %p\n", "|", "sort", "-n" },
     attach_mappings = function(prompt_bufnr, map)
       actions.select_default:replace(function()
         actions.close(prompt_bufnr)
