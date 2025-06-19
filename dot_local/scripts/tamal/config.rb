@@ -108,7 +108,7 @@ class TamalConfig
         @status = status
       end
 
-      opts.on('--zendesk TICKET_ID', 'Create a Zendesk ticket note if needed and output its path') do |ticket_id|
+      opts.on('--zendesk [TICKET_ID]', 'Create a Zendesk ticket note if needed and output its path') do |ticket_id|
         @action = 'zendesk'
         @ticket_id = ticket_id
       end
