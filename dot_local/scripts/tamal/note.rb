@@ -89,7 +89,7 @@ end
 # mustache values when applicable.
 def open_note(config)
   file_path = prepare_note_file(config)
-  system(EDITOR, file_path)
+  puts file_path
 end
 
 # Central method to handle adding notes to different types of documents
