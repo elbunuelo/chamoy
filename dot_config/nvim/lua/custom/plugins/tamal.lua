@@ -26,6 +26,18 @@ local function close_window_pair(id)
     pcall(vim.api.nvim_win_close, pair.time_block_win, true)
   end
 
+  -- Close instructions window if valid
+  if pair.instructions_win and vim.api.nvim_win_is_valid(pair.instructions_win) then
+    pcall(vim.api.nvim_win_close, pair.instructions_win, true)
+  end
+
+  -- Close any field windows (for zendesk form)
+  for key, win in pairs(pair) do
+    if key:match '^field%d+_win$' and vim.api.nvim_win_is_valid(win) then
+      pcall(vim.api.nvim_win_close, win, true)
+    end
+  end
+
   -- Remove from tracking table
   tamal_window_pairs[id] = nil
 end
