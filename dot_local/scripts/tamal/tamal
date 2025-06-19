@@ -14,6 +14,12 @@ require_relative 'utils'
 
 def run(config)
   log("Attempting to run #{config.action}", 'DEBUG', config)
+
+  # Special case: if both ticket_id and note are provided, add a note to the zendesk ticket
+  if config.ticket_id && config.note && (config.action == 'add_note' || config.action == 'three_p')
+    return add_zendesk_section_note(config)
+  end
+
   case config.action
   when 'open'
     open_note(config)
