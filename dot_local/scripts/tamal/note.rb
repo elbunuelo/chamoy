@@ -71,14 +71,6 @@ def prepare_note_file(config)
   file_path
 end
 
-# Creates a note if it doesn't exist and returns its path.
-#
-# @param config [TamalConfig] The configuration object.
-def note_path(config)
-  file_path = prepare_note_file(config)
-  puts file_path
-end
-
 # Opens a note for editing, optionally applying a template to the note.
 #
 # Creates the note if it doesn't already exist based on the value
