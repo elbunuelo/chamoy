@@ -325,7 +325,7 @@ def add_task(config)
   output_weekly_note(week, config)
 end
 
-def add_note(config)
+def add_time_block_note(config)
   week = parse_weekly_note
 
   # Check if the date exists in the weekly note, if not, create it
