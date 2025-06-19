@@ -4,6 +4,17 @@
 -- Global table to track related windows (notes and their section selectors)
 local tamal_window_pairs = {}
 
+-- Function to create a section selector for Zendesk notes
+local function create_zendesk_section_selector(note_win, note_buf)
+  local sections = { 'Description', 'Hypothesis', 'Investigation', 'Notes', 'Resolution' }
+
+  -- Create selector with sections
+  return create_selector_window(note_win, note_buf, {
+    values = sections,
+    type = 'section',
+  }, 'Zendesk Section', true) -- Position above note window
+end
+
 -- Function to open Zendesk note using Telescope
 local function open_zendesk_note_with_telescope(command_info)
   local telescope = require 'telescope.builtin'
@@ -1123,17 +1134,6 @@ local function get_visual_selection()
   end
 
   return table.concat(lines, '\n')
-end
-
--- Function to create a section selector for Zendesk notes
-local function create_zendesk_section_selector(note_win, note_buf)
-  local sections = { 'Description', 'Hypothesis', 'Investigation', 'Notes', 'Resolution' }
-
-  -- Create selector with sections
-  return create_selector_window(note_win, note_buf, {
-    values = sections,
-    type = 'section',
-  }, 'Zendesk Section', true) -- Position above note window
 end
 
 -- Modified open_tamal_popup to accept initial content
