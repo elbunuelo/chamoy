@@ -14,8 +14,7 @@ M.open_note_with_telescope = function()
 
   telescope.find_files({
     prompt_title = "Open Note",
-    cwd = "~/notes",
-    find_command = { "sh", "-c", "find . -type f -not -path '*/.*' -exec stat -f '%m %N' {} ; | sort -n" },
+    cwd = vim.fn.expand("~/notes"),
     attach_mappings = function(prompt_bufnr, map)
       actions.select_default:replace(function()
         actions.close(prompt_bufnr)
