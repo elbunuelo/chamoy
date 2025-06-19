@@ -53,6 +53,12 @@ M.open_zendesk_note_with_telescope = function(command_info)
           -- Extract note ID from filename (remove .md extension)
           local note_id = selection.value:gsub("%.md$", "")
 
+          -- If open_only flag is true, just open the file in a floating window
+          if command_info.open_only then
+            window_manager.open_file_in_floating_window(file_path, false)
+            return
+          end
+
           -- We don't want to load the content of the markdown file into the note field
           -- Just extract the note ID from the filename
 
