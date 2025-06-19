@@ -1,7 +1,9 @@
 class TamalConfig
   attr_accessor :debug, :action, :date, :time, :task, :note, :name, :template, :start_time, :end_time, :task_index,
                 :status, :section, :ticket_id, :ticket_link, :user_name, :user_link, :account_name, :account_link
-
+opts.on('--section SECTION', 'Section for Zendesk ticket note') do |section|
+  @section = section
+end
   def initialize
     @debug = false
     @action = nil
