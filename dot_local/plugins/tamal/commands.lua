@@ -105,6 +105,11 @@ M.open_zendesk_note_with_telescope = function(command_info)
           vim.keymap.set("n", "q", function()
             window_manager.close_window_pair(window_id)
           end, keymap_opts)
+          
+          -- Allow Enter key in insert mode to insert a new line
+          vim.keymap.set("i", "<CR>", function()
+            return "\n"
+          end, { expr = true, noremap = true, silent = true, buffer = buf })
 
           -- Create section selector for zendesk-note
           local zendesk_section_selector = selectors.create_zendesk_section_selector(win, buf)
