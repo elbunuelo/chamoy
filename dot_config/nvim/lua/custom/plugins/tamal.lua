@@ -735,11 +735,22 @@ local function create_zendesk_section_selector(note_win, note_buf)
   }, 'Zendesk Section', true) -- Position above note window
 end
 
--- Helper function to create a ticket ID input window
-local function create_ticket_id_input(callback)
+-- Helper function to create a zendesk options input form
+local function create_zendesk_options_input(callback)
+  -- Define the form fields
+  local fields = {
+    { name = 'ticket_link', label = 'Ticket Link', value = '', required = true },
+    { name = 'ticket_id', label = 'Ticket ID (optional)', value = '' },
+    { name = 'user_name', label = 'User Name', value = '' },
+    { name = 'user_link', label = 'User Link', value = '' },
+    { name = 'account_name', label = 'Account Name', value = '' },
+    { name = 'account_link', label = 'Account Link', value = '' },
+  }
+  local current_field = 1
+
   -- Calculate dimensions for the popup
-  local width = 40
-  local height = 1
+  local width = 60
+  local height = #fields * 2 + 1 -- Each field gets 2 lines (label + input) + 1 for instructions
   local col = math.floor((vim.o.columns - width) / 2)
   local row = math.floor((vim.o.lines - height) / 2)
 
@@ -752,7 +763,7 @@ local function create_ticket_id_input(callback)
     row = row,
     style = 'minimal',
     border = 'rounded',
-    title = 'Enter Zendesk Ticket ID',
+    title = 'Zendesk Ticket Options',
   }
 
   -- Create buffer for the popup
@@ -761,25 +772,100 @@ local function create_ticket_id_input(callback)
   -- Set buffer options
   vim.api.nvim_buf_set_option(buf, 'bufhidden', 'wipe')
 
+  -- Function to render the form
+  local function render_form()
+    local lines = {}
+
+    -- Add instructions line
+    table.insert(lines, 'Use Tab/Shift+Tab to navigate, Enter to submit')
+
+    -- Add each field (label + input)
+    for i, field in ipairs(fields) do
+      local label = field.label
+      if field.required then
+        label = label .. ' *'
+      end
+      table.insert(lines, label .. ':')
+      table.insert(lines, field.value)
+    end
+
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+
+    -- Set cursor to the current field's input line
+    local cursor_line = current_field * 2 -- Each field has 2 lines (label + input)
+    vim.api.nvim_win_set_cursor(win, { cursor_line, #fields[current_field].value })
+  end
+
   -- Create the window with the buffer
   local win = vim.api.nvim_open_win(buf, true, opts)
 
   -- Set window options
   vim.api.nvim_win_set_option(win, 'winblend', 0)
-  vim.api.nvim_win_set_option(win, 'cursorline', true)
+  vim.api.nvim_win_set_option(win, 'cursorline', false)
+
+  -- Initial render
+  render_form()
 
   -- Start in insert mode
   vim.cmd 'startinsert'
 
-  -- Set up Enter key binding to process the input
-  vim.keymap.set('i', '<CR>', function()
-    local ticket_id = vim.api.nvim_buf_get_lines(buf, 0, -1, false)[1] or ''
-    vim.api.nvim_win_close(win, true)
-    if ticket_id and ticket_id ~= '' then
-      callback(ticket_id)
+  -- Function to move to next/previous field
+  local function navigate_field(direction)
+    -- Save current field value
+    local current_line = current_field * 2 -- Each field has 2 lines (label + input)
+    fields[current_field].value = vim.api.nvim_buf_get_lines(buf, current_line - 1, current_line, false)[1]
+
+    -- Move to next/previous field
+    if direction == 'next' then
+      current_field = current_field % #fields + 1
     else
-      vim.notify('No ticket ID provided', vim.log.levels.WARN)
+      current_field = (current_field - 2) % #fields + 1
     end
+
+    -- Re-render and set cursor
+    render_form()
+    vim.cmd 'startinsert!'
+  end
+
+  -- Function to submit the form
+  local function submit_form()
+    -- Save current field value before submitting
+    local current_line = current_field * 2
+    fields[current_field].value = vim.api.nvim_buf_get_lines(buf, current_line - 1, current_line, false)[1]
+
+    -- Validate required fields
+    local ticket_link = fields[1].value
+    if ticket_link == '' then
+      vim.notify('Ticket Link is required', vim.log.levels.WARN)
+      return
+    end
+
+    -- Collect all field values
+    local options = {}
+    for _, field in ipairs(fields) do
+      options[field.name] = field.value
+    end
+
+    -- Close the window
+    vim.api.nvim_win_close(win, true)
+
+    -- If ticket_id is empty but ticket_link is provided, let the script extract it
+    callback(options)
+  end
+
+  -- Set up Tab key binding to navigate fields
+  vim.keymap.set('i', '<Tab>', function()
+    navigate_field 'next'
+  end, { buffer = buf, noremap = true, silent = true })
+
+  -- Set up Shift+Tab key binding to navigate fields
+  vim.keymap.set('i', '<S-Tab>', function()
+    navigate_field 'prev'
+  end, { buffer = buf, noremap = true, silent = true })
+
+  -- Set up Enter key binding to process the form
+  vim.keymap.set('i', '<CR>', function()
+    submit_form()
   end, { buffer = buf, noremap = true, silent = true })
 
   -- Set up Escape key binding to cancel
