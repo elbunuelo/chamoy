@@ -11,10 +11,26 @@ M.open_note_with_telescope = function()
   local telescope = require("telescope.builtin")
   local actions = require("telescope.actions")
   local action_state = require("telescope.actions.state")
+  local sorters = require("telescope.sorters")
+  local Path = require("plenary.path")
+
+  -- Custom sorter that sorts by last modified time (descending)
+  local file_sorter = sorters.new({
+    scoring_function = function(_, prompt, line, _)
+      local path = Path:new("~/notes/" .. line)
+      local stat = path:stat()
+      if not stat then
+        return 0
+      end
+      -- Return negative mtime to sort in descending order (most recent at bottom)
+      return -stat.mtime.sec
+    end,
+  })
 
   telescope.find_files({
     prompt_title = "Open Note",
     cwd = "~/notes",
+    sorter = file_sorter,
     attach_mappings = function(prompt_bufnr, map)
       actions.select_default:replace(function()
         actions.close(prompt_bufnr)
@@ -82,7 +98,7 @@ M.open_zendesk_note_with_telescope = function(command_info)
           -- Create buffer for the popup
           local buf = vim.api.nvim_create_buf(false, true)
           vim.api.nvim_buf_set_option(buf, "bufhidden", "wipe")
-            
+
           -- Set empty content for user to input the note
           vim.api.nvim_buf_set_lines(buf, 0, -1, false, {})
 
@@ -92,7 +108,7 @@ M.open_zendesk_note_with_telescope = function(command_info)
           -- Set window options
           vim.api.nvim_win_set_option(win, "winblend", 0)
           vim.api.nvim_win_set_option(win, "cursorline", true)
-          
+
           -- Start in insert mode for the user to input the note content
           vim.cmd("startinsert")
 
@@ -105,7 +121,7 @@ M.open_zendesk_note_with_telescope = function(command_info)
           vim.keymap.set("n", "q", function()
             window_manager.close_window_pair(window_id)
           end, keymap_opts)
-          
+
           -- Allow Enter key in insert mode to insert a new line
           vim.keymap.set("i", "<CR>", function()
             return "\n"
@@ -129,7 +145,12 @@ M.open_zendesk_note_with_telescope = function(command_info)
             -- Build the command with the proper options
             -- We need to use --note to set the note content and --section for the section
             -- The --zendesk option sets the ticket_id
-            local cmd = "tamal --zendesk " .. note_id .. " --section " .. selected_section:lower() .. " --note " .. vim.fn.shellescape(note_content)
+            local cmd = "tamal --zendesk "
+              .. note_id
+              .. " --section "
+              .. selected_section:lower()
+              .. " --note "
+              .. vim.fn.shellescape(note_content)
 
             -- Execute the command
             local output = vim.fn.system(cmd)
@@ -380,7 +401,7 @@ M.open_tamal_popup = function(command_info, initial_content)
   vim.keymap.set("n", "q", function()
     window_manager.close_window_pair(window_id)
   end, keymap_opts)
-  
+
   -- Allow Enter key in insert mode to insert a new line
   vim.keymap.set("i", "<CR>", function()
     return "\n"
