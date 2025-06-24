@@ -162,8 +162,9 @@ M.create_zendesk_options_input = function(callback)
       navigate_field("prev")
     end, { buffer = buf, noremap = true, silent = true })
 
-    -- Enter to submit the form
-    vim.keymap.set("i", "<CR>", submit_form, { buffer = buf, noremap = true, silent = true })
+    -- Ctrl+Enter to submit the form
+    vim.keymap.set("i", "<C-CR>", submit_form, { buffer = buf, noremap = true, silent = true })
+    -- Enter in normal mode to submit the form
     vim.keymap.set("n", "<CR>", submit_form, { buffer = buf, noremap = true, silent = true })
 
     -- Escape to cancel
