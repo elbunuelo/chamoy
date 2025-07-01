@@ -9,7 +9,7 @@ vim.keymap.set('n', '<leader>P', function()
 end, { desc = 'Search including hidden files' })
 
 vim.keymap.set('n', '<leader>b', require('telescope.builtin').buffers, { desc = 'Search open buffers' })
-vim.keymap.set('n', '<leader>?', require('telescope.builtin').help_tags, { desc = 'Search help' })
+vim.keymap.set('n', '<leader>??', require('telescope.builtin').help_tags, { desc = 'Search help' })
 
 local pickers = require 'telescope.pickers'
 local finders = require 'telescope.finders'
