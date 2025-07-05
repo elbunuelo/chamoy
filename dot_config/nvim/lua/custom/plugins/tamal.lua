@@ -463,6 +463,14 @@ function search_zendesk_note()
   }
 end
 
+function search_note()
+  live_multigrep {
+    title = 'Notes',
+    cwd = vim.fn.expand '~/notes/',
+    on_select = open_file_in_floating_window,
+  }
+end
+
 function open_note()
   select_file {
     directory = vim.fn.expand '~/notes/',
@@ -720,6 +728,7 @@ vim.keymap.set('n', '<leader>Tt', tasks, { desc = 'View tasks' })
 vim.keymap.set('n', '<leader>Tn', add_note, { desc = 'Add note' })
 
 vim.keymap.set('n', '<leader>To', open_note, { desc = 'Open note' })
+vim.keymap.set('n', '<leader>Ts', search_note, { desc = 'Search note' })
 vim.keymap.set('n', '<leader>Tza', add_zendesk_note, { desc = 'Add zendesk note' })
 vim.keymap.set('n', '<leader>Tzs', search_zendesk_note, { desc = 'Add zendesk note' })
 vim.keymap.set('n', '<leader>Tzo', open_zendesk_note, { desc = 'Open zendesk note' })
