@@ -303,7 +303,6 @@ end
 function open_weekly_note()
   local weekly_output = io.popen 'tamal --weekly'
   local file_path = weekly_output:read()
-  local result = open_file_in_floating_window(file_path)
 
   local day_numbers_output = io.popen 'tamal --day-line-numbers'
   local day_lines = {}
@@ -317,7 +316,7 @@ function open_weekly_note()
   if not todays_line then
     return
   end
-  vim.api.nvim_win_set_cursor(result.win, { todays_line, 0 })
+  open_file_in_floating_window(file_path, line)
 end
 
 function select_file(opts)
@@ -341,12 +340,13 @@ function select_file(opts)
   }
 end
 
-function open_file_in_floating_window(file)
+function open_file_in_floating_window(file, line)
   local buf = vim.api.nvim_create_buf(false, true)
   local width = 80
   local height = math.floor(vim.o.lines * 0.8)
   local col = (vim.o.columns - width) / 2 -- 0 es la parte de arriba
   local row = (vim.o.lines - height) / 2
+  line = line or 0
 
   local window_opts = {
     style = 'minimal',
@@ -373,16 +373,92 @@ function open_file_in_floating_window(file)
     buffer = buf,
   })
 
+  vim.api.nvim_win_set_cursor(win, { line, 0 })
+
   return {
     buf = buf,
     win = win,
   }
 end
 
+local pickers = require 'telescope.pickers'
+local finders = require 'telescope.finders'
+local make_entry = require 'telescope.make_entry'
+local conf = require('telescope.config').values
+
+local live_multigrep = function(opts)
+  opts = opts or {}
+  opts.cwd = opts.cwd or vim.uv.cwd()
+
+  local finder = finders.new_async_job {
+    command_generator = function(prompt)
+      if not prompt or prompt == '' then
+        return nil
+      end
+
+      local parts = vim.split(prompt, '  ')
+      local args = { 'rg' }
+
+      for i, part in ipairs(parts) do
+        if i == 1 then
+          table.insert(args, '-e')
+          table.insert(args, part)
+        elseif i == 2 then
+          table.insert(args, '-g')
+          table.insert(args, part)
+        else
+          table.insert(args, part)
+        end
+      end
+
+      return vim.tbl_flatten {
+        args,
+        { '--color=never', '--no-heading', '--with-filename', '--line-number', '--column', '--smart-case' },
+      }
+    end,
+    on_select = function(file)
+      print('Selected ' .. file)
+    end,
+    entry_maker = make_entry.gen_from_vimgrep(opts),
+    cwd = opts.cwd,
+  }
+
+  local picker_opts = {
+    debounce = 100,
+    prompt_title = opts.title or 'Search',
+    finder = finder,
+    previewer = conf.grep_previewer(opts),
+    sorter = require('telescope.sorters').empty(),
+  }
+
+  -- Add custom selection handling if provided
+  if opts.on_select then
+    local actions = require 'telescope.actions'
+    local action_state = require 'telescope.actions.state'
+
+    picker_opts.attach_mappings = function(prompt_bufnr, map)
+      actions.select_default:replace(function()
+        actions.close(prompt_bufnr)
+        local selection = action_state.get_selected_entry()
+        if selection then
+          local file_path = selection.filename
+          local line_nr = selection.lnum
+          local col_nr = selection.col
+          opts.on_select(opts.cwd .. file_path, line_nr, col_nr)
+        end
+      end)
+      return true
+    end
+  end
+
+  pickers.new(opts, picker_opts):find()
+end
+
 -- Tamal Actions
-function open_zendesk_note()
-  select_file {
-    directory = vim.fn.expand '~/notes/zendesk/',
+function search_zendesk_note()
+  live_multigrep {
+    title = 'Zendesk Notes',
+    cwd = vim.fn.expand '~/notes/zendesk/',
     on_select = open_file_in_floating_window,
   }
 end
@@ -645,6 +721,7 @@ vim.keymap.set('n', '<leader>Tn', add_note, { desc = 'Add note' })
 
 vim.keymap.set('n', '<leader>To', open_note, { desc = 'Open note' })
 vim.keymap.set('n', '<leader>Tza', add_zendesk_note, { desc = 'Add zendesk note' })
+vim.keymap.set('n', '<leader>Tzs', search_zendesk_note, { desc = 'Add zendesk note' })
 vim.keymap.set('n', '<leader>Tzo', open_zendesk_note, { desc = 'Open zendesk note' })
 vim.keymap.set('n', '<leader>TZ', create_zendesk_note, { desc = 'Create zendesk note' })
 
