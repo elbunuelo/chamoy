@@ -394,6 +394,13 @@ function open_note()
   }
 end
 
+function open_zendesk_note()
+  select_file {
+    directory = vim.fn.expand '~/notes/zendesk',
+    on_select = open_file_in_floating_window,
+  }
+end
+
 function add_three_p_note()
   create_form {
     fields = {
@@ -637,7 +644,8 @@ vim.keymap.set('n', '<leader>Tt', tasks, { desc = 'View tasks' })
 vim.keymap.set('n', '<leader>Tn', add_note, { desc = 'Add note' })
 
 vim.keymap.set('n', '<leader>To', open_note, { desc = 'Open note' })
-vim.keymap.set('n', '<leader>Tz', add_zendesk_note, { desc = 'Add zendesk note' })
+vim.keymap.set('n', '<leader>Tza', add_zendesk_note, { desc = 'Add zendesk note' })
+vim.keymap.set('n', '<leader>Tzo', open_zendesk_note, { desc = 'Open zendesk note' })
 vim.keymap.set('n', '<leader>TZ', create_zendesk_note, { desc = 'Create zendesk note' })
 
 vim.keymap.set('n', '<leader>Tp', add_three_p_note, { desc = 'Add 3P note' })
