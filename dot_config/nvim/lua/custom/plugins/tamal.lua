@@ -360,14 +360,17 @@ function open_file_in_floating_window(file)
   }
 
   local win = vim.api.nvim_open_win(buf, true, window_opts)
-  local lines = vim.fn.readfile(file)
-  vim.api.nvim_buf_set_lines(buf, 0, -1, true, lines)
+
+  vim.api.nvim_set_current_buf(buf)
+  vim.cmd('edit ' .. file)
   vim.api.nvim_buf_set_option(buf, 'filetype', 'markdown')
   vim.api.nvim_buf_set_option(buf, 'textwidth', 80)
   vim.api.nvim_buf_set_option(buf, 'wrap', true)
 
   vim.keymap.set('n', 'q', function()
-    vim.api.nvim_win_close(win, true)
+    if vim.api.nvim_win_is_valid(win) then
+      vim.api.nvim_win_close(win, true)
+    end
   end, {
     desc = 'Close floating window.',
     buffer = buf,
