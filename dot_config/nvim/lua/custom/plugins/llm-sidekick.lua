@@ -6,11 +6,9 @@ return {
   config = function()
     require('llm-sidekick').setup {
       aliases = {
-        chatgpt = 'gpt-4.1',
-        mini = 'gpt-4.1-mini',
-        flash = 'gemini-2.0-flash',
-        pro = 'gemini-2.5-pro',
-        sonnet = 'anthropic.claude-3-7-sonnet',
+        pro = 'vertex_ai/gemini-2.5-pro',
+        opus = 'vertex_ai/claude-opus-4',
+        sonnet = 'vertex_ai/claude-sonnet-4',
       },
       yolo_mode = {
         file_operations = false, -- Automatically accept file operations
