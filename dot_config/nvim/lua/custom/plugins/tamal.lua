@@ -360,8 +360,9 @@ function open_file_in_floating_window(file, line)
   }
 
   local win = vim.api.nvim_open_win(buf, true, window_opts)
-  local lines = vim.fn.readfile(file)
-  vim.api.nvim_buf_set_lines(buf, 0, -1, true, lines)
+
+  vim.api.nvim_set_current_buf(buf)
+  vim.cmd('edit ' .. file)
   vim.api.nvim_buf_set_option(buf, 'filetype', 'markdown')
   vim.api.nvim_buf_set_option(buf, 'textwidth', 80)
   vim.api.nvim_buf_set_option(buf, 'wrap', true)

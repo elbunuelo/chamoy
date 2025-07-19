@@ -17,7 +17,7 @@ truncation_length=20
 format="([](fg:prev_bg bg:#dca561)[ $hash ](fg:black bg:prev_bg))"
 
 [git_state]
-format="([](fg:prev_bg bg:#76946a)[$state( $progress_current/$progress_total)](bg:prev_bg fg:black)) "
+format="([](fg:prev_bg bg:#76946a)[$state($progress_current/$progress_total)](bg:prev_bg fg:black))"
 
 [git_status]
 format="([](fg:prev_bg bg:#dcd7ba)[$modified$deleted$staged$untracked$ahead_behind](fg:black bg:prev_bg))"
