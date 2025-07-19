@@ -188,11 +188,12 @@ def tasks(config)
   end
 
   blocks = week[:days][config.date][:blocks]
-  block = blocks.detect { |b| config.time >= b[:start_time] && config.time <= b[:end_time] }
 
-  return unless block
+  all_tasks = blocks.map do |b|
+    b[:tasks].map { |t| "#{t[:status]},#{t[:task]}" }
+  end.flatten
 
-  puts(block[:tasks].map { |t| "#{t[:status]},#{t[:task]}" })
+  puts(all_tasks)
 end
 
 def time_blocks(_config)
