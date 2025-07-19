@@ -639,9 +639,9 @@ function get_time_blocks(current_timestamp)
     end
   end
 
-  if block_start_timestamp == math.huge then
-    local time_parts = vim.split(time_blocks[#time_blocks], '-')
-    block_start_timestamp = get_timestamp_from_time(time_parts[2])
+  if block_start_timestamp == 0 then
+    local time_parts = vim.split(time_blocks[1], '-')
+    block_start_timestamp = get_timestamp_from_time(time_parts[1]) - 15 * 60
   end
 
   if not exact_match_found then
@@ -651,28 +651,20 @@ function get_time_blocks(current_timestamp)
 
   return {
     time_blocks = time_blocks,
-    current_time_block_index = current_time_block_index,
+    current_time_block = time_blocks[current_time_block_index],
   }
 end
 
-local timestamp = get_timestamp_from_time '16:02'
-local time_blocks_data = get_time_blocks(timestamp)
-for i, time_block in ipairs(time_blocks_data.time_blocks) do
-  local prefix = ' '
-  if i == time_blocks_data.current_time_block_index then
-    prefix = '>'
-  end
-  print(prefix .. ' ' .. time_block)
-end
-
 function add_task()
+  local time_block_data = get_time_blocks(os.time())
   create_form {
     fields = {
       {
         name = 'Time block',
         init = initialize_time_selector,
         init_config = {
-          sections = time_blocks,
+          sections = time_block_data.time_blocks,
+          initial_time = time_block_data.current_time_block,
         },
       },
       {
@@ -689,13 +681,7 @@ function add_task()
 end
 
 function add_note()
-  local time_blocks_output = io.popen 'tamal --time-blocks'
-  local time_blocks = {}
-  local time_block = time_blocks_output:read()
-  while time_block do
-    table.insert(time_blocks, time_block)
-    time_block = time_blocks_output:read()
-  end
+  local time_block_data = get_time_blocks(os.time())
 
   create_form {
     fields = {
@@ -703,7 +689,8 @@ function add_note()
         name = 'Time block',
         init = initialize_time_selector,
         init_config = {
-          sections = time_blocks,
+          sections = time_block_data.time_blocks,
+          initial_time = time_block_data.current_time_block,
         },
       },
       {
