@@ -341,7 +341,7 @@ function select_file(opts)
 end
 
 function open_file_in_floating_window(file, line)
-  local buf = vim.api.nvim_create_buf(false, true)
+  local buf = vim.api.nvim_create_buf(false, false)
   local width = 80
   local height = math.floor(vim.o.lines * 0.8)
   local col = (vim.o.columns - width) / 2 -- 0 es la parte de arriba
@@ -365,9 +365,14 @@ function open_file_in_floating_window(file, line)
   vim.api.nvim_buf_set_option(buf, 'filetype', 'markdown')
   vim.api.nvim_buf_set_option(buf, 'textwidth', 80)
   vim.api.nvim_buf_set_option(buf, 'wrap', true)
+  vim.api.nvim_buf_set_name(buf, file)
+  vim.api.nvim_buf_call(buf, function()
+    vim.cmd 'write!'
+  end)
 
   vim.keymap.set('n', 'q', function()
     vim.api.nvim_win_close(win, true)
+    vim.api.nvim_buf_delete(buf, {})
   end, {
     desc = 'Close floating window.',
     buffer = buf,
@@ -591,7 +596,16 @@ function add_zendesk_note()
   }
 end
 
-function add_task()
+function get_timestamp_from_time(time_string)
+  local time_parts = vim.split(vim.trim(time_string), ':')
+  local timestamp_date = os.date '*t'
+  timestamp_date.hour = tonumber(time_parts[1])
+  timestamp_date.min = tonumber(time_parts[2])
+
+  return os.time(timestamp_date)
+end
+
+function get_time_blocks(current_timestamp)
   local time_blocks_output = io.popen 'tamal --time-blocks'
   local time_blocks = {}
   local time_block = time_blocks_output:read()
@@ -600,6 +614,58 @@ function add_task()
     time_block = time_blocks_output:read()
   end
 
+  local block_start_timestamp = 0
+  local block_end_timestamp = get_timestamp_from_time '23:59'
+  local current_time_block_index = 1
+  local exact_match_found = false
+  for i, time_block in ipairs(time_blocks) do
+    local time_parts = vim.split(time_block, '-')
+    local start_timestamp = get_timestamp_from_time(time_parts[1])
+    local end_timestamp = get_timestamp_from_time(time_parts[2])
+
+    if start_timestamp <= current_timestamp and end_timestamp >= current_timestamp then
+      exact_match_found = true
+      current_time_block_index = i
+      break
+    end
+
+    if end_timestamp < current_timestamp and end_timestamp > block_start_timestamp then
+      block_start_timestamp = end_timestamp
+      current_time_block_index = i + 1
+    end
+
+    if start_timestamp > current_timestamp and start_timestamp < block_end_timestamp then
+      block_end_timestamp = start_timestamp
+    end
+  end
+
+  if block_start_timestamp == math.huge then
+    local time_parts = vim.split(time_blocks[#time_blocks], '-')
+    block_start_timestamp = get_timestamp_from_time(time_parts[2])
+  end
+
+  if not exact_match_found then
+    local new_time_block = os.date('%H:%M', block_start_timestamp) .. ' - ' .. os.date('%H:%M', block_end_timestamp)
+    table.insert(time_blocks, current_time_block_index, new_time_block)
+  end
+
+  return {
+    time_blocks = time_blocks,
+    current_time_block_index = current_time_block_index,
+  }
+end
+
+local timestamp = get_timestamp_from_time '16:02'
+local time_blocks_data = get_time_blocks(timestamp)
+for i, time_block in ipairs(time_blocks_data.time_blocks) do
+  local prefix = ' '
+  if i == time_blocks_data.current_time_block_index then
+    prefix = '>'
+  end
+  print(prefix .. ' ' .. time_block)
+end
+
+function add_task()
   create_form {
     fields = {
       {
