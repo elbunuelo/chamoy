@@ -651,7 +651,7 @@ function get_time_blocks(current_timestamp)
 
   return {
     time_blocks = time_blocks,
-    current_time_block = time_blocks[current_time_block_index],
+    current_time_block_index = current_time_block_index,
   }
 end
 
@@ -664,7 +664,7 @@ function add_task()
         init = initialize_time_selector,
         init_config = {
           sections = time_block_data.time_blocks,
-          initial_time = time_block_data.current_time_block,
+          current_section = time_block_data.current_time_block_index,
         },
       },
       {
@@ -690,7 +690,7 @@ function add_note()
         init = initialize_time_selector,
         init_config = {
           sections = time_block_data.time_blocks,
-          initial_time = time_block_data.current_time_block,
+          current_section = time_block_data.current_time_block_index,
         },
       },
       {
