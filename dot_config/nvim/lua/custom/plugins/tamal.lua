@@ -316,7 +316,7 @@ function open_weekly_note()
   if not todays_line then
     return
   end
-  open_file_in_floating_window(file_path, line)
+  open_file_in_floating_window(file_path, todays_line)
 end
 
 function select_file(opts)
