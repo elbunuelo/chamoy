@@ -1,5 +1,6 @@
 require_relative 'note'
 require_relative 'constants'
+require_relative 'utils'
 
 TIME_BLOCK_REGEX = /^###\s+(?<start_time>\d{1,2}:\d{2})\s+-\s+(?<end_time>\d{1,2}:\d{2})/
 DAY_HEADER_REGEX = %r{^##\s+(?<day>Mon|Tue|Wed|Thu|Fri)\s+(?<date>\d{2}/\d{2})}
@@ -205,9 +206,13 @@ def time_blocks(_config)
 
   blocks = week[:days][today][:blocks]
 
-  # Output each time block in the requested format
-  blocks.each do |block|
-    puts "#{block[:start_time].strftime('%H:%M')} - #{block[:end_time].strftime('%H:%M')}"
+  puts "#{blocks[0][:start_time].strftime('%H:%M')} - #{blocks[0][:end_time].strftime('%H:%M')},actual"
+  blocks.each_cons(2) do |first, second|
+    if first[:end_time] != second[:start_time]
+      puts "#{first[:end_time].strftime('%H:%M')} - #{second[:start_time].strftime('%H:%M')},proposed"
+    end
+
+    puts "#{second[:start_time].strftime('%H:%M')} - #{second[:end_time].strftime('%H:%M')},actual"
   end
 end
 
@@ -228,6 +233,8 @@ def day_line_numbers(_config)
 end
 
 def add_task(config)
+  log("Creating task on #{config.date} at #{config.start_time.strftime '%H:%M'} - #{config.end_time.strftime '%H:%M'}",
+      'DEBUG', config)
   week = parse_weekly_note
 
   # Check if the date exists in the weekly note, if not, create it
@@ -240,82 +247,35 @@ def add_task(config)
 
   blocks = week[:days][config.date][:blocks]
 
-  # First, check if the current time falls within any existing block
   existing_block_index = blocks.find_index do |block|
-    config.time >= block[:start_time] && config.time <= block[:end_time]
+    config.start_time >= block[:start_time] && config.end_time <= block[:end_time]
   end
 
-  # If we found an existing block that contains the current time, use it
   if existing_block_index
     blocks[existing_block_index][:tasks] << { task: config.task, status: 'pending' }
   else
-    # Otherwise, find the right position to insert a new block
     block_index = 0
-    inserted = false
+    found = false
+    new_block = {
+      start_time: config.start_time,
+      end_time: config.end_time,
+      tasks: [],
+      notes: []
+    }
 
-    # If there are no blocks yet, create the first one starting at current time
-    if blocks.empty?
-      new_start_time = config.time
-      new_end_time = new_start_time + (30 * 60) # 30 minutes later
+    blocks.each_with_index do |block, i|
+      block_index = i
+      next if block[:start_time] < config.start_time
 
-      blocks << {
-        start_time: new_start_time,
-        end_time: new_end_time,
-        tasks: [],
-        notes: []
-      }
-      block_index = 0
-      inserted = true
-    else
-      # Try to find where to insert the new block
-      blocks.each_with_index do |block, i|
-        next if block[:start_time] < config.time
-
-        # If we're here, we found a block that starts after the current time
-        block_index = i
-
-        # If there's a previous block, start from its end time
-        if i > 0
-          new_start_time = blocks[i - 1][:end_time]
-          new_end_time = new_start_time + (30 * 60) # 30 minutes later
-
-          # If this would overlap with the next block, adjust end time
-          new_end_time = block[:start_time] if new_end_time > block[:start_time]
-        else
-          # No previous block, start from current time
-          new_start_time = config.time
-          new_end_time = [new_start_time + (30 * 60), block[:start_time]].min
-        end
-
-        blocks.insert(block_index, {
-                        start_time: new_start_time,
-                        end_time: new_end_time,
-                        tasks: [],
-                        notes: []
-                      })
-
-        inserted = true
-        break
-      end
-
-      # If we didn't insert a block (meaning this goes at the end), add it now
-      unless inserted
-        # Start from the end time of the last block
-        new_start_time = blocks.last[:end_time]
-        new_end_time = new_start_time + (30 * 60) # 30 minutes later
-
-        blocks << {
-          start_time: new_start_time,
-          end_time: new_end_time,
-          tasks: [],
-          notes: []
-        }
-        block_index = blocks.length - 1
-        inserted = true
-      end
+      found = true
     end
 
-    # Add the task to the new block
+    block_index = blocks.length unless found
+    blocks.insert(
+      block_index,
+      new_block
+    )
+
     blocks[block_index][:tasks] << { task: config.task, status: 'pending' }
   end
 

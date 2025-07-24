@@ -1,6 +1,8 @@
+require_relative 'utils'
 class TamalConfig
   attr_accessor :debug, :action, :date, :time, :task, :note, :name, :template, :start_time, :end_time, :task_index,
                 :status, :section, :ticket_id, :ticket_link, :user_name, :user_link, :account_name, :account_link
+
   def initialize
     @debug = false
     @action = nil
@@ -73,12 +75,12 @@ class TamalConfig
         @time = Time.parse time
       end
 
-      opts.on('-s', '--start-time TIME') do |time|
-        @start_time = Time.parse time
+      opts.on('-e', '--end-time END_TIME') do |end_time|
+        @end_time = Time.parse end_time
       end
 
-      opts.on('-e', '--end-time TIME') do |time|
-        @end_time = Time.parse time
+      opts.on('-s', '--start-time START_TIME') do |start_time|
+        @start_time = Time.parse start_time
       end
 
       opts.on('-a', '--add-task TASK',
