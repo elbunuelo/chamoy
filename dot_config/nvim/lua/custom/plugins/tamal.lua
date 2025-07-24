@@ -33,7 +33,7 @@ function add_field(opts, form_opts)
   opts = opts or {}
 
   local name = opts.name or ''
-  local width = opts.width or 50
+  local width = opts.width or 80
   local height = opts.height or 1
   local col = (vim.o.columns - width) / 2 -- 0 es la parte de arriba
   local row = vim.o.lines / 2
@@ -42,6 +42,9 @@ function add_field(opts, form_opts)
   end
 
   local buf = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_set_option(buf, 'textwidth', 80)
+  vim.api.nvim_buf_set_option(buf, 'wrap', true)
+
   if opts.init then
     opts.init(buf, opts.init_config or {})
   end
@@ -58,6 +61,7 @@ function add_field(opts, form_opts)
   }
 
   local win = vim.api.nvim_open_win(buf, false, window_opts)
+  vim.api.nvim_win_set_option(win, 'wrap', true)
 
   vim.keymap.set('n', 'q', function()
     form_opts.on_close()
@@ -333,7 +337,7 @@ function select_file(opts)
       actions.select_default:replace(function()
         actions.close(prompt_bufnr)
         local selection = action_state.get_selected_entry()
-        opts.on_select(directory .. selection[1])
+        opts.on_select(directory .. '/' .. selection[1])
       end)
       return true
     end,
@@ -346,7 +350,6 @@ function open_file_in_floating_window(file, line)
   local height = math.floor(vim.o.lines * 0.8)
   local col = (vim.o.columns - width) / 2 -- 0 es la parte de arriba
   local row = (vim.o.lines - height) / 2
-  line = line or 0
 
   local window_opts = {
     style = 'minimal',
@@ -360,6 +363,7 @@ function open_file_in_floating_window(file, line)
   }
 
   local win = vim.api.nvim_open_win(buf, true, window_opts)
+  vim.api.nvim_win_set_option(win, 'wrap', true)
 
   vim.api.nvim_set_current_buf(buf)
   vim.cmd('edit ' .. file)
@@ -368,7 +372,7 @@ function open_file_in_floating_window(file, line)
   vim.api.nvim_buf_set_option(buf, 'wrap', true)
   vim.api.nvim_buf_set_name(buf, file)
   vim.api.nvim_buf_call(buf, function()
-    vim.cmd 'write!'
+    vim.cmd 'silent! write!'
   end)
 
   vim.keymap.set('n', 'q', function()
@@ -385,7 +389,9 @@ function open_file_in_floating_window(file, line)
     end,
   })
 
-  vim.api.nvim_win_set_cursor(win, { line, 0 })
+  if line then
+    vim.api.nvim_win_set_cursor(win, { line, 0 })
+  end
 
   return {
     buf = buf,
