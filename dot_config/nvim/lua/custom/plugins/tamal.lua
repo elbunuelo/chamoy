@@ -36,7 +36,7 @@ function add_field(opts, form_opts)
   local width = opts.width or 50
   local height = opts.height or 1
   local col = (vim.o.columns - width) / 2 -- 0 es la parte de arriba
-  local row = vim.o.lines / 2
+  local row = (vim.o.lines - form_opts.total_height) / 2
   for _, field in ipairs(form_opts.fields) do
     row = row + 2 + field.height
   end
@@ -132,6 +132,12 @@ function create_form(opts)
     form_opts.fields = {}
   end
   form_opts.on_close = on_close
+
+  local total_height = 0
+  for _, field in ipairs(form_fields) do
+    total_height = total_height + 2 + (field.height or 1)
+  end
+  form_opts.total_height = total_height
 
   for _, field in ipairs(form_fields) do
     local new_field = add_field(field, form_opts)
