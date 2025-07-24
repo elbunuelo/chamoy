@@ -206,13 +206,13 @@ def time_blocks(_config)
 
   blocks = week[:days][today][:blocks]
 
-  puts "#{blocks[0][:start_time].strftime('%H:%M')} - #{blocks[0][:end_time].strftime('%H:%M')}"
+  puts "#{blocks[0][:start_time].strftime('%H:%M')} - #{blocks[0][:end_time].strftime('%H:%M')},actual"
   blocks.each_cons(2) do |first, second|
     if first[:end_time] != second[:start_time]
-      puts "#{first[:end_time].strftime('%H:%M')} - #{second[:start_time].strftime('%H:%M')}"
+      puts "#{first[:end_time].strftime('%H:%M')} - #{second[:start_time].strftime('%H:%M')},proposed"
     end
 
-    puts "#{second[:start_time].strftime('%H:%M')} - #{second[:end_time].strftime('%H:%M')}"
+    puts "#{second[:start_time].strftime('%H:%M')} - #{second[:end_time].strftime('%H:%M')},actual"
   end
 end
 

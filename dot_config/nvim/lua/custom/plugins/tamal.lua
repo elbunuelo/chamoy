@@ -177,12 +177,12 @@ end
 function parse_buf_time(buf)
   local line = vim.api.nvim_buf_get_lines(buf, 0, 1, false)[1]
 
-  local start_hours = string.sub(line, 1, 2)
-  local start_minutes = string.sub(line, 4, 5)
+  local start_hours = string.sub(line, 6, 7)
+  local start_minutes = string.sub(line, 9, 10)
   local start_timestamp = tonumber(start_hours) * 60 + tonumber(start_minutes)
 
-  local end_hours = string.sub(line, 9, 10)
-  local end_minutes = string.sub(line, 12, 13)
+  local end_hours = string.sub(line, 14, 15)
+  local end_minutes = string.sub(line, 17, 18)
   local end_timestamp = tonumber(end_hours) * 60 + tonumber(end_minutes)
 
   local current_word = vim.fn.expand '<cWORD>'
@@ -193,12 +193,12 @@ function parse_buf_time(buf)
 
   local cursor_location = vim.api.nvim_win_get_cursor(0)[2]
   local changing_time = 'end'
-  if cursor_location < 7 then
+  if cursor_location < 12 then
     changing_time = 'start'
   end
 
   local changing_part = 'minutes'
-  if cursor_location < 3 or (cursor_location >= 7 and cursor_location < 11) then
+  if cursor_location < 8 or (cursor_location >= 12 and cursor_location < 16) then
     changing_part = 'hours'
   end
 
@@ -216,7 +216,7 @@ function update_times(buf, start_timestamp, end_timestamp)
   local end_hour = math.floor(end_timestamp / 60)
   local end_minutes = end_timestamp - end_hour * 60
 
-  local updated_time = string.format('%02d:%02d - %02d:%02d', start_hour, start_minutes, end_hour, end_minutes)
+  local updated_time = string.format('󰊠 %02d:%02d - %02d:%02d', start_hour, start_minutes, end_hour, end_minutes)
 
   vim.api.nvim_buf_set_lines(buf, 0, 1, false, { updated_time })
 end
@@ -621,10 +621,14 @@ end
 function get_time_blocks(current_timestamp)
   local time_blocks_output = io.popen 'tamal --time-blocks'
   local time_blocks = {}
-  local time_block = time_blocks_output:read()
-  while time_block do
-    table.insert(time_blocks, time_block)
-    time_block = time_blocks_output:read()
+  local line = time_blocks_output:read()
+  while line do
+    local line_parts = vim.split(line, ',')
+    table.insert(time_blocks, {
+      block = line_parts[1],
+      type = line_parts[2],
+    })
+    line = time_blocks_output:read()
   end
 
   local block_start_timestamp = 0
@@ -632,7 +636,7 @@ function get_time_blocks(current_timestamp)
   local current_time_block_index = 1
   local exact_match_found = false
   for i, time_block in ipairs(time_blocks) do
-    local time_parts = vim.split(time_block, '-')
+    local time_parts = vim.split(time_block.block, '-')
     local start_timestamp = get_timestamp_from_time(time_parts[1])
     local end_timestamp = get_timestamp_from_time(time_parts[2])
 
@@ -653,7 +657,7 @@ function get_time_blocks(current_timestamp)
   end
 
   if block_start_timestamp == 0 then
-    local time_parts = vim.split(time_blocks[1], '-')
+    local time_parts = vim.split(time_blocks[1].block, '-')
     block_start_timestamp = get_timestamp_from_time(time_parts[1]) - 15 * 60
   end
 
@@ -662,8 +666,14 @@ function get_time_blocks(current_timestamp)
     table.insert(time_blocks, current_time_block_index, new_time_block)
   end
 
+  local time_block_sections = {}
+  for _, time_block in ipairs(time_blocks) do
+    local icon = time_block.type == 'actual' and '󰥔' or '󰊠'
+    table.insert(time_block_sections, icon .. ' ' .. time_block.block)
+  end
+
   return {
-    time_blocks = time_blocks,
+    time_blocks = time_block_sections,
     current_time_block_index = current_time_block_index,
   }
 end
