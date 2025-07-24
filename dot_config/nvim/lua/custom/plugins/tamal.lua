@@ -688,7 +688,8 @@ function add_task()
       local task = escape_shell_arg(values[2].content)
       local time_parts = vim.split(values[1].content, '-')
       local start_time = escape_shell_arg(vim.trim(time_parts[1]))
-      os.execute(string.format('tamal --add-task "%s" --time %s', task, start_time))
+      local end_time = escape_shell_arg(vim.trim(time_parts[2]))
+      os.execute(string.format('tamal --add-task "%s" --start-time %s --end-time %s', task, start_time, end_time))
     end,
   }
 end
