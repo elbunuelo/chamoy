@@ -668,7 +668,10 @@ function get_time_blocks(current_timestamp)
   end
 
   if not exact_match_found then
-    local new_time_block = os.date('%H:%M', block_start_timestamp) .. ' - ' .. os.date('%H:%M', block_end_timestamp)
+    local new_time_block = {
+      block = os.date('%H:%M', block_start_timestamp) .. ' - ' .. os.date('%H:%M', block_end_timestamp),
+      type = 'proposed',
+    }
     table.insert(time_blocks, current_time_block_index, new_time_block)
   end
 
@@ -702,9 +705,10 @@ function add_task()
     },
     on_submit = function(values)
       local task = escape_shell_arg(values[2].content)
-      local time_parts = vim.split(values[1].content, '-')
+      local time_parts = vim.split(string.sub(values[1].content, 6, #values[1].content), '-')
       local start_time = escape_shell_arg(vim.trim(time_parts[1]))
       local end_time = escape_shell_arg(vim.trim(time_parts[2]))
+      print('Executing: ' .. string.format('tamal --add-task "%s" --start-time %s --end-time %s', task, start_time, end_time))
       os.execute(string.format('tamal --add-task "%s" --start-time %s --end-time %s', task, start_time, end_time))
     end,
   }

@@ -263,14 +263,16 @@ def add_task(config)
       notes: []
     }
 
-    blocks.each_with_index do |block, i|
-      block_index = i
-      next if block[:start_time] < config.start_time
+    if blocks.count > 0 && config.start_time >= blocks[0][:start_time]
+      blocks.each_with_index do |block, i|
+        block_index = i
+        next if block[:start_time] < config.start_time
 
-      found = true
+        found = true
+      end
+      block_index = blocks.length unless found
     end
 
-    block_index = blocks.length unless found
     blocks.insert(
       block_index,
       new_block
