@@ -734,7 +734,7 @@ function add_note()
     },
     on_submit = function(values)
       local task = escape_shell_arg(values[2].content)
-      local time_parts = vim.split(values[1].content, '-')
+      local time_parts = vim.split(string.sub(values[1].content, 6, #values[1].content), '-')
       local start_time = escape_shell_arg(vim.trim(time_parts[1]))
       local end_time = escape_shell_arg(vim.trim(time_parts[2]))
       os.execute(string.format('tamal --note "%s" --start-time %s --end-time %s', task, start_time, end_time))
