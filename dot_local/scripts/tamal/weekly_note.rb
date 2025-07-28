@@ -269,6 +269,7 @@ def add_task(config)
         next if block[:start_time] < config.start_time
 
         found = true
+        break
       end
       block_index = blocks.length unless found
     end

@@ -708,7 +708,6 @@ function add_task()
       local time_parts = vim.split(string.sub(values[1].content, 6, #values[1].content), '-')
       local start_time = escape_shell_arg(vim.trim(time_parts[1]))
       local end_time = escape_shell_arg(vim.trim(time_parts[2]))
-      print('Executing: ' .. string.format('tamal --add-task "%s" --start-time %s --end-time %s', task, start_time, end_time))
       os.execute(string.format('tamal --add-task "%s" --start-time %s --end-time %s', task, start_time, end_time))
     end,
   }
@@ -737,7 +736,7 @@ function add_note()
       local time_parts = vim.split(string.sub(values[1].content, 6, #values[1].content), '-')
       local start_time = escape_shell_arg(vim.trim(time_parts[1]))
       local end_time = escape_shell_arg(vim.trim(time_parts[2]))
-      os.execute(string.format('tamal --note "%s" --start-time %s --end-time %s', task, start_time, end_time))
+      os.execute(string.format('tamal --note "%s" --start-time "%s" --end-time "%s"', task, start_time, end_time))
     end,
   }
 end
