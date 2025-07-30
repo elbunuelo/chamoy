@@ -42,6 +42,7 @@ function add_field(opts, form_opts)
   end
 
   local buf = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_set_option(buf, 'filetype', 'markdown')
   vim.api.nvim_buf_set_option(buf, 'textwidth', 80)
   vim.api.nvim_buf_set_option(buf, 'wrap', true)
 
