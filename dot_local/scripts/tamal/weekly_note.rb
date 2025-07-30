@@ -183,10 +183,7 @@ def tasks(config)
   week = parse_weekly_note
 
   # Check if the date exists in the weekly note
-  if week[:days][config.date].nil?
-    puts "No entries found for date: #{config.date}"
-    return
-  end
+  return [] if week[:days][config.date].nil?
 
   blocks = week[:days][config.date][:blocks]
 
@@ -332,20 +329,17 @@ def update_task(config)
   week = parse_weekly_note
 
   # Check if the date exists in the weekly note
-  if week[:days][config.date].nil?
-    puts "No entries found for date: #{config.date}"
-    return
-  end
+  return if week[:days][config.date].nil?
 
   blocks = week[:days][config.date][:blocks]
+  blocks.each do |block|
+    task = block[:tasks].detect { |t| t[:task].strip == config.task.strip }
 
-  # Find the block that contains the current time
-  block = blocks.detect { |b| config.time >= b[:start_time] && config.time <= b[:end_time] }
-  return unless block
-
-  # Find the task by matching its text
-  task = block[:tasks].detect { |t| t[:task].strip == config.task.strip }
-  task[:status] = config.status if task
+    if task
+      task[:status] = config.status
+      break
+    end
+  end
 
   output_weekly_note(week, config)
 end
