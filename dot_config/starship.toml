@@ -3,7 +3,7 @@ format="$hostname$directory$git_commit$git_branch$git_status$git_state[](fg:p
 [hostname]
 format="[](fg:#7e9cd8)[$hostname](bg:prev_fg fg:black)"
 ssh_only=false
-aliases={ "Vulture" = "󰰪 ", "taskmaster" = " ", "Tinkerer" = "󰯫 " }
+aliases={ "Vulture" = "󰰪 ", "taskmaster" = " ", "Tinkerer" = "󰯫 ", "Scorpion" = "󰰡 " }
 
 [directory]
 format="[](fg:prev_bg bg:#c34043)[ $path ](fg:black bg:prev_bg)"
