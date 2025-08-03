@@ -5,7 +5,12 @@ git clone https://github.com/asdf-vm/asdf.git ~/.asdf
 if [[ $(uname) == "Darwin" ]] then
   $HOMEBREW_PREFIX/bin/brew install asdf
 else
-  sudo dnf install -y asdf
+  distro=$(grep '^ID' /etc/os-release | cut -d '=' -f 2 | xargs) 
+  if [[ $distro == "fedora" ]] then
+    sudo dnf install -y asdf
+  elif [[ $distro == "arch" ]] then
+    sudo pacman -Sy --quiet --noconfirm asdf
+  fi
 fi
 
 asdf plugin add postgres

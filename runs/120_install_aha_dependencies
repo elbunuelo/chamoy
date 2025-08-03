@@ -4,5 +4,10 @@ if [[ $(uname) == "Darwin" ]] then
   $HOMEBREW_PREFIX/bin/brew install  awscli cmake diff-so-fancy direnv gh gnupg icu4c imagemagick krb5 llvm libomp memcached mkcert ngrok ninja openssl@1.1 openssl@3 overmind python python-setuptools redis ripgrep pkg-config openblas cairo pango libpng jpeg giflib librsvg pixman nss make eadline zlib curl ossp-uuid icu4c pkg-config
   $HOMEBREW_PREFIX/bin/brew services start memcached
   $HOMEBREW_PREFIX/bin/brew services start redis
+else
+  distro=$(grep '^ID' /etc/os-release | cut -d '=' -f 2 | xargs) 
+  if [[ $distro == "arch" ]] then
+    # TODO: Figure out dependencies, check out Jeremy's script
+  fi
 fi
 

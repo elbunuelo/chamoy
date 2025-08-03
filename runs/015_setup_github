@@ -3,7 +3,12 @@
 if [[ $(uname) == "Darwin" ]] then
   brew install gh
 else
-  sudo dnf install -y gh
+  distro=$(grep '^ID' /etc/os-release | cut -d '=' -f 2) 
+  if [[ $distro == 'fedora' ]] then
+    sudo dnf install -y gh
+  elif [[ $distro == 'arch' ]] then
+    sudo pacman -Sy --quiet --noconfirm github-cli
+  fi
 fi
 
 KEY_FILE="$HOME/.ssh/github"

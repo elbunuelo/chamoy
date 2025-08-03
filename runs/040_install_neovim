@@ -3,5 +3,10 @@
 if [[ $(uname) == "Darwin" ]] then
   $HOMEBREW_PREFIX/bin/brew install neovim
 else
-  sudo dnf install -y neovim
+  distro=$(grep '^ID' /etc/os-release | cut -d '=' -f 2) 
+  if [[ $distro == 'fedora' ]] then
+    sudo dnf install -y neovim
+  elif [[ $distro == 'arch' ]] then
+    sudo pacman -Sy --quiet --noconfirm neovim
+  fi
 fi

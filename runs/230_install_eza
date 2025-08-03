@@ -3,5 +3,10 @@
 if [[ $(uname) == "Darwin" ]] then
   $HOMEBREW_PREFIX/bin/brew install eza
 else
-  sudo dnf install -y eza
+  distro=$(grep '^ID' /etc/os-release | cut -d '=' -f 2 | xargs) 
+  if [[ $distro == "fedora" ]] then
+    sudo dnf install -y eza
+  elif [[ $distro == "arch" ]] then
+    sudo pacman -Sy --quiet --noconfirm eza
+  fi
 fi

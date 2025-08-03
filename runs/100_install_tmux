@@ -3,5 +3,10 @@
 if [[ $(uname) == "Darwin" ]] then
   $HOMEBREW_PREFIX/bin/brew install tmux
 else
-  sudo dnf install -y tmux
+  distro=$(grep '^ID' /etc/os-release | cut -d '=' -f 2 | xargs) 
+  if [[ $distro == "fedora" ]] then
+    sudo dnf install -y tmux
+  elif [[ $distro == "arch" ]] then
+    sudo pacman -Sy --quiet --noconfirm tmux
+  fi
 fi

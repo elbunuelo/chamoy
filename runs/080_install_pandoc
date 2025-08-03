@@ -3,5 +3,10 @@
 if [[ $(uname) == "Darwin" ]] then
   $HOMEBREW_PREFIX/bin/brew install pandoc
 else
-  sudo dnf install -y pandoc
+  distro=$(grep '^ID' /etc/os-release | cut -d '=' -f 2 | xargs) 
+  if [[ $distro == "fedora" ]] then
+    sudo dnf install -y pandoc
+  elif [[ $distro == "arch" ]] then
+    sudo pacman -Sy --quiet --noconfirm pandoc
+  fi
 fi

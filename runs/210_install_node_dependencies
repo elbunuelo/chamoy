@@ -2,4 +2,4 @@
 
 # Live server for auto reloading while developing
 # static sites
-npm i -g live-server
+sudo npm i -g live-server

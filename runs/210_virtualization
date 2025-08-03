@@ -1,8 +1,11 @@
 #! /usr/bin/env bash
 
 if [[ $(uname) == "Linux" ]] then
-  sudo dnf group install -y --with-optional virtualization
-  sudo systemctl start libvirtd
-  sudo systemctl enable libvirtd
-  lsmod | grep kvm
+  distro=$(grep '^ID' /etc/os-release | cut -d '=' -f 2 | xargs) 
+  if [[ $distro == "fedora" ]] then
+    sudo dnf group install -y --with-optional virtualization
+    sudo systemctl start libvirtd
+    sudo systemctl enable libvirtd
+    lsmod | grep kvm
+  fi
 fi

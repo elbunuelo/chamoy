@@ -1,0 +1,8 @@
+#! /usr/bin/env zsh
+
+if [[ $(uname) == "Linux" ]] then
+  distro=$(grep '^ID' /etc/os-release | cut -d '=' -f 2) 
+  if [[ $distro == 'arch' ]] then
+    sudo pacman -Sy --quiet --noconfirm yay
+  fi
+fi
