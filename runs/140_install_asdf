@@ -9,10 +9,10 @@ else
   if [[ $distro == "fedora" ]] then
     sudo dnf install -y asdf
   elif [[ $distro == "arch" ]] then
-    sudo pacman -Sy --quiet --noconfirm asdf
+    yay -Sy asdf-vm
   fi
 fi
 
 asdf plugin add postgres
 asdf plugin add ruby
-asdf plugin add ndoejs
+asdf plugin add nodejs
