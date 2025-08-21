@@ -1,7 +1,7 @@
 require_relative 'utils'
 class TamalConfig
   attr_accessor :debug, :action, :date, :time, :task, :note, :name, :template, :start_time, :end_time, :task_index,
-                :status, :section, :ticket_id, :ticket_link, :user_name, :user_link, :account_name, :account_link
+                :status, :section, :ticket_id, :ticket_link, :user_name, :user_link, :account_name, :account_link, :directory
 
   def initialize
     @debug = false
@@ -24,6 +24,7 @@ class TamalConfig
     @user_link = ''
     @account_name = ''
     @account_link = ''
+    @direcotry = 'notes'
 
     parse_options
   end

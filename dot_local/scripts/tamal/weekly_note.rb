@@ -19,6 +19,7 @@ end
 def open_weekly_note(config)
   config.name = File.basename(weekly_file_path)[0..-4]
   config.template = 'weekly'
+  config.directory = 'weekly'
 
   # Use prepare_note_file to create the file without opening it
   file_path = prepare_note_file(config)

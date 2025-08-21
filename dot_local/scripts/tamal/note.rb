@@ -31,8 +31,8 @@ end
 #
 # @param note_name [String] The name of the note.
 # @return [String] The full path to the note file.
-def get_note_path(note_name)
-  "#{NOTES_DIRECTORY}/#{note_name}.md"
+def get_note_path(directory, note_name)
+  "#{NOTES_DIRECTORY}/#{directory}/#{note_name}.md"
 end
 
 # Prepares a note file by applying a template and ensuring the file exists.
@@ -47,7 +47,7 @@ def prepare_note_file(config)
   end
 
   template_path = "#{TEMPLATES_DIRECTORY}/#{config.template}.md"
-  file_path = get_note_path(note_name)
+  file_path = get_note_path(config.directory, note_name)
   log("Destination filepath is #{file_path}", 'DEBUG', config)
 
   # Create notes directory if it doesn't exist
@@ -80,6 +80,7 @@ end
 # note is created and the template applied to it, replacing
 # mustache values when applicable.
 def open_note(config)
+  config.directory = 'notes'
   file_path = prepare_note_file(config)
   puts file_path
 end
