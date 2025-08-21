@@ -73,8 +73,8 @@ run() {
   copy_file dotfiles/dot_chela $HOME
 
   if [[ $(uname) == "Darwin" ]] then
-    execute skhd -r
-    execute launchctl kickstart -k gui/$(id -u)/org.pqrs.service.agent.karabiner_console_user_server
+    execute skhd --restart-service &
+    execute launchctl kickstart -k gui/$(id -u)/org.pqrs.service.agent.karabiner_console_user_server &
 
     execute mkdir -p $HOME/Library/KeyBindings
     execute copy_file Library/KeyBindings/DefaultKeyBinding.dict $HOME/Library/KeyBindings
