@@ -13,7 +13,7 @@ TASK_REGEX = /^\s*-\s+\[(?<status>[ x~])\](?<task>.*)/
 
 def weekly_file_path
   note_name = Time.now.strftime '%Y - Week %W'
-  "#{NOTES_DIRECTORY}/#{note_name}.md"
+  "#{NOTES_DIRECTORY}/weekly/#{note_name}.md"
 end
 
 def open_weekly_note(config)
