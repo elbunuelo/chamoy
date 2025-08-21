@@ -11,7 +11,7 @@ else
   fi
 fi
 
-grep fish /etc/shells > /dev/null 2>&1
+grep "$(which fish)" /etc/shells > /dev/null 2>&1
 if [[ $? != 0 ]] then
   sudo zsh -c "echo \"$(which fish)\" >> /etc/shells"
 fi
