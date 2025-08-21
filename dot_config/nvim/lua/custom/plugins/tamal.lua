@@ -353,7 +353,7 @@ end
 
 function open_file_in_floating_window(file, line)
   local buf = vim.api.nvim_create_buf(false, false)
-  local width = 80
+  local width = 120
   local height = math.floor(vim.o.lines * 0.8)
   local col = (vim.o.columns - width) / 2 -- 0 es la parte de arriba
   local row = (vim.o.lines - height) / 2
@@ -375,8 +375,8 @@ function open_file_in_floating_window(file, line)
   vim.api.nvim_set_current_buf(buf)
   vim.cmd('edit ' .. file)
   vim.api.nvim_buf_set_option(buf, 'filetype', 'markdown')
-  vim.api.nvim_buf_set_option(buf, 'textwidth', 80)
-  vim.api.nvim_buf_set_option(buf, 'wrap', true)
+  -- vim.api.nvim_buf_set_option(buf, 'textwidth', 75)
+  -- vim.api.nvim_buf_set_option(buf, 'wrap', true)
   vim.api.nvim_buf_set_name(buf, file)
   vim.api.nvim_buf_call(buf, function()
     vim.cmd 'silent! write!'
