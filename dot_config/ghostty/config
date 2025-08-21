@@ -9,4 +9,4 @@ keybind = alt+left=unbind
 keybind = alt+right=unbind
 keybind = cmd+shift+d=unbind
 
-command = $(which fish) --login --interactive
+command = $(which fish)
