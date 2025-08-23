@@ -7,7 +7,7 @@ else
   if [[ $distro == "fedora" ]] then
     sudo dnf install -y awscli
   elif [[ $distro == "arch" ]] then
-    sudo pacman -Sy --quiet --noconfirm awscli
+    sudo pacman -Sy --quiet --noconfirm aws-cli
   fi
 fi
 
