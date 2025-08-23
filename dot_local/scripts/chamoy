@@ -75,6 +75,13 @@ run() {
 
     execute mkdir -p $HOME/Library/KeyBindings
     execute copy_file Library/KeyBindings/DefaultKeyBinding.dict $HOME/Library/KeyBindings
+  else
+    distro=$(grep '^ID' /etc/os-release | cut -d '=' -f 2 | xargs) 
+    if [[ $distro == "arch" ]] then
+      hyprctl reload
+      pkill waybar
+      hyprctl dispatch exec waybar
+    fi
   fi
   popd
 }
