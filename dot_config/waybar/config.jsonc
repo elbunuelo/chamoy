@@ -13,6 +13,7 @@
     "custom/update"
   ],
   "modules-right": [
+    "idle_inhibitor",
     "group/tray-expander",
     "bluetooth",
     "network",
@@ -138,5 +139,12 @@
   "tray": {
     "icon-size": 12,
     "spacing": 12
+  },
+  "idle_inhibitor": {
+    "format": "{icon}  ",
+    "format-icons": {
+        "activated": "",
+        "deactivated": ""
+    }
   }
 }
