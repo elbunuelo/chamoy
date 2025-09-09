@@ -68,6 +68,7 @@ run() {
   tmux source-file $HOME
 
   copy_file dotfiles/dot_chela $HOME
+  copy_file dotfiles/dot_tool-versions $HOME
 
   if [[ $(uname) == "Darwin" ]] then
     execute skhd --restart-service &
