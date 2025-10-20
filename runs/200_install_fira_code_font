@@ -1,5 +1,10 @@
 #! /usr/bin/env zsh
 
+
+if [[ $(uname) == "Darwin" && !$(which wget) ]] then
+	brew install wget
+fi
+
 mkdir /tmp/firacode
 pushd /tmp/firacode
 wget https://github.com/ryanoasis/nerd-fonts/releases/latest/download/FiraCode.zip
