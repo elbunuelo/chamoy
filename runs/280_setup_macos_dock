@@ -1,0 +1,45 @@
+#!/usr/bin/env zsh
+set -euo pipefail
+
+if [[ $(uname) == "Darwin" ]] then
+	PLIST="$HOME/Library/Preferences/com.apple.dock.plist"
+	cp "$PLIST" "$PLIST.backup.$(date +%Y%m%d%H%M%S)" 2>/dev/null || true
+
+	# Remove all persistent items (apps and others) without PlistBuddy
+	defaults delete com.apple.dock persistent-apps 2>/dev/null || true
+	defaults write com.apple.dock persistent-apps -array
+
+	defaults delete com.apple.dock persistent-others 2>/dev/null || true
+	defaults write com.apple.dock persistent-others -array
+
+	# Optional: clear recent apps cache
+	defaults delete com.apple.dock recent-apps 2>/dev/null || true
+
+	# Dock size and magnification
+	defaults write com.apple.dock tilesize -int 48
+	defaults write com.apple.dock magnification -bool false
+	defaults write com.apple.dock largesize -int 64
+
+	# Position, effects, behaviors
+	defaults write com.apple.dock orientation -string "right"
+	defaults write com.apple.dock mineffect -string "genie"
+	defaults write com.apple.dock double-click-minimize -bool false
+	defaults write com.apple.dock double-click-window-zoom -bool true
+	defaults write com.apple.dock minimize-to-application -bool false
+	defaults write com.apple.dock autohide -bool true
+	defaults write com.apple.dock launchanim -bool true
+	defaults write com.apple.dock show-process-indicators -bool true
+	defaults write com.apple.dock show-recents -bool true
+
+	# Stage Manager
+	defaults write com.apple.WindowManager EnableStageManager -bool false
+	defaults write com.apple.WindowManager ShowRecentApplications -bool true
+	# 0=One at a Time, 1=By Application, 2=All at Once
+	defaults write com.apple.WindowManager AppWindowGroupingBehavior -int 2
+
+	# Widgets (Desktop widgets off)
+	defaults write com.apple.DesktopWidgetController DBEnabled -bool false 2>/dev/null || true
+
+	# Apply
+	killall Dock >/dev/null 2>&1 || true
+fi
