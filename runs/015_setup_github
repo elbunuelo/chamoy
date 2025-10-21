@@ -14,11 +14,11 @@ fi
 
 KEY_FILE="$HOME/.ssh/github"
 
-echo "Generating ssh key $KEY_FILE"
-echo "Enter User email for github key pair:"
-read USER_EMAIL
-ssh-keygen -t ed25519 -C "$USER_EMAIL" -f "$KEY_FILE"
+#echo "Generating ssh key $KEY_FILE"
+#echo "Enter User email for github key pair:"
+#read USER_EMAIL
+#ssh-keygen -t ed25519 -C "$USER_EMAIL" -f "$KEY_FILE"
 
-echo "Logging into github using the github cli"
-gh auth login -p https
+#echo "Logging into github using the github cli"
+#gh auth login -p https
 

@@ -18,5 +18,6 @@ if test "$(uname)" = "Darwin"
 end
 
 
-fish_add_path --prepend PATH "$HOME/.asdf/shims"
+#fish_add_path --prepend PATH "$HOME/.asdf/shims"
+~/.local/bin/mise activate fish | source
 fish_add_path "$HOME/.local/bin"
