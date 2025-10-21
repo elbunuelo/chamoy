@@ -16,5 +16,4 @@ if [[ $? != 0 ]] then
   sudo zsh -c "echo \"$(which fish)\" >> /etc/shells"
 fi
 
-chsh -s $(which fish)
 sudo zsh -c "ln -s \"$(which fish)\" /usr/local/bin/fish"
