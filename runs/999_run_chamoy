@@ -1,0 +1,4 @@
+#!/usr/bin/env zsh
+
+export XDG_CONFIG_HOME=$HOME/.config
+$HOME/Projects/chamoy/dot_local/scripts/chamoy
