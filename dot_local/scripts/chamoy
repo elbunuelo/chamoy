@@ -60,6 +60,7 @@ run() {
   pushd $CHAMOY_DIR
   copy_dir dot_config $XDG_CONFIG_HOME
   copy_file dot_config/starship.toml $XDG_CONFIG_HOME
+  curl -L -s -o $XDG_CONFIG_HOME/zellij/zjstatus.wasm https://github.com/dj95/zjstatus/releases/latest/download/zjstatus.wasm
 
   copy_dir dot_local $HOME/.local
 
@@ -77,7 +78,7 @@ run() {
     execute mkdir -p $HOME/Library/KeyBindings
     execute copy_file Library/KeyBindings/DefaultKeyBinding.dict $HOME/Library/KeyBindings
   else
-    distro=$(grep '^ID' /etc/os-release | cut -d '=' -f 2 | xargs) 
+    distro=$(grep '^ID' /etc/os-release | cut -d '=' -f 2 | xargs)
     if [[ $distro == "arch" ]] then
       hyprctl reload
       pkill waybar
