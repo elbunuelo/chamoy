@@ -11,7 +11,7 @@ GRAPHQL_QUERY='{"query":"query MyQuery {\n  account {\n    extensionFields(filte
 JQ_QUERY=$(printf '.["data"]["account"]["extensionFields"][0]["value"]["value"] | .[] | select(.name=="%s" or .name=="Engineering") | .["tickets"]' "$NAME")
 
 RESPONSE=$(curl -s 'https://big.aha.io/api/v2/graphql' \
-  -H "authorization: Bearer $AHA_API_KEY" \
+  -H "authorization: Bearer $AHA_API_TOKEN" \
   -H 'accept: application/json' \
   -H 'accept-language: en-US,en;q=0.9' \
   -H 'content-type: application/json' \
