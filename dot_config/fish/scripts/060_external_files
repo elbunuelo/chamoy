@@ -1,6 +1,6 @@
 #! /usr/bin/env fish
 
-set EXTERNAL_FILES .npm_token .zendesk_indicator .sentry .llm-sidekick .aha.nvim
+set EXTERNAL_FILES .npm_token .zendesk_indicator .sentry .aha-mcp .aha.nvim
 
 for FILE in $EXTERNAL_FILES
   set FILE_PATH "$HOME/$FILE"
