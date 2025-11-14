@@ -3,10 +3,11 @@ layout {
         children
         pane size=1 borderless=true {
             plugin location="file:~/.config/zellij/zjstatus.wasm" {
-                format_left   "{mode} #[fg=#89B4FA,bold]{session}"
-                format_center "{tabs}"
-                format_right  "{command_git_branch} {datetime}"
+                format_left   "{mode}#[fg=#ffffff,bg=#605B56]{session}#[fg=#605B56,bg=#1f1f28] {tabs}"
+
+                format_right "{command_right}{command_host}"
                 format_space  ""
+                fomrat_center "#[fg=#ffffff,bg=#1f1f28]"
 
                 border_enabled  "false"
                 border_char     "─"
@@ -15,20 +16,34 @@ layout {
 
                 hide_frame_for_single_pane "true"
 
-                mode_normal  "#[bg=blue] "
-                mode_tmux    "#[bg=#ffc387] "
+                mode_locked        "#[fg=#7E9CD8,bg=#1f1f28]#[fg=#1f1f28,bg=#7E9CD8]#[fg=#7E9CD8,bg=#605B56]"
+                mode_resize        "#[fg=#83B692,bg=#1f1f28]#[fg=#1f1f28,bg=#83B692]󰩨#[fg=#83B692,bg=#605B56]"
+                mode_pane          "#[fg=#957fb8,bg=#1f1f28]#[fg=#1f1f28,bg=#957fb8]#[fg=#957fb8,bg=#605B56]"
+                mode_tab           "#[fg=#DCA561,bg=#1f1f28]#[fg=#1f1f28,bg=#DCA561]󰓩#[fg=#DCA561,bg=#605B56]"
+                mode_scroll        "#[fg=#76946A,bg=#1f1f28]#[fg=#1f1f28,bg=#76946A]#[fg=#76946A,bg=#605B56]"
+                mode_enter_search  "#[fg=#173753,bg=#1f1f28]#[fg=#ffffff,bg=#173753]󱈄#[fg=#173753,bg=#605B56]"
+                mode_search        "#[fg=#173753,bg=#1f1f28]#[fg=#ffffff,bg=#173753]#[fg=#173753,bg=#605B56]"
+                mode_rename_tab    "#[fg=#C34043,bg=#1f1f28]#[fg=#ffffff,bg=#C34043]#[fg=#C34043,bg=#605B56]"
+                mode_rename_pane   "#[fg=#C34043,bg=#1f1f28]#[fg=#ffffff,bg=#C34043]#[fg=#C34043,bg=#605B56]"
+                mode_move          "#[fg=#A63A50,bg=#1f1f28]#[fg=#ffffff,bg=#A63A50]#[fg=#A63A50,bg=#605B56]"
+                mode_session       "#[fg=#FFBF46,bg=#1f1f28]#[fg=#1f1f28,bg=#FFBF46]#[fg=#FFBF46,bg=#605B56]"
+                mode_prompt        "#[fg=#F0E7D8,bg=#1f1f28]#[fg=#1f1f28,bg=#F0E7D8]#[fg=#F0E7D8,bg=#605B56]"
+                mode_normal        "#[fg=#44BBA4,bg=#1f1f28]#[fg=#1f1f28,bg=#44BBA4]#[fg=#44BBA4,bg=#605B56]"
 
-                tab_normal   "#[fg=#6C7086] {name} "
-                tab_active   "#[fg=#9399B2,bold,italic] {name} "
 
-                command_git_branch_command     "git rev-parse --abbrev-ref HEAD"
-                command_git_branch_format      "#[fg=blue] {stdout} "
-                command_git_branch_interval    "10"
-                command_git_branch_rendermode  "static"
+                tab_normal   "#[fg=#ffffff,bg=#1f1f28] {index} #[fg=#ffffff,bg=#1f1f28] {name} "
+                tab_active   "#[fg=#957fb8,bg=#1f1f28]#[fg=#1f1f28,bg=#957fb8] {index} #[fg=#1f1f28,bg=#957fb8] {name} #[fg=#957fb8,bg=#1f1f28]"
 
-                datetime        "#[fg=#6C7086,bold] {format} "
-                datetime_format "%A, %d %b %Y %H:%M"
-                datetime_timezone "Europe/Berlin"
+
+                command_right_command     "~/.local/scripts/tmux/right.sh"
+                command_right_format      "{stdout}"
+                command_right_interval    "300"
+                command_right_rendermode  "static"
+
+                command_host_command "hostname"
+                command_host_format  "#[fg=#7e9cd8]#[fg=black,bg=#7e9cd8] {stdout}#[fg=#7e9cd8,bg=black]#[fg=#303030,bg=#1f1f28]"
+                command_host_interval    "0"
+                command_host_rendermode  "static"
             }
         }
     }
