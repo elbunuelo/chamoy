@@ -7,6 +7,14 @@ local prettier_config = { 'prettierd', 'prettier', stop_after_first = true }
 
 return { -- Autoformat
   'stevearc/conform.nvim',
+  build = function()
+    if vim.fn.exepath 'rubocop-daemon-wrapper' ~= '' then
+      return
+    end
+    if vim.fn.executable 'gem' == 1 then
+      os.execute 'gem install rubocop-daemon'
+    end
+  end,
   event = { 'BufWritePre' },
   cmd = { 'ConformInfo' },
   keys = {
@@ -52,6 +60,12 @@ return { -- Autoformat
       less = prettier_config,
       scss = prettier_config,
       ruby = { 'rubocop' },
+    },
+    formatters = {
+      rubocop = {
+        command = 'rubocop-daemon-wrapper', -- provided by rubocop-daemon
+        args = { '--auto-correct-all', '--stderr', '--force-exclusion', '--stdin', '$FILENAME' },
+      },
     },
   },
 }
