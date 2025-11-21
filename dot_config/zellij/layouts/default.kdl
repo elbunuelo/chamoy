@@ -5,7 +5,7 @@ layout {
             plugin location="file:~/.config/zellij/zjstatus.wasm" {
                 format_left   "{mode}#[fg=#1f1f28,bg=#7E9CD8]{session}#[fg=#7E9CD8,bg=#1f1f28] {tabs}"
 
-                format_right "{command_right}{command_host}"
+                format_right "{pipe_zjstatus_hints}{command_right}{command_host}"
                 format_space  ""
                 fomrat_center "#[fg=#ffffff,bg=#1f1f28]"
 
@@ -35,15 +35,17 @@ layout {
                 tab_active   "#[fg=#957fb8,bg=#1f1f28]#[fg=#1f1f28,bg=#957fb8] {index} #[fg=#1f1f28,bg=#957fb8] {name} #[fg=#957fb8,bg=#1f1f28]"
 
 
-                command_right_command     "~/.local/scripts/tmux/right.sh"
+                command_right_command     "fish -c ~/.local/scripts/tmux/right.sh"
                 command_right_format      "{stdout}"
-                command_right_interval    "300"
-                command_right_rendermode  "static"
+                command_right_interval    "60"
+                command_right_rendermode  "dynamic"
 
                 command_host_command "hostname"
                 command_host_format  "#[fg=#7e9cd8]#[fg=black,bg=#7e9cd8] {stdout}#[fg=#7e9cd8,bg=black]#[fg=#303030,bg=#1f1f28]"
                 command_host_interval    "0"
                 command_host_rendermode  "static"
+
+                pipe_zjstatus_hints_format "{output}"
             }
         }
     }
