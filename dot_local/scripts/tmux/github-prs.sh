@@ -2,16 +2,16 @@
 
 USER_NAME="elbunuelo"
 TEAM_NAME="knowledge-team"
-MILLIS_SINCE_UPDATE=99999
+SECONDS_SINCE_UPDATE=99999
 OUTPUT_FILE="prs-output"
 
 cd "$(dirname "$0")"
 if [[ -f "$OUTPUT_FILE" ]]
 then
-  MILLIS_SINCE_UPDATE=$((($(date +%s) - $(date -r "$OUTPUT_FILE" +%s))))
+  SECONDS_SINCE_UPDATE=$(bc --expression "$(date +%s) - $(date -r "$OUTPUT_FILE" +%s)")
 fi
 
-if [[ $MILLIS_SINCE_UPDATE > 300000 ]]
+if [[ $SECONDS_SINCE_UPDATE -gt 300 ]]
 then
   ICON=""
   USER_ICON=""
