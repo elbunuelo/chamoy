@@ -8,6 +8,7 @@ keybinds clear-defaults=true {
 
   shared_except "locked" {
     bind "Shift Esc" { SwitchToMode "normal"; }
+    bind "Ctrl g" { SwitchToMode "locked"; }
 
     bind "Alt z" { ToggleFocusFullscreen; }
     bind "Alt e" { TogglePaneEmbedOrFloating; }
@@ -79,8 +80,8 @@ keybinds clear-defaults=true {
     bind "7" { GoToTab 7; SwitchToMode "normal"; }
     bind "8" { GoToTab 8; SwitchToMode "normal"; }
     bind "9" { GoToTab 9; SwitchToMode "normal"; }
-    bind "p" { GoToPreviousTab; SwitchToMode "normal"; }
-    bind "n" { GoToNextTab; SwitchToMode "normal"; }
+    bind "h" { GoToPreviousTab; SwitchToMode "normal"; }
+    bind "l" { GoToNextTab; SwitchToMode "normal"; }
     bind "r" { SwitchToMode "renametab"; TabNameInput 0; }
     bind "x" { CloseTab; SwitchToMode "normal"; }
     bind "[" { BreakPaneLeft; SwitchToMode "normal"; }
@@ -137,16 +138,18 @@ keybinds clear-defaults=true {
       }
       SwitchToMode "normal"
     }
+    bind "d" { Detach; }
   }
 
-    move {
-      bind "h" { MovePane "left"; }
-      bind "j" { MovePane "down"; }
-      bind "k" { MovePane "up"; }
-      bind "l" { MovePane "right"; }
-      bind "n" { MovePane; }
-      bind "p" { MovePaneBackwards; }
-    }
+  move {
+    bind "h" { MovePane "left"; }
+    bind "j" { MovePane "down"; }
+    bind "k" { MovePane "up"; }
+    bind "l" { MovePane "right"; }
+    bind "n" { MovePane; }
+    bind "p" { MovePaneBackwards; }
+  }
+}
 
 // Plugin aliases - can be used to change the implementation of Zellij
 // changing these requires a restart to take effect
@@ -162,9 +165,9 @@ plugins {
     status-bar location="zellij:status-bar"
     strider location="zellij:strider"
     tab-bar location="zellij:tab-bar"
-    welcome-screen location="zellij:session-manager" {
-        welcome_screen true
-    }
+    // welcome-screen location="zellij:session-manager" {
+    //     welcome_screen true
+    // }
     //  zjstatus-hints location="https://github.com/b0o/zjstatus-hints/releases/latest/download/zjstatus-hints.wasm" {
     //     // Maximum number of characters to display
     //     max_length 0 // 0 = unlimited
