@@ -148,35 +148,35 @@ keybinds clear-defaults=true {
       bind "p" { MovePaneBackwards; }
     }
 
-// // Plugin aliases - can be used to change the implementation of Zellij
-// // changing these requires a restart to take effect
-// plugins {
-//     about location="zellij:about"
-//     compact-bar location="zellij:compact-bar"
-//     configuration location="zellij:configuration"
-//     filepicker location="zellij:strider" {
-//         cwd "/"
-//     }
-//     plugin-manager location="zellij:plugin-manager"
-//     session-manager location="zellij:session-manager"
-//     status-bar location="zellij:status-bar"
-//     strider location="zellij:strider"
-//     tab-bar location="zellij:tab-bar"
-//     welcome-screen location="zellij:session-manager" {
-//         welcome_screen true
-//     }
-//      zjstatus-hints location="https://github.com/b0o/zjstatus-hints/releases/latest/download/zjstatus-hints.wasm" {
-//         // Maximum number of characters to display
-//         max_length 0 // 0 = unlimited
-//         // String to append when truncated
-//         overflow_str "..." // default
-//         // Name of the pipe for zjstatus integration
-//         pipe_name "zjstatus_hints" // default
-//         // Hide hints in base mode (a.k.a. default mode)
-//         // E.g. if you have set default_mode to "locked", then
-//         // you can hide hints in the locked mode by setting this to true
-//         hide_in_base_mode false // default
-//     }
+// Plugin aliases - can be used to change the implementation of Zellij
+// changing these requires a restart to take effect
+plugins {
+    // about location="zellij:about"
+    // compact-bar location="zellij:compact-bar"
+    // configuration location="zellij:configuration"
+    filepicker location="zellij:strider" {
+        cwd "/"
+    }
+    plugin-manager location="zellij:plugin-manager"
+    session-manager location="zellij:session-manager"
+    status-bar location="zellij:status-bar"
+    strider location="zellij:strider"
+    tab-bar location="zellij:tab-bar"
+    welcome-screen location="zellij:session-manager" {
+        welcome_screen true
+    }
+    //  zjstatus-hints location="https://github.com/b0o/zjstatus-hints/releases/latest/download/zjstatus-hints.wasm" {
+    //     // Maximum number of characters to display
+    //     max_length 0 // 0 = unlimited
+    //     // String to append when truncated
+    //     overflow_str "..." // default
+    //     // Name of the pipe for zjstatus integration
+    //     pipe_name "zjstatus_hints" // default
+    //     // Hide hints in base mode (a.k.a. default mode)
+    //     // E.g. if you have set default_mode to "locked", then
+    //     // you can hide hints in the locked mode by setting this to true
+    //     hide_in_base_mode false // default
+    // }
 }
 
 // Plugins to load in the background when a new session starts
