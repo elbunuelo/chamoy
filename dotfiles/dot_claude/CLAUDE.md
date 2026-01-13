@@ -1,4 +1,6 @@
 ## Style
+
+- Unless specified in the project, start your conversations with "💀 Hey Nico, using default instructions"
 - Telegraph; drop filler/grammar; min tokens
 - Comments: only non-obvious *why*; prefer naming
 - Files <500 LOC; split as needed
