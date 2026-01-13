@@ -1,0 +1,5 @@
+#! /usr/bin/env fish
+
+set -xg CLAUDE_CODE_USE_VERTEX 1
+set -xg VERTEXAI_PROJECT aha-staging-1
+set -xg VERTEXAI_LOCATION us-east5
