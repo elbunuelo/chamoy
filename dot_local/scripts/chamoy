@@ -71,6 +71,10 @@ run() {
   copy_file dotfiles/dot_chela $HOME
   copy_file dotfiles/dot_tool-versions $HOME
 
+  execute mkdir -p $HOME/.claude
+  copy_dir dotfiles/dot_claude $HOME/.claude
+  copy_file dotfiles/dot_claude/CLAUDE.md $HOME/.claude
+
   if [[ $(uname) == "Darwin" ]] then
     execute skhd --restart-service &
     execute launchctl kickstart -k gui/$(id -u)/org.pqrs.service.agent.karabiner_console_user_server &
