@@ -26,30 +26,6 @@ Projects use these documentation files:
 - **DEPENDENCIES.md**: Feature dependency tree (in `features/`)
 - **Feature files**: Individual specs in `features/` directory with status, requirements, e2e test references
 
-## Definition of Done
-Before marking feature "Done":
-1. New classes instantiated in production entry point
-2. E2E test exists proving feature works at runtime
-3. Manual smoke test performed once
-4. Feature file references e2e test file
-
-## E2E Test Scope
-E2E tests REQUIRED when feature:
-- Adds user-visible UI (icons, text, sections)
-- Adds view mode or navigation flow
-- Integrates external service (API, browser)
-- Adds persistence (cache, config)
-
-E2E tests NOT required for:
-- Internal refactors (no behavior change)
-- Documentation only
-- Tooling/build changes
-
-## Red Flags (block completion)
-- Commented requires for feature code
-- New class with unit tests but no instantiation in entry point
-- Feature "Done" without e2e test
-
 ## Workflow Agents
 
 ### Implementation Flow
@@ -91,6 +67,7 @@ E2E tests NOT required for:
 - Pattern: create todo list for workflow steps immediately; mark in_progress/completed in real-time
 
 ### Sub-agent Escalation
+- Sub-agents write important context for other sub-agents in the feature file.
 - Sub-agents can't dispatch other sub-agents; return to parent with escalation request
 - Pattern: sub-agent reports "user wants [agent] for [task]", parent dispatches target agent
 - Never continue without escalating when user requests different agent
