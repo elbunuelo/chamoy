@@ -30,6 +30,8 @@ Projects use these documentation files:
 
 ## Workflow Agents
 
+- Whenever an agent needs to get input from the user, bring it to the foreground.
+
 ### Implementation Flow
 0. **brainstormer**: Discuss new features, ideas, or improvements (optional)
    - Explore problem space before committing to solution
