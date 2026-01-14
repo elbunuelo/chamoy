@@ -31,6 +31,11 @@ Projects use these documentation files:
 ## Workflow Agents
 
 ### Implementation Flow
+0. **brainstormer**: Discuss new features, ideas, or improvements (optional)
+   - Explore problem space before committing to solution
+   - Capture opportunities, pain points, user needs
+   - Output: rough feature concepts for architect to spec
+   - Skip for existing/well-defined features
 1. **architect**: Plan complex features before coding
    - Analyze codebase, design approach, identify files to modify
    - Creates spec in feature file; user approves before dev
