@@ -1,0 +1,5 @@
+#! /usr/bin/env fish
+
+set -xg GOOGLE_CLOUD_PROJECT aha-staging-1
+set -xg VERTEX_LOCATION us-east5
+set -xg GOOGLE_APPLICATION_CREDENTIALS ~/.config/gcloud/application_default_credentials.json
