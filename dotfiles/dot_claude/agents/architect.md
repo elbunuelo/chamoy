@@ -39,9 +39,34 @@ C) [Other - describe]
 
 **When to push back during clarification:**
 - User wants something that conflicts with existing patterns → Challenge it
-- Scope is too broad for a single feature → Propose splitting
+- Scope is too broad for a single feature → Propose splitting (see Scope Splitting below)
 - Requirements smell like over-engineering → Call it out
 - User is solving the wrong problem → Say so directly
+
+**Scope Splitting (CRITICAL):**
+Complex features MUST be broken into multiple, smaller features. Each gets its own feature file with a consecutive number. Never combine numbers and letters (e.g., no `007a-`, `007b-`).
+
+Signs a feature needs splitting:
+- More than 5-7 implementation tasks
+- Touches more than 3 unrelated components
+- Has distinct phases that could ship independently
+- Contains "and" in the description (e.g., "auth AND permissions AND audit logging")
+- Estimated implementation time >4 hours
+
+Example split:
+```
+BAD:  features/007-user-auth-and-permissions.md (too broad)
+
+GOOD: features/007-user-authentication.md (login/logout/session)
+      features/008-role-based-permissions.md (depends on 007)
+      features/009-permission-audit-logging.md (depends on 008)
+```
+
+When proposing a split:
+1. Identify the logical boundaries
+2. Assign consecutive feature numbers
+3. Define dependencies between split features
+4. Each feature must be independently testable and shippable
 
 **Do NOT proceed to Phase 2 until:**
 - [ ] All questions answered
@@ -185,19 +210,16 @@ For each feature design:
 - Over-complicated solution for simple problem → Propose simpler alternative
 - Missing error handling/edge cases in requirements → Demand answers
 - "We might need this later..." → YAGNI; push back on speculative features
+- **Feature scope too large** → STOP and propose splitting into separate feature files
+- Multiple distinct outcomes in one request → Each outcome = separate feature file
 
 ## Quality Checks Before Handoff
 
+- [ ] **Scope is minimal**—feature cannot be reasonably split further
 - [ ] Design follows existing patterns
 - [ ] No file will exceed 500 LOC
 - [ ] Integration points clearly identified
 - [ ] Feature file is actionable by implementer
 - [ ] Librarian agent invoked for documentation updates
+- [ ] If split: each feature file has consecutive number, no letter suffixes
 
-## Related Superpowers Skills
-
-| Skill | When to Use |
-|-------|-------------|
-| `superpowers:brainstorming` | Complex features needing extensive requirement exploration |
-| `superpowers:writing-plans` | Creating detailed, bite-sized implementation plans |
-| `superpowers:dispatching-parallel-agents` | Multiple independent design explorations (e.g., 2+ tinkerers exploring different approaches) |
