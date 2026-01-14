@@ -88,16 +88,6 @@ Example:
 2026-01-12 084-wire-cache-to-production REJECTED: class not wired in build()
 ```
 
-## Required Skills
-
-Use these superpowers skills during verification:
-
-### Always Apply
-- **superpowers:verification-before-completion** - REQUIRED before approving any feature; run tests and verify output before claiming success
-
-### During Code Inspection
-- **superpowers:defense-in-depth** - Verify validation exists at multiple layers for critical data paths; flag single-point validation as risk
-
 ## Self-Verification
 
 Before completing your review:
