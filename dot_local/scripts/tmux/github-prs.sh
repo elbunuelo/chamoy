@@ -4,69 +4,75 @@ USER_NAME="elbunuelo"
 TEAM_NAME="knowledge-team"
 SECONDS_SINCE_UPDATE=99999
 OUTPUT_FILE="prs-output"
+LOCK_FILE="prs-output.lock"
 
 cd "$(dirname "$0")"
-if [[ -f "$OUTPUT_FILE" ]]
-then
-  SECONDS_SINCE_UPDATE=$(bc --expression "$(date +%s) - $(date -r "$OUTPUT_FILE" +%s)")
-fi
 
-if [[ $SECONDS_SINCE_UPDATE -gt 300 ]]
-then
-  ICON=""
-  USER_ICON=""
-  TEAM_ICON=""
-  APPROVED_ICON=""
-  CHECKING_ICON=""
-  FAILURE_ICON=""
-  CHANGES_ICON=""
-  COMMENTS_ICON=""
+(
+  flock -n 9 || exit 0
 
-  STATUS="$ICON "
-
-  PRS_WAITING_FOR_REVIEW=$(gh search prs --repo=aha-app/aha-app --state open "user-review-requested:$USER_NAME" | wc -l | xargs)
-  if [[ "$PRS_WAITING_FOR_REVIEW" != "0" ]]
+  if [[ -f "$OUTPUT_FILE" ]]
   then
-    STATUS=$(printf "%s %s" "$STATUS" "$USER_ICON $PRS_WAITING_FOR_REVIEW")
+    SECONDS_SINCE_UPDATE=$(bc --expression "$(date +%s) - $(date -r "$OUTPUT_FILE" +%s)")
   fi
 
-  TEAM_PRS_WAITING_FOR_REVIEW=$(gh search prs --repo=aha-app/aha-app --state open "team-review-requested:aha-app/$TEAM_NAME" | wc -l | xargs)
-  if [[ "$TEAM_PRS_WAITING_FOR_REVIEW" != "0" ]]
+  if [[ $SECONDS_SINCE_UPDATE -gt 300 ]]
   then
-    STATUS=$(printf "%s %s" "$STATUS" "$TEAM_ICON $TEAM_PRS_WAITING_FOR_REVIEW")
-  fi
+    ICON=""
+    USER_ICON=""
+    TEAM_ICON=""
+    APPROVED_ICON=""
+    CHECKING_ICON=""
+    FAILURE_ICON=""
+    CHANGES_ICON=""
+    COMMENTS_ICON=""
 
-  PRS_APPROVED=$(gh search prs --repo=aha-app/aha-app --state open --author "$USER_NAME" --review approved | wc -l | xargs)
-  if [[ "$PRS_APPROVED" != "0" ]]
-  then
-    STATUS=$(printf "%s %s" "$STATUS" "$APPROVED_ICON $PRS_APPROVED")
-  fi
+    STATUS="$ICON "
 
-  PRS_FAILED=$(gh search prs --repo=aha-app/aha-app --state open --author "$USER_NAME" --checks failure "draft:false" | wc -l | xargs)
-  if [[ "$PRS_FAILED" != "0" ]]
-  then
-    STATUS=$(printf "%s %s" "$STATUS" "$FAILURE_ICON $PRS_FAILED")
-  fi
+    PRS_WAITING_FOR_REVIEW=$(gh search prs --repo=aha-app/aha-app --state open "user-review-requested:$USER_NAME" | wc -l | xargs)
+    if [[ "$PRS_WAITING_FOR_REVIEW" != "0" ]]
+    then
+      STATUS=$(printf "%s %s" "$STATUS" "$USER_ICON $PRS_WAITING_FOR_REVIEW")
+    fi
 
-  PRS_CHECKING=$(gh search prs --repo=aha-app/aha-app --state open --author "$USER_NAME" --checks pending "draft:false" | wc -l | xargs)
-  if [[ "$PRS_CHECKING" != "0" ]]
-  then
-    STATUS=$(printf "%s %s" "$STATUS" "$CHECKING_ICON $PRS_CHECKING")
-  fi
+    TEAM_PRS_WAITING_FOR_REVIEW=$(gh search prs --repo=aha-app/aha-app --state open "team-review-requested:aha-app/$TEAM_NAME" | wc -l | xargs)
+    if [[ "$TEAM_PRS_WAITING_FOR_REVIEW" != "0" ]]
+    then
+      STATUS=$(printf "%s %s" "$STATUS" "$TEAM_ICON $TEAM_PRS_WAITING_FOR_REVIEW")
+    fi
 
-  PRS_CHANGES_REQUESTED=$(gh search prs --repo=aha-app/aha-app --state open --author "$USER_NAME" --review changes_requested | wc -l | xargs)
-  if [[ "$PRS_CHANGES_REQUESTED" != "0" ]]
-  then
-    STATUS=$(printf "%s %s" "$STATUS" "$CHANGES_ICON $PRS_CHANGES_REQUESTED")
-  fi
+    PRS_APPROVED=$(gh search prs --repo=aha-app/aha-app --state open --author "$USER_NAME" --review approved | wc -l | xargs)
+    if [[ "$PRS_APPROVED" != "0" ]]
+    then
+      STATUS=$(printf "%s %s" "$STATUS" "$APPROVED_ICON $PRS_APPROVED")
+    fi
 
-  PRS_COMMENTS=$(gh search prs --repo=aha-app/aha-app --state open --author "$USER_NAME" --comments ">0"  | wc -l | xargs)
-  if [[ "$PRS_COMMENTS" != "0" ]]
-  then
-    STATUS=$(printf "%s %s" "$STATUS" "$COMMENTS_ICON $PRS_COMMENTS")
-  fi
+    PRS_FAILED=$(gh search prs --repo=aha-app/aha-app --state open --author "$USER_NAME" --checks failure "draft:false" | wc -l | xargs)
+    if [[ "$PRS_FAILED" != "0" ]]
+    then
+      STATUS=$(printf "%s %s" "$STATUS" "$FAILURE_ICON $PRS_FAILED")
+    fi
 
-  echo "$STATUS" > "$OUTPUT_FILE"
-fi
+    PRS_CHECKING=$(gh search prs --repo=aha-app/aha-app --state open --author "$USER_NAME" --checks pending "draft:false" | wc -l | xargs)
+    if [[ "$PRS_CHECKING" != "0" ]]
+    then
+      STATUS=$(printf "%s %s" "$STATUS" "$CHECKING_ICON $PRS_CHECKING")
+    fi
+
+    PRS_CHANGES_REQUESTED=$(gh search prs --repo=aha-app/aha-app --state open --author "$USER_NAME" --review changes_requested | wc -l | xargs)
+    if [[ "$PRS_CHANGES_REQUESTED" != "0" ]]
+    then
+      STATUS=$(printf "%s %s" "$STATUS" "$CHANGES_ICON $PRS_CHANGES_REQUESTED")
+    fi
+
+    PRS_COMMENTS=$(gh search prs --repo=aha-app/aha-app --state open --author "$USER_NAME" --comments ">0"  | wc -l | xargs)
+    if [[ "$PRS_COMMENTS" != "0" ]]
+    then
+      STATUS=$(printf "%s %s" "$STATUS" "$COMMENTS_ICON $PRS_COMMENTS")
+    fi
+
+    echo "$STATUS" > "$OUTPUT_FILE"
+  fi
+) 9>"$LOCK_FILE"
 
 cat "$OUTPUT_FILE"
