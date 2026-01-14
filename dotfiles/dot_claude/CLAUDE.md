@@ -73,6 +73,21 @@ Projects use these documentation files:
 - Multi-step workflows need TodoWrite tracking; memory leads to skipped steps
 - Pattern: create todo list for workflow steps immediately; mark in_progress/completed in real-time
 
+### Integration Gap Prevention
+- Unit tests can pass while feature is broken: class implemented + tested but never instantiated in entry point
+- **code-reviewer** must grep for new class names → verify they appear in build()/main()
+- Commented requires signal incomplete integration; treat as blocker
+
+### Documentation Drift Prevention
+- Features can be implemented (tests pass) but docs show "Pending" when librarian step skipped
+- **librarian** is non-optional after code-reviewer passes
+- **overseer** verifies: feature file status matches implementation reality
+
+### Orphaned Feature Prevention
+- Feature files can exist without PRIORITIES.md entry when normal workflow skipped
+- **architect** must add to PRIORITIES.md when creating feature file
+- **overseer** verifies: all `features/NNN-*.md` have corresponding PRIORITIES entry
+
 ### Sub-agent Escalation
 - Sub-agents write important context for other sub-agents in the feature file.
 - Sub-agents can't dispatch other sub-agents; return to parent with escalation request
