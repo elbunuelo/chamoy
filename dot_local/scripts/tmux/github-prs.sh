@@ -18,14 +18,14 @@ cd "$(dirname "$0")"
 
   if [[ $SECONDS_SINCE_UPDATE -gt 300 ]]
   then
-    ICON=""
-    USER_ICON=""
-    TEAM_ICON=""
-    APPROVED_ICON=""
-    CHECKING_ICON=""
-    FAILURE_ICON=""
-    CHANGES_ICON=""
-    COMMENTS_ICON=""
+    ICON=""
+    USER_ICON=""
+    TEAM_ICON=""
+    APPROVED_ICON=""
+    CHECKING_ICON=""
+    FAILURE_ICON=""
+    CHANGES_ICON=""
+    COMMENTS_ICON=""
 
     STATUS="$ICON "
 
