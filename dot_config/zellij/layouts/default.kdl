@@ -16,7 +16,7 @@ layout {
 
                 // hide_frame_for_single_pane "true"
 
-                mode_locked        "#[fg=#7E9CD8,bg=#1f1f28]#[fg=#1f1f28,bg=#7E9CD8]#[fg=#7E9CD8,bg=#7E9CD8]"
+                mode_locked        "#[fg=#44BBA4,bg=#1f1f28]#[fg=#1f1f28,bg=#44BBA4]#[fg=#44BBA4,bg=#7E9CD8]"
                 mode_resize        "#[fg=#83B692,bg=#1f1f28]#[fg=#1f1f28,bg=#83B692]󰩨#[fg=#83B692,bg=#7E9CD8]"
                 mode_pane          "#[fg=#957fb8,bg=#1f1f28]#[fg=#1f1f28,bg=#957fb8]#[fg=#957fb8,bg=#7E9CD8]"
                 mode_tab           "#[fg=#DCA561,bg=#1f1f28]#[fg=#1f1f28,bg=#DCA561]󰓩#[fg=#DCA561,bg=#7E9CD8]"
@@ -28,7 +28,7 @@ layout {
                 mode_move          "#[fg=#A63A50,bg=#1f1f28]#[fg=#ffffff,bg=#A63A50]#[fg=#A63A50,bg=#7E9CD8]"
                 mode_session       "#[fg=#FFBF46,bg=#1f1f28]#[fg=#1f1f28,bg=#FFBF46]#[fg=#FFBF46,bg=#7E9CD8]"
                 mode_prompt        "#[fg=#F0E7D8,bg=#1f1f28]#[fg=#1f1f28,bg=#F0E7D8]#[fg=#F0E7D8,bg=#7E9CD8]"
-                mode_normal        "#[fg=#44BBA4,bg=#1f1f28]#[fg=#1f1f28,bg=#44BBA4]#[fg=#44BBA4,bg=#7E9CD8]"
+                mode_normal        "#[fg=#7E9CD8,bg=#1f1f28]#[fg=#1f1f28,bg=#7E9CD8]#[fg=#7E9CD8,bg=#7E9CD8]"
 
 
                 tab_normal   "#[fg=#ffffff,bg=#1f1f28] {index} #[fg=#ffffff,bg=#1f1f28] {name} "
