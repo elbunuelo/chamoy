@@ -2,6 +2,7 @@ keybinds clear-defaults=true {
   shared_except "locked" "tab" {
     bind "Alt t" { SwitchToMode "tab"; }
   }
+
   shared_except "locked" "pane" {
     bind "Alt p" { SwitchToMode "pane"; }
   }
@@ -70,6 +71,7 @@ keybinds clear-defaults=true {
     bind "e" { TogglePaneEmbedOrFloating; SwitchToMode "normal"; }
     bind "z" { ToggleFocusFullscreen; SwitchToMode "normal"; }
     bind "i" { TogglePanePinned; SwitchToMode "normal"; }
+    bind "Alt p" { SwitchToMode "normal"; }
   }
 
   tab {
@@ -90,6 +92,7 @@ keybinds clear-defaults=true {
     bind "]" { BreakPaneRight; SwitchToMode "normal"; }
     bind "b" { BreakPane; SwitchToMode "normal"; }
     bind "n" { NewTab; SwitchToMode "normal"; }
+    bind "Alt t" { SwitchToMode "normal"; }
   }
 
   renametab {
@@ -106,10 +109,15 @@ keybinds clear-defaults=true {
       bind "c" { SearchToggleOption "CaseSensitivity"; }
       bind "o" { SearchToggleOption "WholeWord"; }
       bind "w" { SearchToggleOption "Wrap"; }
+
+      bind "Alt /" { SwitchToMode "normal"; }
+      bind "Alt ?" { SwitchToMode "normal"; }
   }
 
   scroll {
     bind "e" { EditScrollback; SwitchToMode "normal"; }
+
+      bind "Alt [" { SwitchToMode "normal"; }
   }
 
   resize {
@@ -123,6 +131,8 @@ keybinds clear-defaults=true {
       bind "j" { Resize "Increase down"; }
       bind "k" { Resize "Increase up"; }
       bind "l" { Resize "Increase right"; }
+
+      bind "Alt r" { SwitchToMode "normal"; }
   }
 
   session {
@@ -141,6 +151,8 @@ keybinds clear-defaults=true {
       SwitchToMode "normal"
     }
     bind "d" { Detach; }
+
+    bind "Alt o" { SwitchToMode "normal"; }
   }
 
   move {
@@ -150,6 +162,11 @@ keybinds clear-defaults=true {
     bind "l" { MovePane "right"; }
     bind "n" { MovePane; }
     bind "p" { MovePaneBackwards; }
+
+    bind "H" { MoveTab "left"; }
+    bind "L" { MoveTab "right"; }
+
+    bind "Alt m" { SwitchToMode "normal"; }
   }
 }
 
