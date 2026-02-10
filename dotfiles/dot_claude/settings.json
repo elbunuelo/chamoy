@@ -1,0 +1,12 @@
+{
+  "model": "claude-opus-4-6",
+  "permissions": {
+    "additionalDirectories": [
+      "~/Projects/claude"
+    ]
+  },
+  "enabledPlugins": {
+    "capture-learnings@aha-claude-marketplace": true,
+    "skill-creator@aha-claude-marketplace": true
+  }
+}

@@ -19,14 +19,32 @@
 - Never skip pre-commit hooks
 
 ## Auxiliary Files
-Projects use these documentation files:
+
+Auxiliary/documentation files live **outside** the project repo, in a shared docs directory:
+
+```
+~/Projects/claude/projects/<project_name>/
+```
+
+`<project_name>` = last segment of the project's working directory (e.g., `/Users/me/Projects/aha-app` → `aha-app`).
+
+**Resolve the docs dir at the start of every session:**
+```bash
+DOCS_DIR="$HOME/Projects/claude/projects/$(basename "$PWD")"
+mkdir -p "$DOCS_DIR/features"
+```
+
+All auxiliary file references below are relative to `$DOCS_DIR`:
 - **PROJECT.md**: Overview, features, stack, development commands
 - **ARCHITECTURE.md**: System design, component relationships, data flow
 - **CHANGELOG.md**: Version history and changes
 - **LEARNINGS.md**: Non-obvious discoveries from implementation
-- **PRIORITIES.md**: Feature backlog with priority order (in `features/`)
-- **DEPENDENCIES.md**: Feature dependency tree (in `features/`)
-- **Feature files**: Individual specs in `features/` directory with status, requirements, e2e test references
+- **APPROVALS.md**: Overseer verdicts
+- **features/PRIORITIES.md**: Feature backlog with priority order
+- **features/DEPENDENCIES.md**: Feature dependency tree
+- **features/NNN-name.md**: Individual specs with status, requirements, e2e test references
+
+**Never write these files to the project repo root.** Always use `$DOCS_DIR`.
 
 ## Workflow Agents
 
@@ -55,13 +73,13 @@ Projects use these documentation files:
    - No commented-out requires
    - E2E test covers feature path
    - Verify feature file has e2e test reference
-4. **librarian**: Invoked at two points:
-   - **After architect**: PRIORITIES.md, DEPENDENCIES.md
+4. **librarian**: Invoked at two points (all docs in `$DOCS_DIR`):
+   - **After architect**: features/PRIORITIES.md, features/DEPENDENCIES.md
    - **After code-reviewer**: ARCHITECTURE.md, PROJECT.md, CHANGELOG.md, feature file (status→Done), LEARNINGS.md
-5. **overseer**: After librarian, verify before commit
+5. **overseer**: After librarian, verify before commit (all docs in `$DOCS_DIR`):
    - Runs unit tests and e2e tests
-   - PRIORITIES.md: completed features struck through
-   - DEPENDENCIES.md: completed features removed from tree
+   - features/PRIORITIES.md: completed features struck through
+   - features/DEPENDENCIES.md: completed features removed from tree
    - Feature file status matches implementation state
    - Documented patterns applied correctly
 6. **tinkerer**: After overseer, identify automation opportunities
@@ -87,8 +105,8 @@ Projects use these documentation files:
 
 ### Orphaned Feature Prevention
 - Feature files can exist without PRIORITIES.md entry when normal workflow skipped
-- **architect** must add to PRIORITIES.md when creating feature file
-- **overseer** verifies: all `features/NNN-*.md` have corresponding PRIORITIES entry
+- **architect** must add to `$DOCS_DIR/features/PRIORITIES.md` when creating feature file
+- **overseer** verifies: all `$DOCS_DIR/features/NNN-*.md` have corresponding PRIORITIES entry
 
 ### Sub-agent Escalation
 - Sub-agents write important context for other sub-agents in the feature file.

@@ -34,13 +34,24 @@ Update:
 ### Always (if applicable)
 - **LEARNINGS.md**: Add non-obvious learnings (skip if obvious)
 
+## Docs Directory
+
+All auxiliary files live in `$DOCS_DIR` (see CLAUDE.md "Auxiliary Files" section). Resolve it first:
+```bash
+DOCS_DIR="$HOME/Projects/claude/projects/$(basename "$PWD")"
+mkdir -p "$DOCS_DIR/features"
+```
+
+All file references below (PROJECT.md, ARCHITECTURE.md, CHANGELOG.md, LEARNINGS.md, features/) are relative to `$DOCS_DIR`, **not** the project repo root.
+
 ## Workflow
 
-1. First, read the recent code changes to understand what was modified
-2. Identify which documentation files need updates
-3. Review current state of each doc file before modifying
-4. Make targeted, minimal updates that accurately reflect changes
-5. Ensure consistency across all documentation
+1. Resolve `$DOCS_DIR` and ensure it exists
+2. Read the recent code changes to understand what was modified
+3. Identify which documentation files need updates
+4. Review current state of each doc file before modifying
+5. Make targeted, minimal updates that accurately reflect changes
+6. Ensure consistency across all documentation
 
 ## Documentation Style
 

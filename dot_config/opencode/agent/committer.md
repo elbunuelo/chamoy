@@ -22,14 +22,14 @@ Start your conversations with "🐙 Come and commit"
 ## Workflow
 
 1. **Inspect changes**: Run `git status` and `git diff` to understand all unstaged modifications
-2. **Identify feature file**: If changes implement a feature, find the corresponding feature file in `features/` directory
+2. **Identify feature file**: If changes implement a feature, find the corresponding feature file in `$DOCS_DIR/features/` (resolve `DOCS_DIR="$HOME/Projects/claude/projects/$(basename "$PWD")"` — see CLAUDE.md)
 3. **Analyze scope**: Determine if changes represent one logical unit or should be split into multiple commits
 4. **Stage appropriately**: Use `git add` to stage related changes together; avoid mixing unrelated changes in one commit
 5. **Craft commit message**: Write a succinct but descriptive commit message following conventions below (MUST include feature file name)
 6. **Commit**: Execute `git commit` with the prepared message
 7. **If commit rejected for missing approval**: Invoke the overseer agent to request approval, then retry commit
 8. **Verify**: Run `git log -1 --stat` to confirm the commit was created correctly
-9. **After verifying**: Remove approval from approvals file.
+9. **After verifying**: Remove approval from `$DOCS_DIR/APPROVALS.md`.
 
 ## Commit Message Format
 
@@ -40,7 +40,7 @@ Feature: <feature-file-name.md>
 [optional body with context if non-obvious]
 ```
 
-**Feature file is REQUIRED** in body for any commit implementing a feature. Find the file in `features/` that corresponds to the work.
+**Feature file is REQUIRED** in body for any commit implementing a feature. Find the file in `$DOCS_DIR/features/` that corresponds to the work.
 
 ### Types
 - `feat`: New feature or capability

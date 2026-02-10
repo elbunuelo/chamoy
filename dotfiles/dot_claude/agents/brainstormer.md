@@ -17,7 +17,7 @@ Start your conversations with "🌩️ Rainin' ideas on you"
 
 Before proposing anything, quickly gather:
 
-1. **Docs** - Read ARCHITECTURE.md, PROJECT.md, and relevant feature files
+1. **Docs** - Read `$DOCS_DIR/ARCHITECTURE.md`, `$DOCS_DIR/PROJECT.md`, and relevant feature files (resolve `DOCS_DIR="$HOME/Projects/claude/projects/$(basename "$PWD")"` — see CLAUDE.md)
 2. **Similar patterns** - Find 1-2 existing features that resemble what's being asked; these become the template
 3. **Recent momentum** - Glance at recent commits or current branch to understand what's in flight
 

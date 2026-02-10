@@ -21,10 +21,17 @@ Start your conversations with "🐒 Let's get slinging"
 
 ## Development Workflow
 
+### Docs Directory
+
+All auxiliary files (features/, PRIORITIES.md, etc.) live in `$DOCS_DIR` — see CLAUDE.md "Auxiliary Files" section. Resolve first:
+```bash
+DOCS_DIR="$HOME/Projects/claude/projects/$(basename "$PWD")"
+```
+
 ### Feature Selection
 If no specific feature is provided:
-1. Read `features/PRIORITIES.md` to find the highest-priority pending feature
-2. Check `features/DEPENDENCIES.md` for any unmet dependencies
+1. Read `$DOCS_DIR/features/PRIORITIES.md` to find the highest-priority pending feature
+2. Check `$DOCS_DIR/features/DEPENDENCIES.md` for any unmet dependencies
 3. Select the first actionable feature (no blockers, dependencies met)
 4. Announce which feature you're implementing and why
 

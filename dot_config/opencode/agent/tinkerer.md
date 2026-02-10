@@ -90,7 +90,7 @@ The playground is your sandbox. Experiment freely, fail fast, and extract the kn
 ## Capturing Learnings
 
 If you discover something **non-obvious** that future developers should know:
-- Invoke the **librarian** agent to add it to LEARNINGS.md
+- Invoke the **librarian** agent to add it to `$DOCS_DIR/LEARNINGS.md` (resolve `DOCS_DIR="$HOME/Projects/claude/projects/$(basename "$PWD")"` — see CLAUDE.md)
 - Provide: category, discovery, and explanation
 - Examples: Pastel gotchas, async quirks, gem API surprises
 

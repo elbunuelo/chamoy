@@ -77,13 +77,21 @@ When proposing a split:
 - [ ] You have challenged any questionable decisions
 - [ ] The feature scope is crystal clear
 
+## Docs Directory
+
+All auxiliary files (PROJECT.md, ARCHITECTURE.md, features/, etc.) live in `$DOCS_DIR` — see CLAUDE.md "Auxiliary Files" section. Resolve first:
+```bash
+DOCS_DIR="$HOME/Projects/claude/projects/$(basename "$PWD")"
+mkdir -p "$DOCS_DIR/features"
+```
+
 ## Phase 2: Analyze Current State
 
-1. Read ARCHITECTURE.md, PROJECT.md, and relevant source files
+1. Read `$DOCS_DIR/ARCHITECTURE.md`, `$DOCS_DIR/PROJECT.md`, and relevant source files
 2. Understand existing patterns, conventions, and component boundaries
 3. Check for existing AGENTS.md files via `fd AGENTS.md`
 4. Mirror patterns from ~2 similar existing implementations before proposing new ones
-5. **Review existing feature files** in `features/` directory:
+5. **Review existing feature files** in `$DOCS_DIR/features/` directory:
    - Check for duplicates or overlapping features
    - Extract valuable context from related feature specs
    - If duplicate found → Stop and inform user
@@ -111,7 +119,7 @@ When proposing a split:
 
 **Related skill:** `superpowers:writing-plans` - use for detailed implementation plans.
 
-1. Write feature specification files in `features/` directory (or appropriate location)
+1. Write feature specification files in `$DOCS_DIR/features/` directory
 2. Include: purpose, acceptance criteria, implementation steps, component touchpoints
 3. Use ASCII diagrams for data flow when helpful
 4. Keep docs tight and high-signal—no filler

@@ -36,14 +36,21 @@ From LEARNINGS.md:
 - **Pastel/ANSI**: String methods (`ljust`, `length`, `[]`) count ANSI escapes - must use `@pastel.strip` first for width calculations
 - **Integration Gaps**: Classes can be implemented and tested but never instantiated in production `build()` method - always verify wiring
 
+## Docs Directory
+
+All auxiliary files (LEARNINGS.md, ARCHITECTURE.md, PROJECT.md, APPROVALS.md, features/) live in `$DOCS_DIR` — see CLAUDE.md "Auxiliary Files" section. Resolve first:
+```bash
+DOCS_DIR="$HOME/Projects/claude/projects/$(basename "$PWD")"
+```
+
 ## Verification Process
 
-1. **Gather Context**: Read LEARNINGS.md, relevant sections of ARCHITECTURE.md, and any subtree AGENTS.md files (`fd AGENTS.md`)
+1. **Gather Context**: Read `$DOCS_DIR/LEARNINGS.md`, relevant sections of `$DOCS_DIR/ARCHITECTURE.md`, and any subtree AGENTS.md files (`fd AGENTS.md`)
 2. **Check Scripts Index**: Read `playground/SCRIPTS.md` for existing automation/verification scripts that may help
 3. **Identify Risk Areas**: Determine which learnings apply to the code under review
 4. **Inspect Code**: Use `rg` to search for patterns that may violate documented learnings
 5. **Check Integration**: For new classes, verify they are wired into production code paths
-6. **Compare Documentation**: Ensure ARCHITECTURE.md diagrams and PROJECT.md features match actual implementation
+6. **Compare Documentation**: Ensure `$DOCS_DIR/ARCHITECTURE.md` diagrams and `$DOCS_DIR/PROJECT.md` features match actual implementation
 
 ## Decision Framework
 
@@ -90,11 +97,11 @@ Provide a structured report:
 
 ## Recording Verdicts
 
-After completing verification, append your verdict to `APPROVALS.md`:
+After completing verification, append your verdict to `$DOCS_DIR/APPROVALS.md`:
 
 **Format**: `YYYY-MM-DD NNN-feature-name APPROVED: reason` or `YYYY-MM-DD NNN-feature-name REJECTED: reason`
 
-- Use the feature file name (without `.md`) exactly as it appears in `features/`
+- Use the feature file name (without `.md`) exactly as it appears in `$DOCS_DIR/features/`
 - Keep reason brief but specific (e.g., "tests pass, docs consistent" or "missing e2e test")
 
 Example:
@@ -109,7 +116,7 @@ Before completing your review:
 - Did you run verification commands with fresh output (not cached results)?
 - Did you check all entries in LEARNINGS.md against relevant code?
 - Did you verify new classes are wired into build/initialization paths?
-- Did you compare ARCHITECTURE.md diagrams with actual code structure?
+- Did you compare `$DOCS_DIR/ARCHITECTURE.md` diagrams with actual code structure?
 - Did you check for defense-in-depth validation on critical paths?
 - Are your handoff recommendations clear and actionable?
-- Did you record your verdict in APPROVALS.md?
+- Did you record your verdict in `$DOCS_DIR/APPROVALS.md`?

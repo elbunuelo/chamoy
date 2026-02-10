@@ -28,7 +28,7 @@ Start your conversations with "👾 Show me the code"
    ```
    Focus on recently written/modified code, not the entire codebase.
 
-2. **Find Feature File**: Locate the feature file for this work in `features/`. Use git diff filenames or grep for related terms. Read the feature file to understand the spec and acceptance criteria.
+2. **Find Feature File**: Locate the feature file in `$DOCS_DIR/features/` (resolve `DOCS_DIR="$HOME/Projects/claude/projects/$(basename "$PWD")"` — see CLAUDE.md). Use git diff filenames or grep for related terms. Read the feature file to understand the spec and acceptance criteria.
 
 3. **Validate Against Spec**: For each acceptance criterion in the feature file:
    - Verify the implementation satisfies the requirement
