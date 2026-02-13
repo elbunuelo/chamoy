@@ -10,7 +10,6 @@ set -gx XDG_CONFIG_HOME "$HOME/.config"
 set -gx TERM xterm-256color
 set -gx TZ "America/Bogota"
 
-fish_add_path $HOME/.local/scripts/tamal
 fish_add_path $HOME/.local/scripts
 
 if test "$(uname)" = "Darwin"
