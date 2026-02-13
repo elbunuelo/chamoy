@@ -6,6 +6,7 @@ return {
     'antoinemadec/FixCursorHold.nvim',
     'nvim-treesitter/nvim-treesitter',
     'nvim-neotest/neotest-jest',
+    'olimorris/neotest-rspec',
   },
   opts = {
     status = { virtual_text = true },
@@ -106,6 +107,15 @@ return {
             return vim.fn.getcwd()
           end,
         },
+        require('neotest-rspec')({
+          rspec_cmd = function()
+            return vim.tbl_flatten({
+              'bundle',
+              'exec',
+              'rspec',
+            })
+          end,
+        }),
       },
     }
   end,

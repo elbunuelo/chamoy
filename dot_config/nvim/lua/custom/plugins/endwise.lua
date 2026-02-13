@@ -1,0 +1,4 @@
+return {
+  'tpope/vim-endwise',
+  ft = { 'ruby', 'eruby', 'lua', 'elixir', 'crystal' },
+}
