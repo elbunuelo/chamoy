@@ -75,6 +75,8 @@ run() {
   copy_dir dotfiles/dot_claude $HOME/.claude
   copy_file dotfiles/dot_claude/CLAUDE.md $HOME/.claude
 
+  execute cp $CHAMOY_DIR/CHAMOY_CLAUDE.md $HOME/CLAUDE.md
+
   if [[ $(uname) == "Darwin" ]] then
     execute skhd --restart-service &
     execute launchctl kickstart -k gui/$(id -u)/org.pqrs.service.agent.karabiner_console_user_server &
