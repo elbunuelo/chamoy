@@ -115,7 +115,7 @@ return {
       "Toggle REPL"
     },
     {
-      "<leader>ds",
+      "<leader>dS",
       function() require("dap").session() end,
       desc =
       "Session"
