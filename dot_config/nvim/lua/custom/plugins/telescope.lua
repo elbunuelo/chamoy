@@ -8,7 +8,6 @@ vim.keymap.set('n', '<leader>P', function()
   }
 end, { desc = 'Search including hidden files' })
 
-vim.keymap.set('n', '<leader>b', require('telescope.builtin').buffers, { desc = 'Search open buffers' })
 vim.keymap.set('n', '<leader>??', require('telescope.builtin').help_tags, { desc = 'Search help' })
 
 local pickers = require 'telescope.pickers'
@@ -41,10 +40,7 @@ local live_multigrep = function(opts)
         end
       end
 
-      return vim.tbl_flatten {
-        args,
-        { '--color=never', '--no-heading', '--with-filename', '--line-number', '--column', '--smart-case' },
-      }
+      return vim.list_extend(args, { '--color=never', '--no-heading', '--with-filename', '--line-number', '--column', '--smart-case' })
     end,
     entry_maker = make_entry.gen_from_vimgrep(opts),
     cwd = opts.cwd,

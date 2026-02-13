@@ -10,7 +10,7 @@ function setup_lazygit()
     -- function to run on opening the terminal
     on_open = function(term)
       vim.cmd 'startinsert!'
-      vim.api.nvim_buf_set_keymap(term.bufnr, 'n', 'q', '<cmd>close<CR>', { noremap = true, silent = true })
+      vim.keymap.set('n', 'q', '<cmd>close<CR>', { buffer = term.bufnr, noremap = true, silent = true })
     end,
     -- function to run on closing the terminal
     on_close = function(term)
@@ -39,7 +39,7 @@ function setup_aha()
       -- function to run on opening the terminal
       on_open = function(term)
         vim.cmd 'startinsert!'
-        vim.api.nvim_buf_set_keymap(term.bufnr, 'n', '<esc>', '<cmd>startinsert<CR><C-c>', { noremap = true, silent = true })
+        vim.keymap.set('n', '<esc>', '<cmd>startinsert<CR><C-c>', { buffer = term.bufnr, noremap = true, silent = true })
       end,
       -- function to run on closing the terminal
       on_close = function(term)

@@ -1,7 +1,10 @@
 return {
-  'norcalli/nvim-colorizer.lua',
+  'catgoose/nvim-colorizer.lua',
+  event = 'BufReadPre',
   opts = {
-    '*',
-    css = { css = true },
+    filetypes = { '*' },
+    user_default_options = {
+      css = true,
+    },
   },
 }

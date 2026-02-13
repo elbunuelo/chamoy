@@ -66,9 +66,6 @@ require('lazy').setup({
   -- NOTE: First, some plugins that don't require any configuration
   --
 
-  -- Git related plugins
-  'tpope/vim-rhubarb',
-
   -- Detect tabstop and shiftwidth automatically
   'tpope/vim-sleuth',
 
@@ -87,18 +84,6 @@ require('lazy').setup({
       -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
       { 'j-hui/fidget.nvim', opts = {} },
       'saghen/blink.cmp',
-    },
-    opts = {
-      diagnostics = {
-        signs = {
-          text = {
-            [vim.diagnostic.severity.ERROR] = ' ',
-            [vim.diagnostic.severity.WARN] = ' ',
-            [vim.diagnostic.severity.HINT] = ' ',
-            [vim.diagnostic.severity.INFO] = ' ',
-          },
-        },
-      },
     },
     config = function()
       -- Brief aside: **What is LSP?**
@@ -221,20 +206,10 @@ require('lazy').setup({
         end,
       })
 
-      -- Change diagnostic symbols in the sign column (gutter)
-      -- if vim.g.have_nerd_font then
-      --   local signs = { ERROR = '', WARN = '', INFO = '', HINT = '' }
-      --   local diagnostic_signs = {}
-      --   for type, icon in pairs(signs) do
-      --     diagnostic_signs[vim.diagnostic.severity[type]] = icon
-      --   end
-      --   vim.diagnostic.config { signs = { text = diagnostic_signs } }
-      -- end
-
       -- LSP servers and clients are able to communicate to each other what features they support.
       --  By default, Neovim doesn't support everything that is in the LSP specification.
-      --  When you add nvim-cmp, luasnip, etc. Neovim now has *more* capabilities.
-      --  So, we create new capabilities with nvim cmp, and then broadcast that to the servers.
+      --  When you add blink.cmp, luasnip, etc. Neovim now has *more* capabilities.
+      --  So, we create new capabilities with blink.cmp, and then broadcast that to the servers.
       local capabilities = vim.lsp.protocol.make_client_capabilities()
 
       -- Enable the following language servers
@@ -247,14 +222,6 @@ require('lazy').setup({
         -- gopls = {},
         -- pyright = {},
         -- rust_analyzer = {},
-        ts_ls = {
-          init_options = {
-            preferences = {
-              importModuleSpecifierPreference = 'relative',
-              importModuleSpecifierEnding = 'minimal',
-            },
-          },
-        },
         ruby_lsp = {
           init_options = {
             formatter = 'none',
@@ -270,7 +237,16 @@ require('lazy').setup({
             },
           },
         },
-        vtsls = {},
+        vtsls = {
+          settings = {
+            typescript = {
+              preferences = {
+                importModuleSpecifier = 'relative',
+                importModuleSpecifierEnding = 'minimal',
+              },
+            },
+          },
+        },
         cssls = {},
         html = {},
         stylelint_lsp = {},
@@ -282,22 +258,13 @@ require('lazy').setup({
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
-      --       function(server_name)
-      --   require('lspconfig')[server_name].setup {
-      --     capabilities =
-      --     on_attach = on_attach,
-      --     settings = servers[server_name] and servers[server_name].settings or {},
-      --     init_options = servers[server_name] and servers[server_name].init_options or {},
-      --   }
-      -- end,
-
       require('mason-lspconfig').setup {
         handlers = {
           function(server_name)
             local server = servers[server_name] or {}
             -- This handles overriding only values explicitly passed
             -- by the server configuration above. Useful when disabling
-            -- certain features of an LSP (for example, turning off formatting for ts_ls)
+            -- certain features of an LSP (for example, turning off formatting for vtsls)
             local blink_capabilities = require('blink.cmp').get_lsp_capabilities(server.capabilities or {})
             server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, blink_capabilities)
             require('lspconfig')[server_name].setup(server)

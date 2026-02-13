@@ -1,8 +1,5 @@
--- Unless you are still migrating, remove the deprecated commands from v1.x
-vim.cmd [[ let g:neo_tree_remove_legacy_commands = 1 ]]
-
-vim.keymap.set({ 'n' }, '<leader>n', ':Neotree toggle<CR>')
-vim.keymap.set({ 'n' }, '<leader>m', ':Neotree reveal<CR>')
+vim.keymap.set({ 'n' }, '<leader>n', ':Neotree toggle<CR>', { desc = 'Toggle file tree' })
+vim.keymap.set({ 'n' }, '<leader>m', ':Neotree reveal<CR>', { desc = 'Reveal file in tree' })
 
 return {
   'nvim-neo-tree/neo-tree.nvim',

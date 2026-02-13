@@ -5,7 +5,7 @@ local wheels_config = {
   default_wheel = '01',
 }
 
-if (vim.uv or vim.lop).fs_stat(PLUGIN_DIR) then
+if (vim.uv or vim.loop).fs_stat(PLUGIN_DIR) then
   return {
     {
       dir = PLUGIN_DIR,

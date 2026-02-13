@@ -86,11 +86,11 @@ return {
   },
   config = function()
     require('neotest').setup {
-      log_level = vim.log.levels.TRACE,
+      log_level = vim.log.levels.WARN,
       discovery = { enabled = true },
       adapters = {
         require 'neotest-jest' {
-          log_level = vim.log.levels.TRACE,
+          log_level = vim.log.levels.WARN,
           jest_test_discovery = true,
           jestCommand = 'pnpm jest --watch',
           jestConfigFile = function(file)
@@ -109,11 +109,11 @@ return {
         },
         require('neotest-rspec')({
           rspec_cmd = function()
-            return vim.tbl_flatten({
+            return {
               'bundle',
               'exec',
               'rspec',
-            })
+            }
           end,
         }),
       },
