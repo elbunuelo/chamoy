@@ -169,6 +169,10 @@ require('lazy').setup({
           --  For example, in C this would take you to the header.
           map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
 
+          -- LSP utility keymaps
+          map('<leader>li', '<cmd>LspInfo<cr>', '[L]SP [I]nfo')
+          map('<leader>lr', '<cmd>LspRestart<cr>', '[L]SP [R]estart')
+
           -- The following two autocommands are used to highlight references of the
           -- word under your cursor when your cursor rests there for a little while.
           --    See `:help CursorHold` for information about when this is executed
@@ -203,9 +207,23 @@ require('lazy').setup({
           --
           -- This may be unwanted, since they displace some of your code
           if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
+            vim.lsp.inlay_hint.enable(true, { bufnr = event.buf })
             map('<leader>th', function()
               vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
             end, '[T]oggle Inlay [H]ints')
+          end
+
+          -- Refresh and run code lenses (inline actionable annotations like "Run Test")
+          if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_codeLens) then
+            map('<leader>cl', vim.lsp.codelens.run, '[C]ode [L]ens Run')
+            map('<leader>cL', vim.lsp.codelens.refresh, '[C]ode [L]ens Refresh')
+
+            local codelens_augroup = vim.api.nvim_create_augroup('kickstart-lsp-codelens', { clear = false })
+            vim.api.nvim_create_autocmd({ 'BufEnter', 'CursorHold', 'InsertLeave' }, {
+              buffer = event.buf,
+              group = codelens_augroup,
+              callback = vim.lsp.codelens.refresh,
+            })
           end
         end,
       })
@@ -540,6 +558,12 @@ require('nvim-treesitter').setup {
       },
     },
   },
+}
+
+-- Diagnostic config
+vim.diagnostic.config {
+  virtual_text = true,
+  severity_sort = true,
 }
 
 -- Diagnostic keymaps
