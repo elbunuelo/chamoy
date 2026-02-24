@@ -1,0 +1,1 @@
+@CHAMOY_CLAUDE.md
