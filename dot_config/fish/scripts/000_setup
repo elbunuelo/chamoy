@@ -16,6 +16,8 @@ if test "$(uname)" = "Darwin"
   /opt/homebrew/bin/brew shellenv | source
 end
 
-mise activate fish | source
+if which mise > /dev/null
+  mise activate fish | source
+end
 
 fish_add_path "$HOME/.local/bin"
