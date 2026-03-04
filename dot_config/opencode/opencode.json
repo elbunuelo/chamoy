@@ -4,5 +4,11 @@
     "external_directory": {
       "~/Projects/claude/**": "allow"
     }
+  },
+  "mcp": {
+     "figma-mcp-dektop": {
+       "type": "remote",
+       "url": "http://127.0.0.1:3845/mcp"
+     }
   }
 }
