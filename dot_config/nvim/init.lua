@@ -179,7 +179,7 @@ require('lazy').setup({
           --
           -- When you move your cursor, the highlights will be cleared (the second autocommand).
           local client = vim.lsp.get_client_by_id(event.data.client_id)
-          if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
+          if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
             local highlight_augroup = vim.api.nvim_create_augroup('kickstart-lsp-highlight', { clear = false })
             vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
               buffer = event.buf,
@@ -206,7 +206,7 @@ require('lazy').setup({
           -- code, if the language server you are using supports them
           --
           -- This may be unwanted, since they displace some of your code
-          if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
+          if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
             vim.lsp.inlay_hint.enable(true, { bufnr = event.buf })
             map('<leader>th', function()
               vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
@@ -214,7 +214,7 @@ require('lazy').setup({
           end
 
           -- Refresh and run code lenses (inline actionable annotations like "Run Test")
-          if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_codeLens) then
+          if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_codeLens) then
             map('<leader>cl', vim.lsp.codelens.run, '[C]ode [L]ens Run')
             map('<leader>cL', vim.lsp.codelens.refresh, '[C]ode [L]ens Refresh')
 
@@ -239,6 +239,26 @@ require('lazy').setup({
       --
       --  Add any additional override configuration in the following tables. They will be passed to
       --  the `settings` field of the server config. You must look up that documentation yourself.
+      vim.lsp.commands['rubyLsp.runTestInTerminal'] = function(command)
+        local args = command.arguments[1]
+        vim.cmd('split | terminal ' .. args.command)
+      end
+      vim.lsp.commands['rubyLsp.runTest'] = function(command)
+        local args = command.arguments[1]
+        vim.fn.jobstart(args.command, {
+          stdout_buffered = true,
+          on_stdout = function(_, data)
+            if data then
+              vim.notify(table.concat(data, '\n'), vim.log.levels.INFO)
+            end
+          end,
+          on_exit = function(_, code)
+            local level = code == 0 and vim.log.levels.INFO or vim.log.levels.ERROR
+            vim.notify('Test exited with code ' .. code, level)
+          end,
+        })
+      end
+
       local servers = {
         -- clangd = {},
         -- gopls = {},
@@ -365,6 +385,7 @@ require('lazy').setup({
   {
     -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
+    branch = 'main',
     dependencies = {
       'nvim-treesitter/nvim-treesitter-textobjects',
     },
