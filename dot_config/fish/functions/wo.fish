@@ -1,7 +1,7 @@
 #! /usr/bin/env fish
 
 function play-file
-  if test $argv[1] = ""
+  if test "$argv[1]" = ""
     return
   end
 
