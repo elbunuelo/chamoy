@@ -26,7 +26,7 @@ Auxiliary/documentation files live **outside** the project repo, in a shared doc
 ~/Projects/claude/projects/<project_name>/
 ```
 
-`<project_name>` = last segment of the project's working directory (e.g., `/Users/me/Projects/aha-app` → `aha-app`).
+`<project_name>` = last segment of the project's working directory (e.g., `/Users/me/Projects/aha-app` → `aha-app`). If the last segment has a number appended to it, use the name without the number (e.g., `/Users/me/Projects/aha-app2` → `aha-app`).
 
 **Resolve the docs dir at the start of every session:**
 ```bash
